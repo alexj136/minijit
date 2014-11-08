@@ -6,7 +6,7 @@ GNU/Linux.
 # Language Syntax
 
 - PROG ::= main(ARGS) { COMM } FUNC
-- FUNC ::= NAME(ARGS) { COMM } | ε
+- FUNC ::= NAME(ARGS) { COMM } FUNC | ε
 - COMM ::= while EXPR do { COMM } | NAME := EXPR | COMM; COMM | return EXPR
 - EXPR ::= INT | EXPR + EXPR | EXPR - EXPR | EXPR * EXPR | NAME(ARGS) | NAME
 - ARGS ::= NAME ARGSCONT | ε
