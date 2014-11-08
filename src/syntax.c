@@ -32,3 +32,35 @@ Comm *Return_init(Expr *expr) {
     retur->expr = expr;
     return retur;
 }
+
+Expr *Int_init(int value) {
+    Expr *eint = challoc(sizeof(Expr));
+    eint->type = exprInt;
+    eint->value = value;
+    return eint;
+}
+
+Expr *Add_init(Expr *lhs, Expr *rhs) {
+    Expr *add = challoc(sizeof(Expr));
+    add->type = exprAdd;
+    add->expr1 = lhs;
+    add->expr2 = rhs;
+    return add;
+}
+
+Expr *Sub_init(Expr *lhs, Expr *rhs) {
+    Expr *sub = challoc(sizeof(Expr));
+    sub->type = exprSub;
+    sub->expr1 = lhs;
+    sub->expr2 = rhs;
+    return sub;
+}
+
+Expr *Call_init(int name, int num_args, Expr **args) {
+    Expr *call = challoc(sizeof(Expr));
+    call->type = exprCall;
+    call->name = name;
+    call->num_args = num_args;
+    call->args = args;
+    return call;
+}

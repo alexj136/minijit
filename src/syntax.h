@@ -61,7 +61,7 @@ struct Comm {
  * Expressions
  */
 
-typedef enum { exprInt, exprAdd, exprSub, exprMul, exprCall } ExprType;
+typedef enum { exprInt, exprAdd, exprSub, exprCall } ExprType;
 
 typedef struct Expr Expr;
 struct Expr {
@@ -71,6 +71,7 @@ struct Expr {
     struct Expr *expr2;
     int name;
     int num_args;
+    struct Expr **args;
 };
 
 Comm *While_init(Expr *guard, Comm* body);

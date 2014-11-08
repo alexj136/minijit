@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <malloc.h>
 #include "util.h"
 
 void *challoc(int size) {

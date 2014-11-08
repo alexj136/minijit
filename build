@@ -1,0 +1,25 @@
+#!/bin/sh
+
+case $@ in
+
+    # Do the build operation if no arguments are supplied
+    "")         echo "Building..."
+                mkdir -p ./bin/
+                gcc -Wall -g -c ./src/syntax.c -o ./bin/syntax.o
+                gcc -Wall -g -c ./src/util.c -o ./bin/util.o
+                echo "Done." ;;
+
+    # Clean the build if the argument was "clean"
+    "clean")    echo "Cleaning build..."
+                rm -r ./bin/
+                echo "Done." ;;
+
+    # If the arguments were anything else, print an error message and exit with
+    # error code 1
+    *)          echo "Invalid arguments"
+                exit 1 ;;
+
+esac
+
+# If we drop out of the case then the script was successful so exit with 0
+exit 0
