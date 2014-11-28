@@ -157,7 +157,7 @@ void Expr_free(Expr *expr) {
             Expr_free(Call_arg(expr, idx));
         }
     }
-    if(Expr_isVar(expr)) {
+    else if(Expr_isVar(expr)) {
         // Nothing to do
     }
     else {

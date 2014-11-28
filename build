@@ -7,6 +7,8 @@ case $@ in
                 mkdir -p ./bin/
                 gcc -Wall -g -c ./src/syntax.c -o ./bin/syntax.o
                 gcc -Wall -g -c ./src/util.c -o ./bin/util.o
+                gcc -Wall -g ./src/main.c ./bin/util.o ./bin/syntax.o \
+                        -o ./bin/main
                 echo "Done." ;;
 
     # Clean the build if the argument was "clean"
