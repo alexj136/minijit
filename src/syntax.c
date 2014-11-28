@@ -14,6 +14,15 @@ Prog *Prog_init(int num_funcs, Func **funcs) {
     return prog;
 }
 
+void Prog_print(Prog *prog, int indent) {
+    put_indent(indent);
+    printf("PROG: FUNCS=%d:\n", Prog_num_funcs(prog));
+    int idx;
+    for(idx = 0; idx < Prog_num_funcs(prog); idx++) {
+        Func_print(Prog_func(prog, idx), indent + 1);
+    }
+}
+
 void Prog_free(Prog *prog) {
     int idx;
     for(idx = 0; idx < Prog_num_funcs(prog); idx++) {
@@ -32,6 +41,12 @@ Func *Func_init(int name, int num_args, Comm *body) {
     func->num_args = num_args;
     func->body = body;
     return func;
+}
+
+void Func_print(Func *func, int indent) {
+    put_indent(indent);
+    printf("FUNC: NO=%d, ARGC=%d:\n", Func_name(func), Func_num_args(func));
+    Comm_print(Func_body(func), indent + 1);
 }
 
 void Func_free(Func *func) {
@@ -72,6 +87,32 @@ Comm *Return_init(Expr *expr) {
     retur->type = commReturn;
     Return_expr(retur) = expr;
     return retur;
+}
+
+void Comm_print(Comm *comm, int indent) {
+    put_indent(indent);
+    if(Comm_isWhile(comm)) {
+        puts("WHILE:");
+        Expr_print(While_guard(comm), indent + 1);
+        Comm_print(While_body(comm), indent + 1);
+    }
+    else if(Comm_isAssign(comm)) {
+        printf("ASSIGN: ID=%d:\n", Assign_name(comm));
+        Expr_print(Assign_expr(comm), indent + 1);
+    }
+    else if(Comm_isComp(comm)) {
+        puts("COMPOSITION:");
+        Comm_print(Comp_fst(comm), indent + 1);
+        Comm_print(Comp_snd(comm), indent + 1);
+    }
+    else if(Comm_isReturn(comm)) {
+        puts("RETURN:");
+        Expr_print(Return_expr(comm), indent + 1);
+    }
+    else {
+        puts("syntax.c/Comm_print(): Comm type not recognised");
+        exit(EXIT_FAILURE);
+    }
 }
 
 void Comm_free(Comm *comm) {
@@ -137,6 +178,37 @@ Expr *Var_init(int name) {
     var->type = exprVar;
     Var_name(var) = name;
     return var;
+}
+
+void Expr_print(Expr *expr, int indent) {
+    put_indent(indent);
+    if(Expr_isInt(expr)) {
+        printf("LITERAL: VALUE=%d\n", Int_value(expr));
+    }
+    else if(Expr_isAdd(expr)) {
+        puts("ADDITION:");
+        Expr_print(Add_lhs(expr), indent + 1);
+        Expr_print(Add_rhs(expr), indent + 1);
+    }
+    else if(Expr_isSub(expr)) {
+        puts("SUBTRACTION:");
+        Expr_print(Sub_lhs(expr), indent + 1);
+        Expr_print(Sub_rhs(expr), indent + 1);
+    }
+    else if(Expr_isCall(expr)) {
+        printf("CALL: ID=%d, ARGC=%d:\n", Call_name(expr), Call_num_args(expr));
+        int idx;
+        for(idx = 0; idx < Call_num_args(expr); idx++) {
+            Expr_print(Call_arg(expr, idx), indent + 1);
+        }
+    }
+    else if(Expr_isVar(expr)) {
+        printf("VARIABLE: ID=%d\n", Var_name(expr));
+    }
+    else {
+        puts("syntax.c/Expr_free(): Expr type not recognised");
+        exit(EXIT_FAILURE);
+    }
 }
 
 void Expr_free(Expr *expr) {
