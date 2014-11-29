@@ -6,15 +6,15 @@ int main(int argc, char *argv[]) {
 
     // f(a, b) { return f(10, 10); }
 
-    Expr **args = challoc(sizeof(Expr) * 2);
-    *args = Int_init(10);
-    *(args + sizeof(Expr)) = Int_init(10);
-    Expr_free(*args);
-    Expr_free(*(args + sizeof(Expr)));
-    free(args);
+    Expr **args = challoc(sizeof(Expr*) * 2);
+    Expr *call = Call_init(0, 2, args);
+    Call_arg(call, 0) = Int_init(10);
+    Call_arg(call, 1) = Int_init(11);
+    Expr_print(*args, 0);
+    Expr_print(*(args + sizeof(Expr*)), 0);
 
-    Func **funcs = challoc(sizeof(Func));
-    *funcs = Func_init(0, 2, Return_init(Call_init(0, 2, args)));
+    Func **funcs = challoc(sizeof(Func*));
+    *funcs = Func_init(0, 2, Return_init(call));
     Prog *prog = Prog_init(1, funcs);
 
     Prog_print(prog, 0);

@@ -6,13 +6,14 @@ MAIN    = ./main
 
 all: $(MAIN)
 
-clean:
-	@rm -rf ./bin/
-	@rm -f ./main
-
 $(MAIN): $(addprefix $(BINDIR)/, $(MODULES:=.o))
 	$(GCC) -o $@ $^
 
-$(BINDIR)/%.o: $(SRCDIR)/%.c
+.PHONY: ./src/main.h
+$(BINDIR)/%.o: $(SRCDIR)/%.c $(SRCDIR)/%.h
 	@mkdir -p ./bin/
 	$(GCC) -c -o $@ $<
+
+.PHONY: clean
+clean:
+	@rm -rf ./main ./bin/
