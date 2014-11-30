@@ -206,7 +206,7 @@ void Expr_print(Expr *expr, int indent) {
         printf("VARIABLE: ID=%d\n", Var_name(expr));
     }
     else {
-        puts("syntax.c/Expr_free(): Expr type not recognised");
+        puts("syntax.c/Expr_print(): Expr type not recognised");
         exit(EXIT_FAILURE);
     }
 }

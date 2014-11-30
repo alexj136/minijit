@@ -10,7 +10,7 @@
  */
 
 #define Prog_num_funcs(prog) prog->num_funcs
-#define Prog_func(prog, num) *((prog->funcs) + (num * sizeof(Func*)))
+#define Prog_func(prog, num) prog->funcs[num]
 
 typedef struct Prog Prog;
 struct Prog {
@@ -85,7 +85,7 @@ struct Comm {
 #define Call_name(call) call->name
 #define Call_num_args(call) call->num_args
 #define Call_args(call) call->args
-#define Call_arg(call, num) *((call->args) + (num * sizeof(Expr*)))
+#define Call_arg(call, num) call->args[num]
 
 #define Var_name(var) var->name
 
