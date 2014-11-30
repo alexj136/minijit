@@ -1,3 +1,4 @@
 *.swp
 bin/*
 main
+src/lexer.c

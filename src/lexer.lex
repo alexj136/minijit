@@ -2,6 +2,7 @@
 
 %{
 
+#include <string.h>
 #include "lexer.h"
 #include "util.h"
 
@@ -26,17 +27,32 @@ space [\n\r\ \t\b\012]
 
 %%
 
-"("             { return Token_init(tokenOpenBr, yytext, yylineno); }
-")"             { return Token_init(tokenClosBr, yytext, yylineno); }
-"{"             { return Token_init(tokenOpenCr, yytext, yylineno); }
-"}"             { return Token_init(tokenClosCr, yytext, yylineno); }
-","             { return Token_init(tokenComma , yytext, yylineno); }
-"while"         { return Token_init(tokenWhile , yytext, yylineno); }
-":="            { return Token_init(tokenAssign, yytext, yylineno); }
-";"             { return Token_init(tokenSemi  , yytext, yylineno); }
-"return"        { return Token_init(tokenReturn, yytext, yylineno); }
-"+"             { return Token_init(tokenAdd   , yytext, yylineno); }
-"-"             { return Token_init(tokenSub   , yytext, yylineno); }
-{int_const}     { return Token_init(tokenInt   , yytext, yylineno); }
-{name_const}    { return Token_init(tokenName  , yytext, yylineno); }
-.               { return Token_init(error      , yytext, yylineno); }
+"("             { return Token_init(tokenOpenBr, strdup(yytext), yylineno); }
+")"             { return Token_init(tokenClosBr, strdup(yytext), yylineno); }
+"{"             { return Token_init(tokenOpenCr, strdup(yytext), yylineno); }
+"}"             { return Token_init(tokenClosCr, strdup(yytext), yylineno); }
+","             { return Token_init(tokenComma , strdup(yytext), yylineno); }
+"while"         { return Token_init(tokenWhile , strdup(yytext), yylineno); }
+":="            { return Token_init(tokenAssign, strdup(yytext), yylineno); }
+";"             { return Token_init(tokenSemi  , strdup(yytext), yylineno); }
+"return"        { return Token_init(tokenReturn, strdup(yytext), yylineno); }
+"+"             { return Token_init(tokenAdd   , strdup(yytext), yylineno); }
+"-"             { return Token_init(tokenSub   , strdup(yytext), yylineno); }
+{int_const}     { return Token_init(tokenInt   , strdup(yytext), yylineno); }
+{name_const}    { return Token_init(tokenName  , strdup(yytext), yylineno); }
+.               { return Token_init(error      , strdup(yytext), yylineno); }
+%%
+
+int yywrap() { return 1; }
+
+int main(int argc, char *argv[]) {
+    if(argc < 2) { puts("No arguments provided."); }
+	FILE *file = fopen(argv[1], "r");
+	if (!file) {
+        printf("Could not open file: '%s'.", argv[1]);
+		return -1;
+	}
+	yyin = file;
+	yylex();
+    return 0;
+}

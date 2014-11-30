@@ -1,7 +1,7 @@
 GCC     = gcc -Wall -g
 SRCDIR  = ./src
 BINDIR  = ./bin
-MODULES = main util syntax
+MODULES = main util syntax lexer
 MAIN    = ./main
 
 all: $(MAIN)
@@ -14,6 +14,9 @@ $(BINDIR)/%.o: $(SRCDIR)/%.c $(SRCDIR)/%.h
 	@mkdir -p ./bin/
 	$(GCC) -c -o $@ $<
 
+src/lexer.c: src/lexer.lex
+	flex -o $@ $^
+
 .PHONY: clean
 clean:
-	@rm -rf ./main ./bin/
+	@rm -rf ./main ./bin/ ./src/lexer.c
