@@ -28,6 +28,7 @@ void Prog_free(Prog *prog) {
     for(idx = 0; idx < Prog_num_funcs(prog); idx++) {
         Func_free(Prog_func(prog, idx));
     }
+    free(Prog_funcs(prog));
     free(prog);
 }
 
@@ -228,6 +229,7 @@ void Expr_free(Expr *expr) {
         for(idx = 0; idx < Call_num_args(expr); idx++) {
             Expr_free(Call_arg(expr, idx));
         }
+        free(Call_args(expr));
     }
     else if(Expr_isVar(expr)) {
         // Nothing to do

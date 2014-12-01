@@ -22,7 +22,7 @@
 %}
 
 int_const [0-9]+
-name_const [a-zA-Z_][a-zA-Z0-9_]+
+name_const [a-zA-Z_][a-zA-Z0-9_]*
 space [\n\r\ \t\b\012]
 
 %%

@@ -10,6 +10,7 @@
  */
 
 #define Prog_num_funcs(prog) prog->num_funcs
+#define Prog_funcs(prog) prog->funcs
 #define Prog_func(prog, num) prog->funcs[num]
 
 typedef struct Prog Prog;

@@ -1,0 +1,9 @@
+main(a) {
+    return fib(a)
+}
+
+fib(a) {
+    while a - 1 do { return fib(a - 1) + fib(a - 2) };
+    while a do { return 0 };
+    return 1
+}
