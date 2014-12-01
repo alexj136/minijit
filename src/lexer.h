@@ -2,10 +2,10 @@
 #define lexer
 
 typedef enum
-    { tokenOpenBr
-    , tokenClosBr
-    , tokenOpenCr
-    , tokenClosCr
+    { tokenLParen
+    , tokenRParen
+    , tokenLCurly
+    , tokenRCurly
     , tokenComma
     , tokenWhile
     , tokenAssign
@@ -30,7 +30,6 @@ struct Token {
 };
 
 Token *Token_init(TokenType type, char *str, int line);
-Token *get_next_Token();
 void Token_print(Token *token);
 void Token_free(Token *token);
 
