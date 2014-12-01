@@ -15,6 +15,7 @@ typedef enum
     , tokenSub
     , tokenName
     , tokenInt
+    , endOfInput
     , error
     } TokenType;
 
@@ -32,5 +33,6 @@ struct Token {
 Token *Token_init(TokenType type, char *str, int line);
 void Token_print(Token *token);
 void Token_free(Token *token);
+Token **lex_file(char *filename);
 
 #endif // lexer

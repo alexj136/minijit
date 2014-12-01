@@ -41,10 +41,14 @@ space [\n\r\ \t\b\012]
 "-"             { MAKE_TOKEN( tokenSub    ); }
 {int_const}     { MAKE_TOKEN( tokenInt    ); }
 {name_const}    { MAKE_TOKEN( tokenName   ); }
+<<EOF>>         { MAKE_TOKEN( endOfInput  ); }
 .               { MAKE_TOKEN( error       ); }
 
 %%
 
+/*
+ * Initialise a new Token from the given TokenType, text and line number.
+ */
 Token *Token_init(TokenType type, char *str, int line) {
     Token *token = challoc(sizeof(Token));
     Token_type(token) = type;
@@ -53,6 +57,9 @@ Token *Token_init(TokenType type, char *str, int line) {
     return token;
 }
 
+/*
+ * Obtain a string description of the given TokenType.
+ */
 char *TokenType_str(TokenType ty) {
     switch(ty) {
         case tokenLParen : return "tokenLParen" ;
@@ -68,40 +75,75 @@ char *TokenType_str(TokenType ty) {
         case tokenSub    : return "tokenSub"    ;
         case tokenName   : return "tokenName"   ;
         case tokenInt    : return "tokenInt"    ;
+        case endOfInput  : return "endOfInput"  ;
         case error       : return "error"       ;
     }
     puts("lexer.lex/TokenType_str(): Switch did not catch on any token type.");
     exit(EXIT_FAILURE);
 }
 
+/*
+ * Print a description of the given Token to stdout.
+ */
 void Token_print(Token *token) {
     printf("TOKEN: type=%s, text='%s', lineNo=%d.\n",
             TokenType_str(Token_type(token)),
             Token_str(token),
             Token_line(token));
+    return;
 }
 
+/*
+ * Deallocate the given Token and its contained text.
+ */
 void Token_free(Token *token) {
     free(Token_str(token));
     free(token);
+    return;
 }
 
-int main(int argc, char *argv[]) {
-    if(argc < 2) {
-        puts("No arguments provided.");
-        exit(EXIT_FAILURE);
-    }
-	FILE *file = fopen(argv[1], "r");
+/*
+ * Perform lexical analysis on the given file. Return a pointer to an array of
+ * Tokens. The end of the token array is indicated with the endOfInput token.
+ */
+Token **lex_file(char *filename) {
+
+    // Try to open the file
+	FILE *file = fopen(filename, "r");
+
+    // If it can't be opened, quit with an appropriate error message
 	if (!file) {
-        printf("Could not open file: '%s'.\n", argv[1]);
+        printf("lexer.lex/lef_file(): Could not open file: '%s'.\n", filename);
         exit(EXIT_FAILURE);
 	}
+
+    // Point yyin at the given file since it opened successfully
 	yyin = file;
-    Token *current = yylex();
-    while(current) {
-        Token_print(current);
-        Token_free(current);
-        current = yylex();
+
+    // Initialise the Token array, current index, and current length variables
+    int token_arr_len     = 1000;
+    int cur_token_arr_idx = 0;
+    Token **token_arr     = challoc(sizeof(Token *) * token_arr_len);
+
+    // Analyse the file
+    for( ; ; ) {
+
+        // If we're at the end of the Token array, double its length
+        if(cur_token_arr_idx >= token_arr_len) {
+            token_arr = chrealloc(token_arr, token_arr_len * 2);
+            token_arr_len *= 2;
+        }
+
+        // Put the next Token into the array
+        token_arr[cur_token_arr_idx] = yylex();
+
+        // Stop if the last token was an endOfInput
+        if(Token_type(token_arr[cur_token_arr_idx]) == endOfInput) { break; }
+
+        cur_token_arr_idx++;
     }
-    return 0;
+
+    // Close the file and return the array
+    fclose(file);
+    return token_arr;
 }

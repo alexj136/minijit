@@ -1,8 +1,10 @@
+#include <stdlib.h>
 #include <malloc.h>
 #include "util.h"
 #include "syntax.h"
+#include "lexer.h"
 
-int mai/*n*/(int argc, char *argv[]) {
+int main(int argc, char *argv[]) {
 
     // f(a, b) { return f(10, 10); }
     // g() { return 1; }
@@ -19,5 +21,25 @@ int mai/*n*/(int argc, char *argv[]) {
 
     Prog_print(prog, 0);
     Prog_free(prog);
+
+    puts("===================================================================");
+
+    // Lex a given file and print the results
+
+    if(argc < 2) {
+        puts("No arguments provided.");
+        exit(EXIT_FAILURE);
+    }
+
+	Token **tokens = lex_file(argv[1]);
+    int idx = 0;
+    while(Token_type(tokens[idx]) != endOfInput) {
+        Token_print(tokens[idx]);
+        Token_free(tokens[idx]);
+        idx++;
+    }
+    Token_free(tokens[idx]);
+    free(tokens);
+
     return 0;
 }
