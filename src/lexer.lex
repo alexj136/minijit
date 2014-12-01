@@ -17,7 +17,10 @@ Token *Token_init(TokenType type, char *str, int line) {
 }
 
 Token *get_next_Token() {
-    return Token_init(yylex(), strdup(yytext), yylineno);
+    TokenType ty = yylex();
+    char *text = strdup(yytext);
+    int lineno = yylineno;
+    return Token_init(ty, text, lineno);
 }
 
 char *TokenType_str(TokenType ty) {
