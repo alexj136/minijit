@@ -2,7 +2,7 @@
 #include "util.h"
 #include "syntax.h"
 
-int main(int argc, char *argv[]) {
+int mai/*n*/(int argc, char *argv[]) {
 
     // f(a, b) { return f(10, 10); }
     // g() { return 1; }
