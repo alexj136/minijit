@@ -103,6 +103,24 @@ void Token_free(Token *token) {
 }
 
 /*
+ * Free all Tokens in a Token array and free the array itself.
+ */
+void Token_arr_free(Token **tokens) {
+    int idx = 0;
+    // Free all tokens before the endOfInput Token
+    while(Token_type(tokens[idx]) != endOfInput) {
+        Token_free(tokens[idx]);
+        idx++;
+    }
+    // Free the endOfInput Token
+    Token_free(tokens[idx]);
+
+    // Free the array
+    free(tokens);
+    return;
+}
+
+/*
  * Perform lexical analysis on the given file. Return a pointer to an array of
  * Tokens. The end of the token array is indicated with the endOfInput token.
  */

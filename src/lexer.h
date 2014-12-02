@@ -33,6 +33,7 @@ struct Token {
 Token *Token_init(TokenType type, char *str, int line);
 void Token_print(Token *token);
 void Token_free(Token *token);
+void Token_arr_free(Token **tokens);
 Token **lex_file(char *filename);
 
 #endif // lexer

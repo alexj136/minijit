@@ -35,11 +35,8 @@ int main(int argc, char *argv[]) {
     int idx = 0;
     while(Token_type(tokens[idx]) != endOfInput) {
         Token_print(tokens[idx]);
-        Token_free(tokens[idx]);
         idx++;
     }
-    Token_free(tokens[idx]);
-    free(tokens);
-
+    Token_arr_free(tokens);
     return 0;
 }

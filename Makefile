@@ -14,7 +14,7 @@ $(BINDIR)/%.o: $(SRCDIR)/%.c $(SRCDIR)/%.h
 	@mkdir -p ./bin/
 	$(GCC) -c -o $@ $<
 
-src/lexer.c: src/lexer.lex
+src/lexer.c: src/lexer.l
 	flex -o $@ $^
 
 .PHONY: clean
