@@ -121,7 +121,7 @@ Token **lex_file(char *filename) {
 	yyin = file;
 
     // Initialise the Token array, current index, and current length variables
-    int token_arr_len     = 1000;
+    int token_arr_len     = 10;
     int cur_token_arr_idx = 0;
     Token **token_arr     = challoc(sizeof(Token *) * token_arr_len);
 
@@ -130,7 +130,8 @@ Token **lex_file(char *filename) {
 
         // If we're at the end of the Token array, double its length
         if(cur_token_arr_idx >= token_arr_len) {
-            token_arr = chrealloc(token_arr, token_arr_len * 2);
+            token_arr =
+                    chrealloc(token_arr, sizeof(Token *) * token_arr_len * 2);
             token_arr_len *= 2;
         }
 
