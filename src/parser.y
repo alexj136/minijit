@@ -1,42 +1,113 @@
 %{
 
+#include <stdio.h>
 #include <stdlib.h>
 #include "util.h"
 #include "syntax.h"
 #include "lexer.h"
 #include "parser.h"
 
+int yylex();
+void yyerror(const char *s);
+
+// The Token array from which parsing occurs
+Token **parser_tokens;
+
+// The current index into the Token array
+int parser_token_idx;
+
+// The result of the parse
+/*Prog*/Comm *result;
+
 %}
 
 %union {
-    Token token;
+    Token *token;
     Prog *prog;
     Func *func;
     Comm *comm;
     Expr *expr;
 }
 
-%token <token> LParen
-%token <token> RParen
-%token <token> LCurly
-%token <token> RCurly
-%token <token> Comma
-%token <token> While
-%token <token> Assign
-%token <token> Semi
-%token <token> Return
-%token <token> Add
-%token <token> Sub
-%token <token> Name
-%token <token> Int
+%token LParen 1
+%token RParen 2
+%token LCurly 3
+%token RCurly 4
+%token Comma  5
+%token While  6
+%token Do     7
+%token Assign 8
+%token Semi   9
+%token Return 10
+%token Add    11
+%token Sub    12
+%token Name   13
+%token Int    14
 
-%type <Expr> expr
+%type <comm> input
+/*%type <prog> prog
+%type <func> func*/
+%type <comm> comm
+%type <expr> expr
 
+/*
+%start prog
+*/
 %%
 
-expr: Int { $$ = Int_init(atoi(Token_str($1))); }
+input:  /*prog*/comm { result = $1; }
+/*
+prog:
+
+func:
+*/
+comm:   While expr Do LCurly comm RCurly { $$ = While_init($2, $5); }
+/*  |   Name Assign expr { $$ = Assign_init($1, $3); }*/
+    |   comm Semi comm { $$ = Comp_init($1, $3); }
+    |   Return expr { $$ = Return_init($2); }
+    ;
+
+/*EXPR ::= INT | EXPR + EXPR | EXPR - EXPR | EXPR * EXPR | NAME(ARGS) | NAME*/
+expr:   Int { $$ = Int_init(atoi(Token_str(yylval.token))); }
+    |   expr Add expr { $$ = Add_init($1, $3); }
+    |   expr Sub expr { $$ = Sub_init($1, $3); }
+/*  |   Name LParen args RParen { $$ = Call_init($1, $3); }*/
+/*  |   Name { $$ = Var_init($1); }*/
     ;
 
 %%
 
-int this_is_the_user_code_section() { return 0; }
+/*
+ * Prepare the parser. Takes an array of Tokes from which an AST [will|could] be
+ * parsed. This must be called prior to parsing.
+ */
+/*Prog*/Comm *parse(Token **tokens) {
+    parser_tokens = tokens;
+    parser_token_idx = -1;
+    yyparse();
+    return result;
+}
+
+/*
+ * This function should only be used by parser code. It moves the parser ahead
+ * to the next token.
+ */
+int yylex() {
+    parser_token_idx++;
+    yylval.token = parser_tokens[parser_token_idx];
+    if(Token_type(yylval.token) == endOfInput) {
+        return 0;
+    }
+    else {
+        return Token_type(yylval.token);
+    }
+}
+
+/*
+ * Indicate that an error occured, with a message.
+ */
+void yyerror(const char *s) {
+    printf("Parse error on input '%s', line %d: %s\n", Token_str(yylval.token),
+            Token_line(yylval.token), s);
+    exit(EXIT_FAILURE);
+}

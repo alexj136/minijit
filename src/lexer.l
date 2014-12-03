@@ -10,7 +10,7 @@
 
 #define YY_NO_INPUT
 
-#define YY_DECL Token *yylex()
+#define YY_DECL Token *next_token()
 
 #define MAKE_TOKEN(ty) \
     do { \
@@ -18,6 +18,9 @@
         int lineno = yylineno; \
         return Token_init(ty, text, lineno); \
     } while(0)
+
+Token *Token_init(TokenType type, char *str, int line);
+void Token_free(Token *token);
 
 %}
 
@@ -34,6 +37,7 @@ space [\n\r\ \t\b\012]
 "}"             { MAKE_TOKEN( tokenRCurly ); }
 ","             { MAKE_TOKEN( tokenComma  ); }
 "while"         { MAKE_TOKEN( tokenWhile  ); }
+"do"            { MAKE_TOKEN( tokenDo     ); }
 ":="            { MAKE_TOKEN( tokenAssign ); }
 ";"             { MAKE_TOKEN( tokenSemi   ); }
 "return"        { MAKE_TOKEN( tokenReturn ); }
@@ -68,6 +72,7 @@ char *TokenType_str(TokenType ty) {
         case tokenRCurly : return "tokenRCurly" ;
         case tokenComma  : return "tokenComma"  ;
         case tokenWhile  : return "tokenWhile"  ;
+        case tokenDo     : return "tokenDo"     ;
         case tokenAssign : return "tokenAssign" ;
         case tokenSemi   : return "tokenSemi"   ;
         case tokenReturn : return "tokenReturn" ;
@@ -154,7 +159,7 @@ Token **lex_file(char *filename) {
         }
 
         // Put the next Token into the array
-        token_arr[cur_token_arr_idx] = yylex();
+        token_arr[cur_token_arr_idx] = next_token();
 
         // Stop if the last token was an endOfInput
         if(Token_type(token_arr[cur_token_arr_idx]) == endOfInput) { break; }
@@ -165,4 +170,22 @@ Token **lex_file(char *filename) {
     // Close the file and return the array
     fclose(file);
     return token_arr;
+}
+
+/*
+ * Check if a Token array contains errors. Print error details if found. Return
+ * true if there are no errors, false if there are.
+ */
+bool verify_lex(Token **tokens) {
+    int idx = 0;
+    bool no_errors = true;
+    while(Token_type(tokens[idx]) != endOfInput) {
+        if(Token_type(tokens[idx]) == error) {
+            no_errors = false;
+            printf("Lexical error on line %d: '%s'.\n", Token_line(tokens[idx]),
+                    Token_str(tokens[idx]));
+        }
+        idx++;
+    }
+    return no_errors;
 }
