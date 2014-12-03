@@ -2,3 +2,4 @@
 bin/*
 main
 src/lexer.c
+src/parser.c

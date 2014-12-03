@@ -1,6 +1,10 @@
 %{
 
+#include <stdlib.h>
 #include "util.h"
+#include "syntax.h"
+#include "lexer.h"
+#include "parser.h"
 
 %}
 
@@ -12,10 +16,10 @@
     Expr *expr;
 }
 
-%token <token> OpenBr
-%token <token> ClosBr
-%token <token> OpenCr
-%token <token> ClosCr
+%token <token> LParen
+%token <token> RParen
+%token <token> LCurly
+%token <token> RCurly
 %token <token> Comma
 %token <token> While
 %token <token> Assign
@@ -26,7 +30,12 @@
 %token <token> Name
 %token <token> Int
 
+%type <Expr> expr
+
 %%
+
+expr: Int { $$ = Int_init(atoi(Token_str($1))); }
+    ;
 
 %%
 
