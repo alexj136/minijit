@@ -19,6 +19,7 @@
         return Token_init(ty, text, lineno); \
     } while(0)
 
+DEFINE_VECTORABLE(Token)
 Token *Token_init(TokenType type, char *str, int line);
 void Token_free(Token *token);
 
@@ -108,28 +109,10 @@ void Token_free(Token *token) {
 }
 
 /*
- * Free all Tokens in a Token array and free the array itself.
+ * Perform lexical analysis on the given file. Return a pointer to a Vector of
+ * Tokens.
  */
-void Token_arr_free(Token **tokens) {
-    int idx = 0;
-    // Free all tokens before the endOfInput Token
-    while(Token_type(tokens[idx]) != endOfInput) {
-        Token_free(tokens[idx]);
-        idx++;
-    }
-    // Free the endOfInput Token
-    Token_free(tokens[idx]);
-
-    // Free the array
-    free(tokens);
-    return;
-}
-
-/*
- * Perform lexical analysis on the given file. Return a pointer to an array of
- * Tokens. The end of the token array is indicated with the endOfInput token.
- */
-Token **lex_file(char *filename) {
+TokenVector *lex_file(char *filename) {
 
     // Try to open the file
 	FILE *file = fopen(filename, "r");
@@ -143,49 +126,39 @@ Token **lex_file(char *filename) {
     // Point yyin at the given file since it opened successfully
 	yyin = file;
 
-    // Initialise the Token array, current index, and current length variables
-    int token_arr_len     = 10;
-    int cur_token_arr_idx = 0;
-    Token **token_arr     = challoc(sizeof(Token *) * token_arr_len);
+    // Initialise the Token Vector
+    TokenVector *tok_vec = TokenVector_init();
 
     // Analyse the file
     for( ; ; ) {
 
-        // If we're at the end of the Token array, double its length
-        if(cur_token_arr_idx >= token_arr_len) {
-            token_arr =
-                    chrealloc(token_arr, sizeof(Token *) * token_arr_len * 2);
-            token_arr_len *= 2;
-        }
-
-        // Put the next Token into the array
-        token_arr[cur_token_arr_idx] = next_token();
+        // Put the next Token into the Vector
+        TokenVector_append(tok_vec, next_token());
 
         // Stop if the last token was an endOfInput
-        if(Token_type(token_arr[cur_token_arr_idx]) == endOfInput) { break; }
-
-        cur_token_arr_idx++;
+        if(Token_type(TokenVector_get(tok_vec,
+                TokenVector_size(tok_vec) - 1)) == endOfInput) { break; }
     }
 
     // Close the file and return the array
     fclose(file);
-    return token_arr;
+    return tok_vec;
 }
 
 /*
  * Check if a Token array contains errors. Print error details if found. Return
  * true if there are no errors, false if there are.
  */
-bool verify_lex(Token **tokens) {
+bool verify_lex(TokenVector *tok_vec) {
     int idx = 0;
     bool no_errors = true;
-    while(Token_type(tokens[idx]) != endOfInput) {
-        if(Token_type(tokens[idx]) == error) {
+    for(idx = 0; idx < TokenVector_size(tok_vec); idx++) {
+        Token *current = TokenVector_get(tok_vec, idx);
+        if(Token_type(current) == error) {
             no_errors = false;
-            printf("Lexical error on line %d: '%s'.\n", Token_line(tokens[idx]),
-                    Token_str(tokens[idx]));
+            printf("Lexical error on line %d: '%s'.\n", Token_line(current),
+                    Token_str(current));
         }
-        idx++;
     }
     return no_errors;
 }

@@ -35,9 +35,11 @@ struct Token {
     int line;
 };
 
+FORWARD_DECLARE_VECTORABLE(Token)
+
 void Token_print(Token *token);
-void Token_arr_free(Token **tokens);
-Token **lex_file(char *filename);
-bool verify_lex(Token **tokens);
+void Token_free(Token *token);
+TokenVector *lex_file(char *filename);
+bool verify_lex(TokenVector *tok_vec);
 
 #endif // lexer

@@ -1,6 +1,6 @@
 #ifndef parser
 #define parser
 
-/*Prog*/Comm *parse(Token **tokens);
+/*Prog*/Comm *parse(TokenVector *tok_vec);
 
 #endif // parser

@@ -10,10 +10,10 @@
 int yylex();
 void yyerror(const char *s);
 
-// The Token array from which parsing occurs
-Token **parser_tokens;
+// The Token Vector from which parsing occurs
+TokenVector *parser_tokens;
 
-// The current index into the Token array
+// The current index into the Token Vector
 int parser_token_idx;
 
 // The result of the parse
@@ -81,8 +81,8 @@ expr:   Int { $$ = Int_init(atoi(Token_str(yylval.token))); }
  * Prepare the parser. Takes an array of Tokes from which an AST [will|could] be
  * parsed. This must be called prior to parsing.
  */
-/*Prog*/Comm *parse(Token **tokens) {
-    parser_tokens = tokens;
+/*Prog*/Comm *parse(TokenVector *tok_vec) {
+    parser_tokens = tok_vec;
     parser_token_idx = -1;
     yyparse();
     return result;
@@ -94,7 +94,7 @@ expr:   Int { $$ = Int_init(atoi(Token_str(yylval.token))); }
  */
 int yylex() {
     parser_token_idx++;
-    yylval.token = parser_tokens[parser_token_idx];
+    yylval.token = TokenVector_get(parser_tokens, parser_token_idx);
     if(Token_type(yylval.token) == endOfInput) {
         return 0;
     }

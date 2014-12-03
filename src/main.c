@@ -14,10 +14,10 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-	Token **tokens = lex_file(argv[1]);
+	TokenVector *tokens = lex_file(argv[1]);
     bool safe = verify_lex(tokens);
     if(!safe) {
-        Token_arr_free(tokens);
+        TokenVector_free_elems(tokens);
         puts("Lexical error(s) found. Exiting.");
         exit(EXIT_FAILURE);
     }
@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
     Comm *comm = parse(tokens);
     Comm_print(comm, 0);
 
-    Token_arr_free(tokens);
+    TokenVector_free_elems(tokens);
     Comm_free(comm);
 
     return 0;
