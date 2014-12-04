@@ -1,6 +1,25 @@
 #ifndef util
 #define util
 
+/*
+ * VECTOR MACROS
+ * The following macros define 'generic' Vector functions, over struct types,
+ * declared in header files, in the following way:
+ *     typedef struct MyStruct MyStruct; struct Mystruct { ... };
+ * The Vectors are able to store pointers to structs of types declared in this
+ * way only. The type must also have an associated function of the form:
+ *     MyStruct_free(MyStruct *ms) { ... }
+ * that frees structs of this type, and is forward-declared in a header file.
+ * To use these macros, include e.g.
+ *     FORWARD_DECLARE_VECTORABLE(MyStruct)
+ * in the header file where the type is declared, and
+ *     DEFINE_VECTORABLE(MyStruct)
+ * in the file where the freeing function is declared.
+ *
+ * The defined Vector type supports log(n) time insertion and constant time
+ * access. Deletion is not yet supported.
+ */
+
 #define VECTOR_INITIAL_ARR_SIZE 10
 
 #define FORWARD_DECLARE_VECTORABLE(ty) \

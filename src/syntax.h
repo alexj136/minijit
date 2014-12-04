@@ -9,14 +9,13 @@
  * Programs
  */
 
-#define Prog_num_funcs(prog) prog->num_funcs
+#define Prog_num_funcs(prog) FuncVector_size(prog->funcs)
 #define Prog_funcs(prog) prog->funcs
-#define Prog_func(prog, num) prog->funcs[num]
+#define Prog_func(prog, num) FuncVector_get(prog->funcs, num)
 
 typedef struct Prog Prog;
 struct Prog {
-    int num_funcs;
-    struct Func **funcs;
+    struct FuncVector *funcs;
 };
 
 /*
@@ -33,6 +32,8 @@ struct Func {
     int num_args;
     struct Comm *body;
 };
+
+FORWARD_DECLARE_VECTORABLE(Func)
 
 /*
  * Commands
@@ -107,7 +108,7 @@ struct Expr {
  * Syntax functions
  */
 
-Prog *Prog_init(int num_funcs, Func **funcs);
+Prog *Prog_init(FuncVector *funcs);
 void Prog_print(Prog *prog, int indent);
 void Prog_free(Prog *prog);
 

@@ -7,9 +7,8 @@
  * Programs
  */
 
-Prog *Prog_init(int num_funcs, Func **funcs) {
+Prog *Prog_init(FuncVector *funcs) {
     Prog *prog = challoc(sizeof(Prog));
-    prog->num_funcs = num_funcs;
     prog->funcs = funcs;
     return prog;
 }
@@ -24,17 +23,15 @@ void Prog_print(Prog *prog, int indent) {
 }
 
 void Prog_free(Prog *prog) {
-    int idx;
-    for(idx = 0; idx < Prog_num_funcs(prog); idx++) {
-        Func_free(Prog_func(prog, idx));
-    }
-    free(Prog_funcs(prog));
+    FuncVector_free_elems(prog->funcs);
     free(prog);
 }
 
 /*
  * Functions
  */
+
+DEFINE_VECTORABLE(Func)
 
 Func *Func_init(int name, int num_args, Comm *body) {
     Func *func = challoc(sizeof(Func));
