@@ -139,6 +139,8 @@ void Comm_free(Comm *comm) {
  * Expressions
  */
 
+DEFINE_VECTORABLE(Expr)
+
 Expr *Int_init(int value) {
     Expr *eint = challoc(sizeof(Expr));
     eint->type = exprInt;
@@ -162,11 +164,10 @@ Expr *Sub_init(Expr *lhs, Expr *rhs) {
     return sub;
 }
 
-Expr *Call_init(int name, int num_args, Expr **args) {
+Expr *Call_init(int name, ExprVector *args) {
     Expr *call = challoc(sizeof(Expr));
     call->type = exprCall;
     Call_name(call) = name;
-    Call_num_args(call) = num_args;
     Call_args(call) = args;
     return call;
 }
@@ -222,11 +223,7 @@ void Expr_free(Expr *expr) {
         Expr_free(Sub_rhs(expr));
     }
     else if(Expr_isCall(expr)) {
-        int idx;
-        for(idx = 0; idx < Call_num_args(expr); idx++) {
-            Expr_free(Call_arg(expr, idx));
-        }
-        free(Call_args(expr));
+        ExprVector_free_elems(Call_args(expr));
     }
     else if(Expr_isVar(expr)) {
         // Nothing to do

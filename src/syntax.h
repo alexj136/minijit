@@ -85,9 +85,9 @@ struct Comm {
 #define Sub_rhs(sub) sub->expr2
 
 #define Call_name(call) call->name
-#define Call_num_args(call) call->num_args
+#define Call_num_args(call) ExprVector_size(call->args)
 #define Call_args(call) call->args
-#define Call_arg(call, num) call->args[num]
+#define Call_arg(call, num) ExprVector_get(call->args, num)
 
 #define Var_name(var) var->name
 
@@ -100,9 +100,10 @@ struct Expr {
     struct Expr *expr1;
     struct Expr *expr2;
     int name;
-    int num_args;
-    struct Expr **args;
+    struct ExprVector *args;
 };
+
+FORWARD_DECLARE_VECTORABLE(Expr);
 
 /*
  * Syntax functions
@@ -126,7 +127,7 @@ void Comm_free(Comm *comm);
 Expr *Int_init(int value);
 Expr *Add_init(Expr *lhs, Expr *rhs);
 Expr *Sub_init(Expr *lhs, Expr *rhs);
-Expr *Call_init(int name, int num_args, Expr **args);
+Expr *Call_init(int name, ExprVector *args);
 Expr *Var_init(int name);
 void Expr_print(Expr *expr, int indent);
 void Expr_free(Expr *expr);
