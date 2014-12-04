@@ -5,6 +5,10 @@
 #ifndef lexer
 #define lexer
 
+/*
+ * Token datatype definitions
+ */
+
 typedef enum
     { tokenLParen = 1
     , tokenRParen = 2
@@ -41,5 +45,21 @@ void Token_print(Token *token);
 void Token_free(Token *token);
 TokenVector *lex_file(char *filename);
 bool verify_lex(TokenVector *tok_vec);
+
+/*
+ * StringIntPair datatype definitions. Used to store mappings between string
+ * identifier names and the integer name representation used in ASTs.
+ */
+
+#define StringIntPair_str(sip) sip->sval
+#define StringIntPair_int(sip) sip->ival
+
+typedef struct StringIntPair StringIntPair;
+struct StringIntPair {
+    char *sval;
+    int ival;
+};
+
+FORWARD_DECLARE_VECTORABLE(StringIntPair)
 
 #endif // lexer

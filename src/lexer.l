@@ -20,8 +20,18 @@
     } while(0)
 
 DEFINE_VECTORABLE(Token)
+
 Token *Token_init(TokenType type, char *str, int line);
 void Token_free(Token *token);
+
+StringIntPair *StringIntPair_init(char *sval, int ival);
+void StringIntPair_free(StringIntPair *sip);
+
+DEFINE_VECTORABLE(StringIntPair)
+
+// Stores a mapping from string identifiers to the integer name representation
+// used in ASTs
+StringIntPairVector *name_map;
 
 %}
 
@@ -109,6 +119,25 @@ void Token_free(Token *token) {
 }
 
 /*
+ * Create a new StringIntPair and return a pointer to it.
+ */
+StringIntPair *StringIntPair_init(char *sval, int ival) {
+    StringIntPair *sip = challoc(sizeof(StringIntPair));
+    StringIntPair_str(sip) = sval;
+    StringIntPair_int(sip) = ival;
+    return sip;
+}
+
+/*
+ * Free a StringIntPair. Frees the contained string.
+ */
+void StringIntPair_free(StringIntPair *sip) {
+    free(StringIntPair_str(sip));
+    free(sip);
+    return;
+}
+
+/*
  * Perform lexical analysis on the given file. Return a pointer to a Vector of
  * Tokens.
  */
@@ -150,15 +179,21 @@ TokenVector *lex_file(char *filename) {
  * true if there are no errors, false if there are.
  */
 bool verify_lex(TokenVector *tok_vec) {
-    int idx = 0;
-    bool no_errors = true;
+    bool no_errors = true; // Is the token list error-free?
+
+    // For each token...
+    int idx;
     for(idx = 0; idx < TokenVector_size(tok_vec); idx++) {
         Token *current = TokenVector_get(tok_vec, idx);
+
+        // If the token is an error, print details and set no_errors to false
         if(Token_type(current) == error) {
             no_errors = false;
             printf("Lexical error on line %d: '%s'.\n", Token_line(current),
                     Token_str(current));
         }
     }
+
+    // True if no errors were found, false if errors were found
     return no_errors;
 }
