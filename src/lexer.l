@@ -16,13 +16,18 @@
     do { \
         char *text = strdup(yytext); \
         int lineno = yylineno; \
-        return Token_init(ty, text, lineno); \
+        if(ty == tokenName) { \
+            \
+        } \
+        else { \
+            return Token_init(ty, text, lineno); \
+        } \
     } while(0)
-
-DEFINE_VECTORABLE(Token)
 
 Token *Token_init(TokenType type, char *str, int line);
 void Token_free(Token *token);
+
+DEFINE_VECTORABLE(Token)
 
 StringIntPair *StringIntPair_init(char *sval, int ival);
 void StringIntPair_free(StringIntPair *sip);
@@ -30,8 +35,24 @@ void StringIntPair_free(StringIntPair *sip);
 DEFINE_VECTORABLE(StringIntPair)
 
 // Stores a mapping from string identifiers to the integer name representation
-// used in ASTs
+// used in ASTs. Initialised as empty by lex_file().
 StringIntPairVector *name_map;
+
+// Stores the next integer to be used as a representation of a string name.
+// Initialised to 0 by lex_file().
+int nextIntName;
+
+/*
+ * Retreive an integer to represent the given string name. If the string has not
+ * been seen before, use the nextIntName (and increment nextIntName afterwards),
+ * associating that integer with the given name in name_map. If the string has
+ * been seen, just return the integer already associated with it.
+ */
+int leaseIntName(char *string_name) {
+    puts("leaseIntName not yet implemented!");
+    exit(EXIT_FAILURE);
+    return 0;
+}
 
 %}
 
