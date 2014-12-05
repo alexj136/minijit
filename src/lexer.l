@@ -221,6 +221,23 @@ TokenVector *lex_file(char *filename) {
                 TokenVector_size(tok_vec) - 1)) == endOfInput) { break; }
     }
 
+    // Create a flipped name map - Vector indices map to string names
+    charVector *flipped_name_map = charVector_init();
+    int idx;
+    for(idx = 0; idx < StringIntPairVector_size(name_map); idx++) {
+        int jdx = 0;
+        while(jdx < StringIntPairVector_size(name_map)) {
+            if(StringIntPair_int(StringIntPairVector_get(
+                    name_map, jdx)) == idx) {
+
+                break;
+            }
+            jdx++;
+        }
+        charVector_append(flipped_name_map, StringIntPair_str(
+                StringIntPairVector_get(name_map, jdx)));
+    }
+
     // Close the file and return the array
     fclose(file);
     return tok_vec;
