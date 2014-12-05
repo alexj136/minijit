@@ -68,7 +68,7 @@ comm:   While expr Do LCurly comm RCurly { $$ = While_init($2, $5); }
     ;
 
 /*EXPR ::= INT | EXPR + EXPR | EXPR - EXPR | EXPR * EXPR | NAME(ARGS) | NAME*/
-expr:   Int { $$ = Int_init(atoi(Token_str(yylval.token))); }
+expr:   Int { $$ = Int_init(Token_name(yylval.token)); }
     |   expr Add expr { $$ = Add_init($1, $3); }
     |   expr Sub expr { $$ = Sub_init($1, $3); }
 /*  |   Name LParen args RParen { $$ = Call_init($1, $3); }*/

@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <malloc.h>
+#include <string.h>
 #include "util.h"
 
 /*
@@ -28,6 +29,19 @@ void *chrealloc(void *ptr, int size) {
 	return new;
 }
 
+/* 
+ * Function that decides if two strings are equal. Returns 1 (true) if they are
+ * the same, or 0 (false) if they differ.
+ */
+bool str_equal(char *str1, char *str2) {
+	// If they have different lengths, we can say immediately that they differ
+	if(strlen(str1) != strlen(str2)) { return 0; }
+	// If they are she same length, we must use strncmp to compare them. strncmp
+	// returns 0 for identical strings, and other ints for different ones, so we
+	// negate the result.
+	else { return !strncmp(str1, str2, strlen(str1)); }
+}
+
 /*
  * Print the given number of tabs to stdout, without newlines.
  */
@@ -38,3 +52,10 @@ void put_indent(int num) {
     }
     return;
 }
+
+/*
+ * Free a string. Required for DEFINE_VECTORABLE(char).
+ */
+void char_free(char *str) { free(str); }
+
+DEFINE_VECTORABLE(char)

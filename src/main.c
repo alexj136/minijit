@@ -15,6 +15,12 @@ int main(int argc, char *argv[]) {
     }
 
 	TokenVector *tokens = lex_file(argv[1]);
+
+    int idx;
+    for(idx = 0; idx < TokenVector_size(tokens); idx++) {
+        Token_print(TokenVector_get(tokens, idx));
+    }
+
     bool safe = verify_lex(tokens);
     if(!safe) {
         TokenVector_free_elems(tokens);

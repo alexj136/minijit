@@ -15,16 +15,13 @@
 #define MAKE_TOKEN(ty) \
     do { \
         char *text = strdup(yytext); \
+        int name = (ty == tokenName) ? leaseIntName(yytext) : \
+                ((ty == tokenInt) ? name = atoi(yytext) : -1); \
         int lineno = yylineno; \
-        if(ty == tokenName) { \
-            \
-        } \
-        else { \
-            return Token_init(ty, text, lineno); \
-        } \
+        return Token_init(ty, text, name, lineno); \
     } while(0)
 
-Token *Token_init(TokenType type, char *str, int line);
+Token *Token_init(TokenType type, char *str, int name, int line);
 void Token_free(Token *token);
 
 DEFINE_VECTORABLE(Token)
@@ -49,9 +46,33 @@ int nextIntName;
  * been seen, just return the integer already associated with it.
  */
 int leaseIntName(char *string_name) {
-    puts("leaseIntName not yet implemented!");
-    exit(EXIT_FAILURE);
-    return 0;
+
+    int name;
+
+    // Look for the string name in the list
+    bool found_name = false;
+    int idx = 0;
+    while((!found_name) && (idx < StringIntPairVector_size(name_map))) {
+        StringIntPair *current = StringIntPairVector_get(name_map, idx);
+
+        // If we find it, record the corresponding name and quit the loop
+        if(str_equal(string_name, StringIntPair_str(current))) {
+            name = StringIntPair_int(current);
+            found_name = true;
+        }
+        idx++;
+    }
+
+    // If we didn't find it, use the nextIntName, and add a new association to
+    // the list, and increment nextIntName for next time we get here
+    if(!found_name) {
+        name = nextIntName;
+        StringIntPairVector_append(name_map,
+                StringIntPair_init(strdup(string_name), nextIntName));
+        nextIntName++;
+    }
+
+    return name;
 }
 
 %}
@@ -83,12 +104,14 @@ space [\n\r\ \t\b\012]
 %%
 
 /*
- * Initialise a new Token from the given TokenType, text and line number.
+ * Initialise a new Token from the given TokenType, name and line number. Use
+ * -1 as the name for non-identifier tokens.
  */
-Token *Token_init(TokenType type, char *str, int line) {
+Token *Token_init(TokenType type, char *str, int name, int line) {
     Token *token = challoc(sizeof(Token));
     Token_type(token) = type;
-    Token_str(token) = str;
+    Token_str(token)  = str;
+    Token_name(token) = name;
     Token_line(token) = line;
     return token;
 }
@@ -123,10 +146,15 @@ char *TokenType_str(TokenType ty) {
  * Print a description of the given Token to stdout.
  */
 void Token_print(Token *token) {
-    printf("TOKEN: type=%s, text='%s', lineNo=%d.\n",
-            TokenType_str(Token_type(token)),
-            Token_str(token),
-            Token_line(token));
+    printf("TOKEN: type=%s, ", TokenType_str(Token_type(token)));
+    printf("text='%s', ", Token_str(token));
+    if(Token_type(token) == tokenName) {
+        printf("integer name=%d, ", Token_name(token));
+    }
+    else if(Token_type(token) == tokenInt) {
+        printf("integer value=%d, ", Token_name(token));
+    }
+    printf("lineNo=%d.\n", Token_line(token));
     return;
 }
 
@@ -172,6 +200,9 @@ TokenVector *lex_file(char *filename) {
         printf("lexer.lex/lef_file(): Could not open file: '%s'.\n", filename);
         exit(EXIT_FAILURE);
 	}
+
+    name_map = StringIntPairVector_init();
+    nextIntName = 0;
 
     // Point yyin at the given file since it opened successfully
 	yyin = file;

@@ -30,12 +30,14 @@ typedef enum
 
 #define Token_type(token) token->type
 #define Token_str(token) token->str
+#define Token_name(token) token->name
 #define Token_line(token) token->line
 
 typedef struct Token Token;
 struct Token {
     TokenType type;
     char *str;
+    int name;
     int line;
 };
 

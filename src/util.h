@@ -1,6 +1,8 @@
 #ifndef util
 #define util
 
+typedef enum { false, true } bool;
+
 /*
  * VECTOR MACROS
  * The following macros define 'generic' Vector functions, over struct types,
@@ -101,6 +103,8 @@ void *chrealloc(void *ptr, int size);
 
 void put_indent(int num);
 
-typedef enum { false, true } bool;
+bool str_equal(char *str1, char *str2);
+
+FORWARD_DECLARE_VECTORABLE(char)
 
 #endif // util
