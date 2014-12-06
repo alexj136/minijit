@@ -45,7 +45,6 @@ FORWARD_DECLARE_VECTORABLE(Token)
 
 void Token_print(Token *token);
 void Token_free(Token *token);
-TokenVector *lex_file(char *filename);
 bool verify_lex(TokenVector *tok_vec);
 
 /*
@@ -63,5 +62,25 @@ struct StringIntPair {
 };
 
 FORWARD_DECLARE_VECTORABLE(StringIntPair)
+
+/*
+ * The output of the lexer is a list of tokens and a map from integer names to
+ * string names. These are returned in a pair in a LexerResult struct.
+ */
+
+#define LexerResult_tokens(lr) lr->tokens
+#define LexerResult_name_map(lr) lr->name_map
+
+typedef struct LexerResult LexerResult;
+struct LexerResult {
+    TokenVector *tokens;
+    charVector *name_map;
+};
+
+LexerResult *LexerResult_init(TokenVector *tokens, charVector *name_map);
+void LexerResult_free(LexerResult *lr);
+
+// The lexer function
+LexerResult *lex_file(char *filename);
 
 #endif // lexer

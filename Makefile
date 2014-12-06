@@ -10,7 +10,7 @@ $(MAIN): $(addprefix $(BINDIR)/, $(MODULES:=.o))
 	$(GCC) -o $@ $^
 
 .PHONY: ./src/main.h
-$(BINDIR)/%.o: $(SRCDIR)/%.c $(SRCDIR)/%.h
+$(BINDIR)/%.o: $(SRCDIR)/%.c $(SRCDIR)/%.h src/lexer.c src/parser.c
 	@mkdir -p ./bin/
 	$(GCC) -c -o $@ $<
 

@@ -14,7 +14,8 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-	TokenVector *tokens = lex_file(argv[1]);
+    LexerResult *lr = lex_file(argv[1]);
+	TokenVector *tokens = LexerResult_tokens(lr);
 
     int idx;
     for(idx = 0; idx < TokenVector_size(tokens); idx++) {
@@ -31,7 +32,7 @@ int main(int argc, char *argv[]) {
     Comm *comm = parse(tokens);
     Comm_print(comm, 0);
 
-    TokenVector_free_elems(tokens);
+    LexerResult_free(lr);
     Comm_free(comm);
 
     return 0;

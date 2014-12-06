@@ -187,10 +187,29 @@ void StringIntPair_free(StringIntPair *sip) {
 }
 
 /*
+ * Create a LexerResult struct from a Token Vector and a mapping from integer
+ * names to string names.
+ */
+LexerResult *LexerResult_init(TokenVector *tokens, charVector *name_map) {
+    LexerResult *lr = challoc(sizeof(LexerResult));
+    LexerResult_tokens(lr) = tokens;
+    LexerResult_name_map(lr) = name_map;
+    return lr;
+}
+
+/*
+ * Free a LexerResult and its constituents.
+ */
+void LexerResult_free(LexerResult *lr) {
+    TokenVector_free_elems(LexerResult_tokens(lr));
+    charVector_free_elems(LexerResult_name_map(lr));
+}
+
+/*
  * Perform lexical analysis on the given file. Return a pointer to a Vector of
  * Tokens.
  */
-TokenVector *lex_file(char *filename) {
+LexerResult *lex_file(char *filename) {
 
     // Try to open the file
 	FILE *file = fopen(filename, "r");
@@ -240,7 +259,7 @@ TokenVector *lex_file(char *filename) {
 
     // Close the file and return the array
     fclose(file);
-    return tok_vec;
+    return LexerResult_init(tok_vec, flipped_name_map);
 }
 
 /*
