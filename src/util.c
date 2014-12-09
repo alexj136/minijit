@@ -58,4 +58,5 @@ void put_indent(int num) {
  */
 void char_free(char *str) { free(str); }
 
+// For Vectors of strings
 DEFINE_VECTORABLE(char)

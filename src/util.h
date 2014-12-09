@@ -18,8 +18,9 @@ typedef enum { false, true } bool;
  *     DEFINE_VECTORABLE(MyStruct)
  * in the file where the freeing function is declared.
  *
- * The defined Vector type supports log(n) time insertion and constant time
- * access. Deletion is not yet supported.
+ * The defined Vector type supports log(n) time insertion for arbitrary
+ * insertion indices, and constant time appending and access. Deletion is not
+ * yet supported.
  */
 
 #define VECTOR_INITIAL_ARR_SIZE 10
@@ -70,17 +71,18 @@ typedef enum { false, true } bool;
         vec->size++; \
     } \
     \
-    /* Insert an element at a given index into a Vector in linear time. It */ \
-    /* is an error to insert an element at an index greater than the size */ \
-    /* of the Vector. Indexes equal to the size of the Vector are */ \
-    /* permitted - this is equivalent to an append operation. */ \
+    /* Tail-recursively insert an element at a given index into a Vector */ \
+    /* in linear time. It is an error to insert an element at an index */ \
+    /* greater than the size of the Vector. Indexes equal to the size of */ \
+    /* the Vector are permitted - this is equivalent to an append */ \
+    /* operation. */ \
     void ty##Vector_insert(ty##Vector *vec, int index, ty *elem) { \
         if(index > vec->size) { \
-            puts(ty##Vector_insert": ty##Vector index out of bounds."); \
+            puts(#ty"Vector_insert: "#ty"Vector index out of bounds."); \
             exit(EXIT_FAILURE); \
         } \
         else if(index < 0) { \
-            puts(ty##Vector_insert": Negative ty##Vector index."); \
+            puts(#ty"Vector_insert: Negative "#ty"Vector index."); \
             exit(EXIT_FAILURE); \
         } \
         /* If the given index is equal to the length, just do an append. */ \
@@ -102,11 +104,11 @@ typedef enum { false, true } bool;
     /* Vector's size. This is a constant time operation. */ \
     ty *ty##Vector_get(ty##Vector *vec, int index) { \
         if(index >= vec->size) { \
-            puts(ty##Vector_get": ty##Vector index out of bounds."); \
+            puts(#ty"Vector_get: "#ty"Vector index out of bounds."); \
             exit(EXIT_FAILURE); \
         } \
         else if(index < 0) { \
-            puts(ty##Vector_get": Negative ty##Vector index."); \
+            puts(#ty"Vector_get: Negative "#ty"Vector index."); \
             exit(EXIT_FAILURE); \
         } \
         else { return vec->arr[index]; } \
@@ -135,6 +137,7 @@ void put_indent(int num);
 
 bool str_equal(char *str1, char *str2);
 
+// For Vectors of strings
 FORWARD_DECLARE_VECTORABLE(char)
 
 #endif // util

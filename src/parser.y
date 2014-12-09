@@ -28,8 +28,8 @@ int parser_token_idx;
     Comm *comm;
     Expr *expr;
     int name;
-    FuncVector *funcs
-    ExprVector *exprs
+    FuncVector *funcs;
+    ExprVector *exprs;
 }
 
 %token LParen 1
@@ -77,19 +77,19 @@ comm:   While expr Do LCurly comm RCurly { $$ = While_init($2, $5); }
 expr:   Int { $$ = Int_init(Token_name(yylval.token)); }
     |   expr Add expr { $$ = Add_init($1, $3); }
     |   expr Sub expr { $$ = Sub_init($1, $3); }
-/*  |   name LParen exprs RParen { $$ = Call_init($1, $3); }*/
+    |   name LParen exprs RParen { $$ = Call_init($1, $3); }
     |   name { $$ = Var_init($1); }
     ;
 
 name:   Name { $$ = Token_name(yylval.token); }
     ;
 
-exprs:  /* empty */ { $$ = ; }
-    |   expr exprscont { $$ = ; }
+exprs:  /* empty */ { $$ = ExprVector_init(); }
+    |   expr exprscont { ExprVector_insert($2, 0, $1); $$ = $2; }
     ;
 
-exprscont:  /* empty */ { $$ = ; }
-    |   Comma expr exprscont { $$ = ; }
+exprscont:  /* empty */ { $$ = ExprVector_init(); }
+    |   Comma expr exprscont { ExprVector_insert($3, 0, $2); $$ = $3; }
     ;
 %%
 
