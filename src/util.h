@@ -18,8 +18,8 @@ typedef enum { false, true } bool;
  *     DEFINE_VECTORABLE(MyStruct)
  * in the file where the freeing function is declared.
  *
- * The defined Vector type supports log(n) time insertion for arbitrary
- * insertion indices, and constant time appending and access. Deletion is not
+ * The defined Vector type supports log(n) time appending, linear time insertion
+ * for arbitrary insertion indices, and constant time access. Deletion is not
  * yet supported.
  */
 
