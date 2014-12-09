@@ -37,6 +37,7 @@ typedef enum { false, true } bool;
     ty##Vector *ty##Vector_init(); \
     int ty##Vector_size(ty##Vector *vec); \
     void ty##Vector_append(ty##Vector *vec, ty *elem); \
+    void ty##Vector_insert(ty##Vector *vec, int index, ty *elem); \
     ty *ty##Vector_get(ty##Vector *vec, int index); \
     void ty##Vector_free(ty##Vector *vec); \
     void ty##Vector_free_elems(ty##Vector *vec);
@@ -58,7 +59,7 @@ typedef enum { false, true } bool;
     } \
     \
     /* Append a new element of type 'ty' to a Vector of elements of that */ \
-    /* type. */ \
+    /* type. This is a constant time operation. */ \
     void ty##Vector_append(ty##Vector *vec, ty *elem) { \
         if(vec->size >= vec->arr_size) { \
             vec->arr = chrealloc(vec->arr, sizeof(ty *) * 2 * \
@@ -69,14 +70,43 @@ typedef enum { false, true } bool;
         vec->size++; \
     } \
     \
-    /* Retreive an element from a Vector at the given index */ \
-    ty *ty##Vector_get(ty##Vector *vec, int index) { \
-        if(index >= vec->size) { \
-            puts("Error: ty##Vector index out of bounds."); \
+    /* Insert an element at a given index into a Vector in linear time. It */ \
+    /* is an error to insert an element at an index greater than the size */ \
+    /* of the Vector. Indexes equal to the size of the Vector are */ \
+    /* permitted - this is equivalent to an append operation. */ \
+    void ty##Vector_insert(ty##Vector *vec, int index, ty *elem) { \
+        if(index > vec->size) { \
+            puts(ty##Vector_insert": ty##Vector index out of bounds."); \
             exit(EXIT_FAILURE); \
         } \
         else if(index < 0) { \
-            puts("Error: Negative ty##Vector index."); \
+            puts(ty##Vector_insert": Negative ty##Vector index."); \
+            exit(EXIT_FAILURE); \
+        } \
+        /* If the given index is equal to the length, just do an append. */ \
+        else if(index == vec->size) { ty##Vector_append(vec, elem); } \
+        else { \
+            /* Make a copy of the old element already at the given index. */ \
+            ty *old_elem = vec->arr[index]; \
+            \
+            /* Overwrite with the new element at the given index. */ \
+            vec->arr[index] = elem; \
+            \
+            /* Insert the old element at the index above the given index. */ \
+            ty##Vector_insert(vec, index + 1, old_elem); \
+        } \
+    } \
+    \
+    /* Retrieve an element from a Vector at the given index. It is an error */ \
+    /* to retrieve an element at an index greater than or equal to the */ \
+    /* Vector's size. This is a constant time operation. */ \
+    ty *ty##Vector_get(ty##Vector *vec, int index) { \
+        if(index >= vec->size) { \
+            puts(ty##Vector_get": ty##Vector index out of bounds."); \
+            exit(EXIT_FAILURE); \
+        } \
+        else if(index < 0) { \
+            puts(ty##Vector_get": Negative ty##Vector index."); \
             exit(EXIT_FAILURE); \
         } \
         else { return vec->arr[index]; } \

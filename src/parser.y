@@ -27,6 +27,9 @@ int parser_token_idx;
     Func *func;
     Comm *comm;
     Expr *expr;
+    int name;
+    FuncVector *funcs
+    ExprVector *exprs
 }
 
 %token LParen 1
@@ -49,6 +52,9 @@ int parser_token_idx;
 %type <func> func*/
 %type <comm> comm
 %type <expr> expr
+%type <name> name
+%type <exprs> exprs
+%type <exprs> exprscont
 
 /*
 %start prog
@@ -59,10 +65,10 @@ input:  /*prog*/comm { result = $1; }
 /*
 prog:
 
-func:
+func:   name LParen names RParen LCurly comm RCurly {}
 */
 comm:   While expr Do LCurly comm RCurly { $$ = While_init($2, $5); }
-/*  |   Name Assign expr { $$ = Assign_init($1, $3); }*/
+    |   name Assign expr { $$ = Assign_init($1, $3); }
     |   comm Semi comm { $$ = Comp_init($1, $3); }
     |   Return expr { $$ = Return_init($2); }
     ;
@@ -71,10 +77,20 @@ comm:   While expr Do LCurly comm RCurly { $$ = While_init($2, $5); }
 expr:   Int { $$ = Int_init(Token_name(yylval.token)); }
     |   expr Add expr { $$ = Add_init($1, $3); }
     |   expr Sub expr { $$ = Sub_init($1, $3); }
-/*  |   Name LParen args RParen { $$ = Call_init($1, $3); }*/
-/*  |   Name { $$ = Var_init($1); }*/
+/*  |   name LParen exprs RParen { $$ = Call_init($1, $3); }*/
+    |   name { $$ = Var_init($1); }
     ;
 
+name:   Name { $$ = Token_name(yylval.token); }
+    ;
+
+exprs:  /* empty */ { $$ = ; }
+    |   expr exprscont { $$ = ; }
+    ;
+
+exprscont:  /* empty */ { $$ = ; }
+    |   Comma expr exprscont { $$ = ; }
+    ;
 %%
 
 /*
