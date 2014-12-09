@@ -62,6 +62,15 @@ void char_free(char *str) { free(str); }
 DEFINE_VECTORABLE(char)
 
 /*
+ * Construct a new IntRef.
+ */
+IntRef *IntRef_init(int val) {
+    IntRef *ir = challoc(sizeof(IntRef));
+    IntRef_value(ir) = val;
+    return ir;
+}
+
+/*
  * Free a IntRef. Required for DEFINE_VECTORABLE(IntRef).
  */
 void IntRef_free(IntRef *ri) { free(ri); }

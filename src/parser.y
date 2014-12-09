@@ -17,7 +17,7 @@ TokenVector *parser_tokens;
 int parser_token_idx;
 
 // The result of the parse
-/*Prog*/Comm *result;
+Prog *result;
 
 %}
 
@@ -30,6 +30,7 @@ int parser_token_idx;
     int name;
     FuncVector *funcs;
     ExprVector *exprs;
+    IntRefVector *names;
 }
 
 %token LParen 1
@@ -47,33 +48,37 @@ int parser_token_idx;
 %token Name   13
 %token Int    14
 
-%type <comm> input
-/*%type <prog> prog
-%type <func> func*/
+%type <prog> prog
+%type <func> func
+%type <funcs> funcs
 %type <comm> comm
 %type <expr> expr
 %type <name> name
+%type <names> names
+%type <names> namescont
 %type <exprs> exprs
 %type <exprs> exprscont
 
-/*
 %start prog
-*/
+
 %%
 
-input:  /*prog*/comm { result = $1; }
-/*
-prog:
+prog:  funcs { result = Prog_init($1); }
+    ;
 
-func:   name LParen names RParen LCurly comm RCurly {}
-*/
+func:   name LParen names RParen LCurly comm RCurly { $$ = Func_init($1, $3, $6); }
+    ;
+
+funcs:  func funcs { $$ = $2; FuncVector_insert($2, 0, $1); }
+    |   func { $$ = FuncVector_init(); FuncVector_append($$, $1); }
+    ;
+
 comm:   While expr Do LCurly comm RCurly { $$ = While_init($2, $5); }
     |   name Assign expr { $$ = Assign_init($1, $3); }
     |   comm Semi comm { $$ = Comp_init($1, $3); }
     |   Return expr { $$ = Return_init($2); }
     ;
 
-/*EXPR ::= INT | EXPR + EXPR | EXPR - EXPR | EXPR * EXPR | NAME(ARGS) | NAME*/
 expr:   Int { $$ = Int_init(Token_name(yylval.token)); }
     |   expr Add expr { $$ = Add_init($1, $3); }
     |   expr Sub expr { $$ = Sub_init($1, $3); }
@@ -82,6 +87,14 @@ expr:   Int { $$ = Int_init(Token_name(yylval.token)); }
     ;
 
 name:   Name { $$ = Token_name(yylval.token); }
+    ;
+
+names:  /* empty */ { $$ = IntRefVector_init(); }
+    |   name namescont { IntRefVector_insert($2, 0, IntRef_init($1)); $$ = $2; }
+    ;
+
+namescont:  /* empty */ { $$ = IntRefVector_init(); }
+    |   Comma name namescont { IntRefVector_insert($3, 0, IntRef_init($2)); $$ = $3; }
     ;
 
 exprs:  /* empty */ { $$ = ExprVector_init(); }
@@ -97,7 +110,7 @@ exprscont:  /* empty */ { $$ = ExprVector_init(); }
  * Prepare the parser. Takes an array of Tokes from which an AST [will|could] be
  * parsed. This must be called prior to parsing.
  */
-/*Prog*/Comm *parse(TokenVector *tok_vec) {
+Prog *parse(TokenVector *tok_vec) {
     parser_tokens = tok_vec;
     parser_token_idx = -1;
     yyparse();

@@ -29,11 +29,11 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    Comm *comm = parse(tokens);
-    Comm_print(comm, 0);
+    Prog *prog = parse(tokens);
+    Prog_print(prog, 0);
 
     LexerResult_free(lr);
-    Comm_free(comm);
+    Prog_free(prog);
 
     return 0;
 }

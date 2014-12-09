@@ -153,5 +153,7 @@ FORWARD_DECLARE_VECTORABLE(char)
 // For Vectors of integers
 FORWARD_DECLARE_VECTORABLE(IntRef)
 #define IntRef_value(ri) ri->value
+IntRef *IntRef_init(int val);
+void IntRef_free(IntRef *ri);
 
 #endif // util
