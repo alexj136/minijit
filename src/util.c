@@ -60,3 +60,11 @@ void char_free(char *str) { free(str); }
 
 // For Vectors of strings
 DEFINE_VECTORABLE(char)
+
+/*
+ * Free a IntRef. Required for DEFINE_VECTORABLE(IntRef).
+ */
+void IntRef_free(IntRef *ri) { free(ri); }
+
+// For Vectors of integers
+DEFINE_VECTORABLE(IntRef)

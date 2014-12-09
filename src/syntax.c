@@ -33,21 +33,28 @@ void Prog_free(Prog *prog) {
 
 DEFINE_VECTORABLE(Func)
 
-Func *Func_init(int name, int num_args, Comm *body) {
+Func *Func_init(int name, IntRefVector *args, Comm *body) {
     Func *func = challoc(sizeof(Func));
     func->name = name;
-    func->num_args = num_args;
+    func->args = args;
     func->body = body;
     return func;
 }
 
 void Func_print(Func *func, int indent) {
     put_indent(indent);
-    printf("FUNC: NO=%d, ARGC=%d:\n", Func_name(func), Func_num_args(func));
+    printf("FUNC: NO=%d, ARGC=%d, ARGIDS=", Func_name(func),
+            Func_num_args(func));
+    int idx;
+    for(idx = 0; idx < Func_num_args(func); idx++) {
+        printf("%d ", Func_arg(func, idx));
+    }
+    printf(":\n");
     Comm_print(Func_body(func), indent + 1);
 }
 
 void Func_free(Func *func) {
+    IntRefVector_free_elems(func->args);
     Comm_free(Func_body(func));
     free(func);
 }

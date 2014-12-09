@@ -23,13 +23,14 @@ struct Prog {
  */
 
 #define Func_name(func) func->name
-#define Func_num_args(func) func->num_args
+#define Func_num_args(func) IntRefVector_size(func->args)
+#define Func_arg(func, num) IntRef_value(IntRefVector_get(func->args, num))
 #define Func_body(func) func->body
 
 typedef struct Func Func;
 struct Func {
     int name;
-    int num_args;
+    struct IntRefVector *args;
     struct Comm *body;
 };
 
@@ -113,7 +114,7 @@ Prog *Prog_init(FuncVector *funcs);
 void Prog_print(Prog *prog, int indent);
 void Prog_free(Prog *prog);
 
-Func *Func_init(int name, int num_args, Comm *body);
+Func *Func_init(int name, IntRefVector *args, Comm *body);
 void Func_print(Func *func, int indent);
 void Func_free(Func *func);
 

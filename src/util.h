@@ -4,6 +4,16 @@
 typedef enum { false, true } bool;
 
 /*
+ * A struct to store only an integer. Makes integer Vectors definable with
+ * Vector macros (although there is a speed penalty here due to unnecessary
+ * indirection).
+ */
+typedef struct IntRef IntRef;
+struct IntRef {
+    int value;
+};
+
+/*
  * VECTOR MACROS
  * The following macros define 'generic' Vector functions, over struct types,
  * declared in header files, in the following way:
@@ -139,5 +149,9 @@ bool str_equal(char *str1, char *str2);
 
 // For Vectors of strings
 FORWARD_DECLARE_VECTORABLE(char)
+
+// For Vectors of integers
+FORWARD_DECLARE_VECTORABLE(IntRef)
+#define IntRef_value(ri) ri->value
 
 #endif // util
