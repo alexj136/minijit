@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>
 #include "util.h"
@@ -14,18 +15,22 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    LexerResult *lr = lex_file(argv[1]);
+    // Try to open the file
+	FILE *file = fopen(argv[1], "r");
+
+    // If it couldn't be opened, quit with an appropriate error message
+	if (!file) {
+        printf("Could not open file: '%s'.\n", argv[1]);
+        exit(EXIT_FAILURE);
+	}
+
+    LexerResult *lr = lex_file(file);
 	TokenVector *tokens = LexerResult_tokens(lr);
 
-    int idx;
-    for(idx = 0; idx < TokenVector_size(tokens); idx++) {
-        Token_print(TokenVector_get(tokens, idx));
-    }
-
-    bool safe = verify_lex(tokens);
-    if(!safe) {
-        TokenVector_free_elems(tokens);
-        puts("Lexical error(s) found. Exiting.");
+    // If there are lexical errors, print them and quit
+    if(!verify_lex(tokens)) {
+        print_errors(tokens);
+        LexerResult_free(lr);
         exit(EXIT_FAILURE);
     }
 
