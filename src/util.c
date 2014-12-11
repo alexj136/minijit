@@ -34,8 +34,12 @@ void *chrealloc(void *ptr, int size) {
  * the same, or 0 (false) if they differ.
  */
 bool str_equal(char *str1, char *str2) {
+    // If the pointers are to the same string, or they're both null, return true
+    if(str1 == str2) { return true; }
+    // If only one is null, return false
+    else if(!(str1 && str2)) { return false; }
 	// If they have different lengths, we can say immediately that they differ
-	if(strlen(str1) != strlen(str2)) { return 0; }
+    else if(strlen(str1) != strlen(str2)) { return 0; }
 	// If they are she same length, we must use strncmp to compare them. strncmp
 	// returns 0 for identical strings, and other ints for different ones, so we
 	// negate the result.

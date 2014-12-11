@@ -4,10 +4,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define bool int
-#define false 0
-#define true 1
-
 #define DECLARE_MINUNIT_MODULE \
     void __do_initial_setup__(); \
     void __do_setup__(); \
@@ -29,8 +25,13 @@
         __do_initial_setup__();
 #define END_TESTS \
         __do_final_teardown__(); \
-        printf("%s: Ran %d tests with %d passes and %d failures.\n", argv[0], \
-                __passes__ + __fails__, __passes__, __fails__); \
+        printf("%s: Ran %d test%s with %d pass%s and %d failure%s.\n", \
+                argv[0], \
+                __passes__ + __fails__, \
+                (__passes__ + __fails__ == 1) ? "" : "s", \
+                __passes__, (__passes__ == 1) ? "" : "es", \
+                __fails__, \
+                (__fails__ == 1) ? "" : "s"); \
         return __fails__ ? EXIT_FAILURE : EXIT_SUCCESS; \
     }
 
