@@ -51,7 +51,8 @@ struct IntRef {
     void ty##Vector_insert(ty##Vector *vec, int index, ty *elem); \
     ty *ty##Vector_get(ty##Vector *vec, int index); \
     void ty##Vector_free(ty##Vector *vec); \
-    void ty##Vector_free_elems(ty##Vector *vec);
+    void ty##Vector_free_elems(ty##Vector *vec); \
+    ty *ty##Vector_remove(ty##Vector *vec, int index);
 
 #define DEFINE_VECTORABLE(ty) \
     \
@@ -137,6 +138,45 @@ struct IntRef {
         } \
         free(vec->arr); \
         free(vec); \
+    } \
+    \
+    /* Shift elements backwards within a Vector - used by remove functions. */ \
+    /* Expects that the length HAS NOT YET BEEN DECREMENTED by the calling */ \
+    /* function, although the calling function is responsible for doing so */ \
+    /* after calling this function. */ \
+    void ty##Vector_shift(ty##Vector *vec, int index) { \
+        if(index < 0) { \
+            printf(#ty"Vector_shift: negative index."); \
+            exit(EXIT_FAILURE); \
+        } \
+        if(index >= ty##Vector_size(vec)) { \
+            printf(#ty"Vector_shift: index out of bounds."); \
+            exit(EXIT_FAILURE); \
+        } \
+        else if(index == ty##Vector_size(vec) - 1) { \
+            vec->arr[index] = NULL; \
+        } \
+        else { \
+            vec->arr[index] = ty##Vector_get(vec, index + 1); \
+            ty##Vector_shift(vec, index + 1); \
+        } \
+    } \
+    \
+    /* Remove an element from a Vector, returning a pointer to the removed */ \
+    /* element for further usage or freeing. */ \
+    ty *ty##Vector_remove(ty##Vector *vec, int index) { \
+        if(index < 0) { \
+            printf(#ty"Vector_remove: negative index."); \
+            exit(EXIT_FAILURE); \
+        } \
+        if(index >= ty##Vector_size(vec)) { \
+            printf(#ty"Vector_remove: index out of bounds."); \
+            exit(EXIT_FAILURE); \
+        } \
+        ty *elem = ty##Vector_get(vec, index); \
+        ty##Vector_shift(vec, index); \
+        vec->size--; \
+        return elem; \
     } \
 
 void *challoc(int size);
