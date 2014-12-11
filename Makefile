@@ -1,15 +1,15 @@
 GCC     = gcc -Wall -g
 SRCDIR  = ./src
 BINDIR  = ./bin
-MODULES = main util syntax lexer parser
+TESTDIR = ./test
+MODULES = util syntax lexer parser
 MAIN    = ./main
 
 all: $(MAIN)
 
-$(MAIN): $(addprefix $(BINDIR)/, $(MODULES:=.o))
+$(MAIN): $(addprefix $(BINDIR)/, $(MODULES:=.o)) ./src/main.c
 	$(GCC) -o $@ $^
 
-.PHONY: ./src/main.h
 $(BINDIR)/%.o: $(SRCDIR)/%.c $(SRCDIR)/%.h src/lexer.c src/parser.c
 	@mkdir -p ./bin/
 	$(GCC) -c -o $@ $<
@@ -23,3 +23,9 @@ src/parser.c: src/parser.y
 .PHONY: clean
 clean:
 	@rm -rf ./main ./bin/ ./src/lexer.c ./src/parser.c
+
+test: $(addprefix $(BINDIR)/test_, $(MODULES))
+	@$(addprefix $(BINDIR)/test_, $(MODULES:= && )) echo "All tests passed."
+
+$(BINDIR)/test_%: $(TESTDIR)/test_%.c $(addprefix $(BINDIR)/, $(MODULES:=.o))
+	$(GCC) -o $@ $^
