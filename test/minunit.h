@@ -4,27 +4,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define DECLARE_MINUNIT_MODULE \
-    void __do_initial_setup__(); \
-    void __do_setup__(); \
-    void __do_teardown__(); \
-    void __do_final_teardown__(); \
-
-#define INITIAL_SETUP void __do_initial_setup__() {
-#define END_INITIAL_SETUP }
-#define SETUP void __do_setup__() {
-#define END_SETUP }
-#define TEARDOWN void __do_teardown__() {
-#define END_TEARDOWN }
-#define FINAL_TEARDOWN void __do_final_teardown__() {
-#define END_FINAL_TEARDOWN }
-
-#define BEGIN_TESTS \
+#define MINUNIT_TESTS \
     int main(int argc, char *argv[]) { \
-        int __passes__ = 0, __fails__ = 0; \
-        __do_initial_setup__();
+        int __passes__ = 0, __fails__ = 0;
 #define END_TESTS \
-        __do_final_teardown__(); \
         printf("%s: Ran %d test%s with %d pass%s and %d failure%s.\n", \
                 argv[0], \
                 __passes__ + __fails__, \
@@ -38,15 +21,13 @@
 #define TEST(desc) \
     do { \
         char *__desc__ = desc; \
-        bool __passed__ = true; \
-        __do_setup__();
+        bool __passed__ = true;
 #define END \
         if(__passed__) { __passes__++; } \
         else { \
             __fails__++; \
             printf("Test '%s' failed.\n", __desc__); \
         } \
-        __do_teardown__(); \
     } while(0);
 
 #define ASSERT(test, message) \

@@ -1,17 +1,11 @@
 #include "minunit.h"
 #include "util.h"
 
-DECLARE_MINUNIT_MODULE
-
-INITIAL_SETUP
-END_INITIAL_SETUP
-
-SETUP
-END_SETUP
-
-BEGIN_TESTS
+MINUNIT_TESTS
 
     TEST("Tests of str_equal()")
+        char *s = "hello";
+        ASSERT(str_equal(s, s), "pointer-equal strings");
         ASSERT(str_equal("", ""), "empty strings");
         ASSERT(str_equal("aaa", "aaa"), "simple strings");
         ASSERT(str_equal(NULL, NULL), "two null strings");
@@ -57,9 +51,3 @@ BEGIN_TESTS
     END
 
 END_TESTS
-
-TEARDOWN
-END_TEARDOWN
-
-FINAL_TEARDOWN
-END_FINAL_TEARDOWN
