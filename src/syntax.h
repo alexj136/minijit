@@ -111,10 +111,12 @@ FORWARD_DECLARE_VECTORABLE(Expr);
  */
 
 Prog *Prog_init(FuncVector *funcs);
+bool Prog_eq(Prog *p, Prog *q);
 void Prog_print(Prog *prog, int indent);
 void Prog_free(Prog *prog);
 
 Func *Func_init(int name, IntRefVector *args, Comm *body);
+bool Func_eq(Func *f, Func *g);
 void Func_print(Func *func, int indent);
 void Func_free(Func *func);
 

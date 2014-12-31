@@ -13,6 +13,20 @@ Prog *Prog_init(FuncVector *funcs) {
     return prog;
 }
 
+/*
+ * Syntactic equality - NOT alpha-equivalence. Sensetive to virtually
+ * everything, e.g. choice of identifier names, order of declared functions etc.
+ */
+bool Prog_eq(Prog *p, Prog *q) {
+    bool same = true;
+    if(Prog_num_funcs(p) != Prog_num_funcs(q)) { same = false; }
+    int idx = 0;
+    while(same && (idx < Prog_num_funcs(p))) {
+        if(!Func_eq(Prog_func(p, idx), Prog_func(q, idx))) { same = false; }
+    }
+    return same;
+}
+
 void Prog_print(Prog *prog, int indent) {
     put_indent(indent);
     printf("PROG: FUNCS=%d:\n", Prog_num_funcs(prog));
@@ -39,6 +53,13 @@ Func *Func_init(int name, IntRefVector *args, Comm *body) {
     func->args = args;
     func->body = body;
     return func;
+}
+
+bool Func_eq(Func *f, Func *g) {
+    bool same = true;
+    puts("Error: Func_eq() not yet implemented.");
+    exit(EXIT_FAILURE);
+    return same;
 }
 
 void Func_print(Func *func, int indent) {
