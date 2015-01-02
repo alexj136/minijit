@@ -194,6 +194,7 @@ FORWARD_DECLARE_VECTORABLE(char)
 FORWARD_DECLARE_VECTORABLE(IntRef)
 #define IntRef_value(ri) ri->value
 IntRef *IntRef_init(int val);
+bool IntRef_eq(IntRef *i1, IntRef *i2);
 void IntRef_free(IntRef *ri);
 
 #endif // util

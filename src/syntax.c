@@ -23,6 +23,7 @@ bool Prog_eq(Prog *p, Prog *q) {
     int idx = 0;
     while(same && (idx < Prog_num_funcs(p))) {
         if(!Func_eq(Prog_func(p, idx), Prog_func(q, idx))) { same = false; }
+        idx++;
     }
     return same;
 }
@@ -57,8 +58,24 @@ Func *Func_init(int name, IntRefVector *args, Comm *body) {
 
 bool Func_eq(Func *f, Func *g) {
     bool same = true;
-    puts("Error: Func_eq() not yet implemented.");
-    exit(EXIT_FAILURE);
+
+    if((Func_name(f) != Func_name(g)) ||
+            (Func_num_args(f) != Func_num_args(g))) {
+
+        same = false;
+    }
+    
+    int idx = 0;
+    while(same && (idx < Func_num_args(f))) {
+        if(Func_arg(f, idx) != Func_arg(g, idx)) { same = false; }
+        idx++;
+    }
+
+    // Extra 'same &&' guard condition prevents us from doing a potentially
+    // expensive call to Comm_eq() when we already know the functions are
+    // different.
+    if(same && (!Comm_eq(Func_body(f), Func_body(g)))) { same = false; }
+
     return same;
 }
 
@@ -113,6 +130,13 @@ Comm *Return_init(Expr *expr) {
     retur->type = commReturn;
     Return_expr(retur) = expr;
     return retur;
+}
+
+bool Comm_eq(Comm *c1, Comm *c2) {
+    bool same = true;
+    puts("Error: Comm_eq() not implemented");
+    exit(EXIT_FAILURE);
+    return same;
 }
 
 void Comm_print(Comm *comm, int indent) {

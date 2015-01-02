@@ -124,6 +124,7 @@ Comm *While_init(Expr *guard, Comm* body);
 Comm *Assign_init(int name, Expr* expr);
 Comm *Comp_init(Comm *fst, Comm *snd);
 Comm *Return_init(Expr *expr);
+bool Comm_eq(Comm *c1, Comm *c2);
 void Comm_print(Comm *comm, int indent);
 void Comm_free(Comm *comm);
 

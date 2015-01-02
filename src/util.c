@@ -75,6 +75,14 @@ IntRef *IntRef_init(int val) {
 }
 
 /*
+ * Test IntRefs for equality. They are considered if they point to an integer of
+ * the same value.
+ */
+bool IntRef_eq(IntRef *i1, IntRef *i2) {
+    return IntRef_value(i1) == IntRef_value(i2);
+}
+
+/*
  * Free a IntRef. Required for DEFINE_VECTORABLE(IntRef).
  */
 void IntRef_free(IntRef *ri) { free(ri); }
