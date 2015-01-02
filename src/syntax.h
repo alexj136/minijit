@@ -133,6 +133,7 @@ Expr *Add_init(Expr *lhs, Expr *rhs);
 Expr *Sub_init(Expr *lhs, Expr *rhs);
 Expr *Call_init(int name, ExprVector *args);
 Expr *Var_init(int name);
+bool Expr_eq(Expr *e1, Expr *e2);
 void Expr_print(Expr *expr, int indent);
 void Expr_free(Expr *expr);
 

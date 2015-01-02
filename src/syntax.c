@@ -133,10 +133,24 @@ Comm *Return_init(Expr *expr) {
 }
 
 bool Comm_eq(Comm *c1, Comm *c2) {
-    bool same = true;
-    puts("Error: Comm_eq() not implemented");
-    exit(EXIT_FAILURE);
-    return same;
+    if(Comm_isWhile(c1) && Comm_isWhile(c2)) {
+        return Expr_eq(While_guard(c1), While_guard(c2)) &&
+                Comm_eq(While_body(c1), While_body(c2));
+    }
+    else if(Comm_isAssign(c1) && Comm_isAssign(c2)) {
+        return (Assign_name(c1) == Assign_name(c2)) &&
+                Expr_eq(Assign_expr(c1), Assign_expr(c2));
+    }
+    else if(Comm_isComp(c1) && Comm_isComp(c2)) {
+        return Comm_eq(Comp_fst(c1), Comp_fst(c2)) &&
+                Comm_eq(Comp_snd(c1), Comp_snd(c2));
+    }
+    else if(Comm_isReturn(c1) && Comm_isReturn(c2)) {
+        return Expr_eq(Return_expr(c1), Return_expr(c2));
+    }
+    else {
+        return false;
+    }
 }
 
 void Comm_print(Comm *comm, int indent) {
@@ -229,6 +243,41 @@ Expr *Var_init(int name) {
     var->type = exprVar;
     Var_name(var) = name;
     return var;
+}
+
+bool Expr_eq(Expr *e1, Expr *e2) {
+    if(Expr_isInt(e1) && Expr_isInt(e2)) {
+        return Int_value(e1) == Int_value(e2);
+    }
+    else if(Expr_isAdd(e1) && Expr_isAdd(e2)) {
+        return Expr_eq(Add_lhs(e1), Add_lhs(e2)) &&
+                Expr_eq(Add_rhs(e1), Add_rhs(e2));
+    }
+    else if(Expr_isSub(e1) && Expr_isSub(e2)) {
+        return Expr_eq(Sub_lhs(e1), Sub_lhs(e2)) &&
+                Expr_eq(Sub_rhs(e1), Sub_rhs(e2));
+    }
+    else if(Expr_isCall(e1) && Expr_isCall(e2)) {
+        bool same = true;
+        if((Call_name(e1) != Call_name(e2)) &&
+                (Call_num_args(e1) != Call_num_args(e2))) { same = false; }
+        puts("Error: Expr_eq() not yet implemented");
+        exit(EXIT_FAILURE);
+        return same;
+        /*
+        printf("CALL: ID=%d, ARGC=%d:\n", Call_name(expr), Call_num_args(expr));
+        int idx;
+        for(idx = 0; idx < Call_num_args(expr); idx++) {
+            Expr_print(Call_arg(expr, idx), indent + 1);
+        }
+        */
+    }
+    else if(Expr_isVar(e1) && Expr_isVar(e2)) {
+        return Var_name(e1) == Var_name(e2);
+    }
+    else {
+        return false;
+    }
 }
 
 void Expr_print(Expr *expr, int indent) {
