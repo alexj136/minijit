@@ -10,10 +10,7 @@
  */
 void *challoc(int size) {
 	void *ptr = malloc(size);
-    if(!ptr) {
-        puts("util.c/challoc(): Heap allocation failed");
-        exit(EXIT_FAILURE);
-    }
+    if(!ptr) { ERROR("heap allocation failed"); }
 	return ptr;
 }
 
@@ -22,10 +19,7 @@ void *challoc(int size) {
  */
 void *chrealloc(void *ptr, int size) {
 	void *new = realloc(ptr, size);
-    if(!new) {
-        puts("util.c/chrealloc(): Heap reallocation failed");
-        exit(EXIT_FAILURE);
-    }
+    if(!new) { ERROR("heap reallocation failed"); }
 	return new;
 }
 

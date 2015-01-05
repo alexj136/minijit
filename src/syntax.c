@@ -261,16 +261,14 @@ bool Expr_eq(Expr *e1, Expr *e2) {
         bool same = true;
         if((Call_name(e1) != Call_name(e2)) &&
                 (Call_num_args(e1) != Call_num_args(e2))) { same = false; }
-        puts("Error: Expr_eq() not yet implemented");
-        exit(EXIT_FAILURE);
-        return same;
-        /*
-        printf("CALL: ID=%d, ARGC=%d:\n", Call_name(expr), Call_num_args(expr));
-        int idx;
-        for(idx = 0; idx < Call_num_args(expr); idx++) {
-            Expr_print(Call_arg(expr, idx), indent + 1);
+        int idx = 0;
+        while(same && (idx < Call_num_args(e1))) {
+            if(Call_arg(e1, idx) != Call_arg(e2, idx)) {
+                same = false;
+            }
+            idx++;
         }
-        */
+        return same;
     }
     else if(Expr_isVar(e1) && Expr_isVar(e2)) {
         return Var_name(e1) == Var_name(e2);

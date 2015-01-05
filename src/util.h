@@ -1,6 +1,7 @@
 #ifndef util
 #define util
 
+// Booleans
 typedef enum { false, true } bool;
 
 /*
@@ -88,13 +89,9 @@ struct IntRef {
     /* the Vector are permitted - this is equivalent to an append */ \
     /* operation. */ \
     void ty##Vector_insert(ty##Vector *vec, int index, ty *elem) { \
-        if(index > vec->size) { \
-            puts(#ty"Vector_insert: "#ty"Vector index out of bounds."); \
-            exit(EXIT_FAILURE); \
-        } \
-        else if(index < 0) { \
-            puts(#ty"Vector_insert: Negative "#ty"Vector index."); \
-            exit(EXIT_FAILURE); \
+        if(index < 0) { ERROR("Negative index."); } \
+        else if(index > ty##Vector_size(vec)) { \
+            ERROR("Index out of bounds."); \
         } \
         /* If the given index is equal to the length, just do an append. */ \
         else if(index == vec->size) { ty##Vector_append(vec, elem); } \
@@ -114,14 +111,8 @@ struct IntRef {
     /* to retrieve an element at an index greater than or equal to the */ \
     /* Vector's size. This is a constant time operation. */ \
     ty *ty##Vector_get(ty##Vector *vec, int index) { \
-        if(index >= vec->size) { \
-            puts(#ty"Vector_get: "#ty"Vector index out of bounds."); \
-            exit(EXIT_FAILURE); \
-        } \
-        else if(index < 0) { \
-            puts(#ty"Vector_get: Negative "#ty"Vector index."); \
-            exit(EXIT_FAILURE); \
-        } \
+        if(index >= ty##Vector_size(vec)) { ERROR("Index out of bounds."); } \
+        else if(index < 0) { ERROR("Negative index."); } \
         else { return vec->arr[index]; } \
     } \
     \
@@ -145,14 +136,8 @@ struct IntRef {
     /* function, although the calling function is responsible for doing so */ \
     /* after calling this function. */ \
     void ty##Vector_shift(ty##Vector *vec, int index) { \
-        if(index < 0) { \
-            printf(#ty"Vector_shift: negative index."); \
-            exit(EXIT_FAILURE); \
-        } \
-        if(index >= ty##Vector_size(vec)) { \
-            printf(#ty"Vector_shift: index out of bounds."); \
-            exit(EXIT_FAILURE); \
-        } \
+        if(index < 0) { ERROR("Negative index."); } \
+        if(index >= ty##Vector_size(vec)) { ERROR("Index out of bounds."); } \
         else if(index == ty##Vector_size(vec) - 1) { \
             vec->arr[index] = NULL; \
         } \
@@ -165,19 +150,17 @@ struct IntRef {
     /* Remove an element from a Vector, returning a pointer to the removed */ \
     /* element for further usage or freeing. */ \
     ty *ty##Vector_remove(ty##Vector *vec, int index) { \
-        if(index < 0) { \
-            printf(#ty"Vector_remove: negative index."); \
-            exit(EXIT_FAILURE); \
-        } \
-        if(index >= ty##Vector_size(vec)) { \
-            printf(#ty"Vector_remove: index out of bounds."); \
-            exit(EXIT_FAILURE); \
-        } \
+        if(index < 0) { ERROR("Negative index."); } \
+        if(index >= ty##Vector_size(vec)) { ERROR("Index out of bounds."); } \
         ty *elem = ty##Vector_get(vec, index); \
         ty##Vector_shift(vec, index); \
         vec->size--; \
         return elem; \
     } \
+
+/*
+ * Utility functions
+ */
 
 void *challoc(int size);
 
@@ -196,5 +179,16 @@ FORWARD_DECLARE_VECTORABLE(IntRef)
 IntRef *IntRef_init(int val);
 bool IntRef_eq(IntRef *i1, IntRef *i2);
 void IntRef_free(IntRef *ri);
+
+// Error macro
+#define ERROR(msg) \
+    do { \
+        printf("ERROR - %s:%d (%s):\n", __FILE__, __LINE__, __func__); \
+        printf("    %s\n", msg); \
+        exit(EXIT_FAILURE); \
+    } while(0)
+
+// Not yet implemented error macro
+#define NOT_IMPLEMENTED ERROR("Not yet implemented.")
 
 #endif // util
