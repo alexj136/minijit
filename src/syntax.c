@@ -174,8 +174,7 @@ void Comm_print(Comm *comm, int indent) {
         Expr_print(Return_expr(comm), indent + 1);
     }
     else {
-        puts("syntax.c/Comm_print(): Comm type not recognised");
-        exit(EXIT_FAILURE);
+        ERROR("Comm type not recognised.");
     }
 }
 
@@ -195,8 +194,7 @@ void Comm_free(Comm *comm) {
         Expr_free(Return_expr(comm));
     }
     else {
-        puts("syntax.c/Comm_free(): Comm type not recognised");
-        exit(EXIT_FAILURE);
+        ERROR("Comm type not recognised.");
     }
     free(comm);
 }
@@ -263,7 +261,7 @@ bool Expr_eq(Expr *e1, Expr *e2) {
                 (Call_num_args(e1) != Call_num_args(e2))) { same = false; }
         int idx = 0;
         while(same && (idx < Call_num_args(e1))) {
-            if(Call_arg(e1, idx) != Call_arg(e2, idx)) {
+            if(!Expr_eq(Call_arg(e1, idx), Call_arg(e2, idx))) {
                 same = false;
             }
             idx++;
@@ -304,8 +302,7 @@ void Expr_print(Expr *expr, int indent) {
         printf("VARIABLE: ID=%d\n", Var_name(expr));
     }
     else {
-        puts("syntax.c/Expr_print(): Expr type not recognised");
-        exit(EXIT_FAILURE);
+        ERROR("Expr type not recognised.");
     }
 }
 
@@ -328,8 +325,7 @@ void Expr_free(Expr *expr) {
         // Nothing to do
     }
     else {
-        puts("syntax.c/Expr_free(): Expr type not recognised");
-        exit(EXIT_FAILURE);
+        ERROR("Expr type not recognised.");
     }
     free(expr);
 }

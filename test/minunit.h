@@ -3,18 +3,20 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "util.h"
 
 #define MINUNIT_TESTS \
     int main(int argc, char *argv[]) { \
-        int __passes__ = 0, __fails__ = 0;
+        int __passes__ = 0, __fails__ = 0, __asserts__ = 0;
 #define END_TESTS \
-        printf("%s: Ran %d test%s with %d pass%s and %d failure%s.\n", \
+        printf("%s: Ran %d test%s with %d pass%s and %d failure%s. ", \
                 argv[0], \
                 __passes__ + __fails__, \
                 (__passes__ + __fails__ == 1) ? "" : "s", \
                 __passes__, (__passes__ == 1) ? "" : "es", \
                 __fails__, \
                 (__fails__ == 1) ? "" : "s"); \
+        printf("%d assertions run.\n", __asserts__); \
         return __fails__ ? EXIT_FAILURE : EXIT_SUCCESS; \
     }
 
@@ -34,6 +36,7 @@
 	if (!(test)) { \
         __passed__ = false; \
 		printf("Assertion '%s' failed.\n", message); \
-	}
+	} \
+    else { __asserts__++; }
 
 #endif // MINUNIT
