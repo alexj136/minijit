@@ -23,8 +23,11 @@
 #define TEST(desc) \
     do { \
         char *__desc__ = desc; \
-        bool __passed__ = true;
+        bool __passed__ = true, __done_assert__ = false;
 #define END \
+        if(!__done_assert__) { \
+            printf("Warning: Test '%s' contains no assertions.\n", __desc__); \
+        } \
         if(__passed__) { __passes__++; } \
         else { \
             __fails__++; \
@@ -37,6 +40,6 @@
         __passed__ = false; \
 		printf("Assertion '%s' failed.\n", message); \
 	} \
-    else { __asserts__++; }
+    else { __asserts__++; __done_assert__ = true; }
 
 #endif // MINUNIT
