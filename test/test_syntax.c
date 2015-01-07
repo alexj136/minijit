@@ -78,9 +78,109 @@ MINUNIT_TESTS
         Func *g = Func_init(0, IntRefVector_init(), e2);
         FuncVector *fvq = FuncVector_init();
         FuncVector_append(fvq, g);
-        ASSERT(!Func_eq(f, g), "Non-equal programs");
+        ASSERT(!Func_eq(f, g), "Non-equal functions");
         Func_free(f);
         Func_free(g);
+    END
+
+    TEST("Simple while command equality")
+        Comm *c1, *c2;
+
+        c1 = While_init(Int_init(1), Return_init(Int_init(1)));
+        c2 = While_init(Int_init(1), Return_init(Int_init(1)));
+        ASSERT(Comm_eq(c1, c2), "Equal while commands");
+        Comm_free(c1);
+        Comm_free(c2);
+
+        c1 = While_init(Int_init(0), Return_init(Int_init(1)));
+        c2 = While_init(Int_init(1), Return_init(Int_init(1)));
+        ASSERT(!Comm_eq(c1, c2), "Different guards but equal bodies");
+        Comm_free(c1);
+        Comm_free(c2);
+
+        c1 = While_init(Int_init(1), Return_init(Int_init(0)));
+        c2 = While_init(Int_init(1), Return_init(Int_init(1)));
+        ASSERT(!Comm_eq(c1, c2), "Different bodies but equal guards");
+        Comm_free(c1);
+        Comm_free(c2);
+
+        c1 = While_init(Int_init(1), Return_init(Int_init(0)));
+        c2 = While_init(Int_init(0), Return_init(Int_init(1)));
+        ASSERT(!Comm_eq(c1, c2), "Different bodies and guards");
+        Comm_free(c1);
+        Comm_free(c2);
+    END
+
+    TEST("Simple return command equality test")
+        Comm *c1, *c2;
+
+        c1 = Return_init(Call_init(0, ExprVector_init()));
+        c2 = Return_init(Call_init(0, ExprVector_init()));
+        ASSERT(Comm_eq(c1, c2), "Equal return commands");
+        Comm_free(c1);
+        Comm_free(c2);
+
+        c1 = Return_init(Call_init(1, ExprVector_init()));
+        c2 = Return_init(Call_init(0, ExprVector_init()));
+        ASSERT(!Comm_eq(c1, c2), "Non-equal return commands");
+        Comm_free(c1);
+        Comm_free(c2);
+    END
+
+    TEST("Simple assignment command equality")
+        Comm *c1, *c2;
+
+        c1 = Assign_init(1, Int_init(1));
+        c2 = Assign_init(1, Int_init(1));
+        ASSERT(Comm_eq(c1, c2), "Equal assignment commands");
+        Comm_free(c1);
+        Comm_free(c2);
+
+        c1 = Assign_init(1, Int_init(1));
+        c2 = Assign_init(1, Int_init(0));
+        ASSERT(!Comm_eq(c1, c2), "Same variable but different expression");
+        Comm_free(c1);
+        Comm_free(c2);
+
+        c1 = Assign_init(1, Int_init(1));
+        c2 = Assign_init(0, Int_init(1));
+        ASSERT(!Comm_eq(c1, c2), "Different variable but same expression");
+        Comm_free(c1);
+        Comm_free(c2);
+
+        c1 = Assign_init(1, Int_init(1));
+        c2 = Assign_init(0, Int_init(0));
+        ASSERT(!Comm_eq(c1, c2), "Different expressions and variable");
+        Comm_free(c1);
+        Comm_free(c2);
+    END
+
+    TEST("Simple composition command equality")
+        Comm *c1, *c2;
+
+        c1 = Comp_init(Return_init(Int_init(1)), Return_init(Int_init(1)));
+        c2 = Comp_init(Return_init(Int_init(1)), Return_init(Int_init(1)));
+        ASSERT(Comm_eq(c1, c2), "Equal composition commands");
+        Comm_free(c1);
+        Comm_free(c2);
+
+        c1 = Comp_init(Return_init(Int_init(1)), Return_init(Int_init(1)));
+        c2 = Comp_init(Return_init(Int_init(1)), Return_init(Int_init(0)));
+        ASSERT(!Comm_eq(c1, c2), "Same first but different second commands");
+        Comm_free(c1);
+        Comm_free(c2);
+
+        c1 = Comp_init(Return_init(Int_init(1)), Return_init(Int_init(1)));
+        c2 = Comp_init(Return_init(Int_init(0)), Return_init(Int_init(1)));
+        ASSERT(!Comm_eq(c1, c2), "Same second but different first commands");
+        Comm_free(c1);
+        Comm_free(c2);
+
+        c1 = Comp_init(Return_init(Int_init(1)), Return_init(Int_init(0)));
+        c2 = Comp_init(Return_init(Int_init(0)), Return_init(Int_init(1)));
+        ASSERT(!Comm_eq(c1, c2), "Different first and second commands");
+        Comm_free(c1);
+        Comm_free(c2);
     END
 
     TEST("Equality tests on various integer literal expressions")
