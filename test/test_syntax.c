@@ -17,7 +17,7 @@ MINUNIT_TESTS
         Prog_free(p);
     END
 
-    TEST("Non-equal programs")
+    TEST("Simple non-equal programs")
         /*
          * P = 0() { return 10 }
          * Q = 0() { return 9 }
@@ -29,10 +29,58 @@ MINUNIT_TESTS
         FuncVector *fvq = FuncVector_init();
         FuncVector_append(fvq, g);
         Prog *p = Prog_init(fvp);
-        Prog *q = Prog_init(FuncVector_init());
-        ASSERT(!Prog_eq(p, q), "empty programs");
+        Prog *q = Prog_init(fvq);
+        ASSERT(!Prog_eq(p, q), "Non-equal programs");
         Prog_free(p);
         Prog_free(q);
+    END
+
+    TEST("Simple equal programs")
+        /*
+         * P = 0() { return 0() }
+         * Q = 0() { return 0() }
+         */
+        Comm *e1 = Return_init(Call_init(0, ExprVector_init()));
+        Func *f = Func_init(0, IntRefVector_init(), e1);
+        FuncVector *fvp = FuncVector_init();
+        FuncVector_append(fvp, f);
+        Comm *e2 = Return_init(Call_init(0, ExprVector_init()));
+        Func *g = Func_init(0, IntRefVector_init(), e2);
+        FuncVector *fvq = FuncVector_init();
+        FuncVector_append(fvq, g);
+        Prog *p = Prog_init(fvp);
+        Prog *q = Prog_init(fvq);
+        ASSERT(Prog_eq(p, q), "Equal programs");
+        Prog_free(p);
+        Prog_free(q);
+    END
+
+    TEST("Simple equal functions")
+        Comm *e1 = Return_init(Call_init(0, ExprVector_init()));
+        Func *f = Func_init(0, IntRefVector_init(), e1);
+        FuncVector *fvp = FuncVector_init();
+        FuncVector_append(fvp, f);
+        Comm *e2 = Return_init(Call_init(0, ExprVector_init()));
+        Func *g = Func_init(0, IntRefVector_init(), e2);
+        FuncVector *fvq = FuncVector_init();
+        FuncVector_append(fvq, g);
+        ASSERT(Func_eq(f, g), "Equal functions");
+        Func_free(f);
+        Func_free(g);
+    END
+
+    TEST("Simple non-equal functions")
+        Comm *e1 = Return_init(Call_init(1, ExprVector_init()));
+        Func *f = Func_init(0, IntRefVector_init(), e1);
+        FuncVector *fvp = FuncVector_init();
+        FuncVector_append(fvp, f);
+        Comm *e2 = Return_init(Call_init(0, ExprVector_init()));
+        Func *g = Func_init(0, IntRefVector_init(), e2);
+        FuncVector *fvq = FuncVector_init();
+        FuncVector_append(fvq, g);
+        ASSERT(!Func_eq(f, g), "Non-equal programs");
+        Func_free(f);
+        Func_free(g);
     END
 
     TEST("Equality tests on various integer literal expressions")

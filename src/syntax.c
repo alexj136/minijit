@@ -257,7 +257,7 @@ bool Expr_eq(Expr *e1, Expr *e2) {
     }
     else if(Expr_isCall(e1) && Expr_isCall(e2)) {
         bool same = true;
-        if((Call_name(e1) != Call_name(e2)) &&
+        if((Call_name(e1) != Call_name(e2)) ||
                 (Call_num_args(e1) != Call_num_args(e2))) { same = false; }
         int idx = 0;
         while(same && (idx < Call_num_args(e1))) {
