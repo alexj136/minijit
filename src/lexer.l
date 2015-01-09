@@ -206,6 +206,35 @@ void LexerResult_free(LexerResult *lr) {
 }
 
 /*
+ * Convert a mapping from integer names to string names, into a mapping from
+ * string names to integer names. Used in lex_file. Returns a vector of strings
+ * that index according to their originally mapped integers.
+ */
+charVector *flip_name_map(StringIntPairVector *name_map) {
+
+    // Vector to return return as result
+    charVector *flipped_name_map = charVector_init();
+
+    int idx;
+    for(idx = 0; idx < StringIntPairVector_size(name_map); idx++) {
+
+        int jdx = 0;
+        while(jdx < StringIntPairVector_size(name_map)) {
+            if(StringIntPair_int(StringIntPairVector_get(
+                    name_map, jdx)) == idx) {
+
+                break;
+            }
+            jdx++;
+        }
+        charVector_append(flipped_name_map, StringIntPair_str(
+                StringIntPairVector_get(name_map, jdx)));
+    }
+
+    return flipped_name_map;
+}
+
+/*
  * Perform lexical analysis on the given file. Return a pointer to a Vector of
  * Tokens. If the file can'
  */
@@ -232,21 +261,7 @@ LexerResult *lex_file(FILE *file) {
     }
 
     // Create a flipped name map - Vector indices map to string names
-    charVector *flipped_name_map = charVector_init();
-    int idx;
-    for(idx = 0; idx < StringIntPairVector_size(name_map); idx++) {
-        int jdx = 0;
-        while(jdx < StringIntPairVector_size(name_map)) {
-            if(StringIntPair_int(StringIntPairVector_get(
-                    name_map, jdx)) == idx) {
-
-                break;
-            }
-            jdx++;
-        }
-        charVector_append(flipped_name_map, StringIntPair_str(
-                StringIntPairVector_get(name_map, jdx)));
-    }
+    charVector *flipped_name_map = flip_name_map(name_map);
 
     // Close the file and return the array
     fclose(file);
