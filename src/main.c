@@ -24,7 +24,15 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
 	}
 
+    // Lex the file
     LexerResult *lr = lex_file(file);
+
+    // Close the file
+    int close_status = fclose(file);
+    if(close_status != 0) {
+        printf("Warning: file '%s' did not close properly.\n", argv[1]);
+    }
+
 	TokenVector *tokens = LexerResult_tokens(lr);
 
     // If there are lexical errors, print them and quit

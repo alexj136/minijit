@@ -81,7 +81,8 @@ struct LexerResult {
 LexerResult *LexerResult_init(TokenVector *tokens, charVector *name_map);
 void LexerResult_free(LexerResult *lr);
 
-// The lexer function
+// The lexer functions
 LexerResult *lex_file(FILE *file);
+LexerResult *lex_string(const char *str);
 
 #endif // lexer

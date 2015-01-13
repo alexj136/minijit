@@ -75,6 +75,35 @@ int leaseIntName(char *string_name) {
     return name;
 }
 
+/*
+ * Convert a mapping from integer names to string names, into a mapping from
+ * string names to integer names. Used in lex_file. Returns a vector of strings
+ * that index according to their originally mapped integers.
+ */
+charVector *flip_name_map(StringIntPairVector *name_map) {
+
+    // Vector to return return as result
+    charVector *flipped_name_map = charVector_init();
+
+    int idx;
+    for(idx = 0; idx < StringIntPairVector_size(name_map); idx++) {
+
+        int jdx = 0;
+        while(jdx < StringIntPairVector_size(name_map)) {
+            if(StringIntPair_int(StringIntPairVector_get(
+                    name_map, jdx)) == idx) {
+
+                break;
+            }
+            jdx++;
+        }
+        charVector_append(flipped_name_map, StringIntPair_str(
+                StringIntPairVector_get(name_map, jdx)));
+    }
+
+    return flipped_name_map;
+}
+
 %}
 
 int_const [0-9]+
@@ -138,8 +167,7 @@ char *TokenType_str(TokenType ty) {
         case endOfInput  : return "endOfInput"  ;
         case error       : return "error"       ;
     }
-    puts("lexer.lex/TokenType_str(): Switch did not catch on any token type.");
-    exit(EXIT_FAILURE);
+    ERROR("Switch did not catch on any token type.");
 }
 
 /*
@@ -203,53 +231,21 @@ LexerResult *LexerResult_init(TokenVector *tokens, charVector *name_map) {
 void LexerResult_free(LexerResult *lr) {
     TokenVector_free_elems(LexerResult_tokens(lr));
     charVector_free_elems(LexerResult_name_map(lr));
+    free(lr);
+    return;
 }
 
 /*
- * Convert a mapping from integer names to string names, into a mapping from
- * string names to integer names. Used in lex_file. Returns a vector of strings
- * that index according to their originally mapped integers.
+ * Do the lexical analysis. Return the results in a TokenVector. Requires the
+ * lexer to be in the ready state, for example by setting the yyin pointer to be
+ * the file that is to be lexed.
  */
-charVector *flip_name_map(StringIntPairVector *name_map) {
+TokenVector *do_analysis() {
 
-    // Vector to return return as result
-    charVector *flipped_name_map = charVector_init();
-
-    int idx;
-    for(idx = 0; idx < StringIntPairVector_size(name_map); idx++) {
-
-        int jdx = 0;
-        while(jdx < StringIntPairVector_size(name_map)) {
-            if(StringIntPair_int(StringIntPairVector_get(
-                    name_map, jdx)) == idx) {
-
-                break;
-            }
-            jdx++;
-        }
-        charVector_append(flipped_name_map, StringIntPair_str(
-                StringIntPairVector_get(name_map, jdx)));
-    }
-
-    return flipped_name_map;
-}
-
-/*
- * Perform lexical analysis on the given file. Return a pointer to a Vector of
- * Tokens. If the file can'
- */
-LexerResult *lex_file(FILE *file) {
-
-    name_map = StringIntPairVector_init();
-    nextIntName = 0;
-
-    // Point yyin at the given file since it opened successfully
-	yyin = file;
-
-    // Initialise the Token Vector
+    // Initialise the Token Vector for the results
     TokenVector *tok_vec = TokenVector_init();
 
-    // Analyse the file
+    // Do the analysis
     for( ; ; ) {
 
         // Put the next Token into the Vector
@@ -260,12 +256,59 @@ LexerResult *lex_file(FILE *file) {
                 TokenVector_size(tok_vec) - 1)) == endOfInput) { break; }
     }
 
+    // Return the results
+    return tok_vec;
+}
+
+/*
+ * Perform lexical analysis on the given file. Return a pointer to a Vector of
+ * Tokens.
+ */
+LexerResult *lex_file(FILE *file) {
+
+    name_map = StringIntPairVector_init();
+    nextIntName = 0;
+
+    // Point yyin at the given file since it opened successfully
+	yyin = file;
+
+    // Analyse the file
+    TokenVector *tokens = do_analysis();
+
     // Create a flipped name map - Vector indices map to string names
     charVector *flipped_name_map = flip_name_map(name_map);
 
-    // Close the file and return the array
-    fclose(file);
-    return LexerResult_init(tok_vec, flipped_name_map);
+    // Clean up and return the results
+    StringIntPairVector_free(name_map);
+    name_map = NULL;
+    nextIntName = 0;
+    return LexerResult_init(tokens, flipped_name_map);
+}
+
+/*
+ * Perform lexical analysis on the given string. Return a pointer to a Vector of
+ * tokens.
+ */
+LexerResult *lex_string(const char *str) {
+
+    name_map = StringIntPairVector_init();
+    nextIntName = 0;
+
+    // Set flex's state to be ready to scan the string
+    YY_BUFFER_STATE buf_state = yy_scan_string(str);
+
+    // Analyse the file
+    TokenVector *tokens = do_analysis();
+
+    // Create a flipped name map - Vector indices map to string names
+    charVector *flipped_name_map = flip_name_map(name_map);
+
+    // Clean up and return the results
+    yy_delete_buffer(buf_state);
+    StringIntPairVector_free(name_map);
+    name_map = NULL;
+    nextIntName = 0;
+    return LexerResult_init(tokens, flipped_name_map);
 }
 
 /*
