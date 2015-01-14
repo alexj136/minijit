@@ -2,7 +2,7 @@ GCC     = gcc -Wall -g
 SRCDIR  = ./src
 BINDIR  = ./bin
 TESTDIR = ./test
-MODULES = util syntax lexer parser
+MODULES = util syntax lexer parser typecheck
 MAIN    = ./main
 
 all: $(MAIN)
