@@ -13,7 +13,7 @@
  * Types
  */
 
-typedef enum { none, function, integer } TypeID;
+typedef enum { notype, function, integer } TypeID;
 
 typedef struct Type Type;
 struct Type {

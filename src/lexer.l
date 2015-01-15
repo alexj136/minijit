@@ -22,11 +22,14 @@
     } while(0)
 
 Token *Token_init(TokenType type, char *str, int name, int line);
+#define Token_eq(t1, t2) (t1 == t2) // Must be pointer-equal to be equal
 void Token_free(Token *token);
 
 DEFINE_VECTORABLE(Token)
 
 StringIntPair *StringIntPair_init(char *sval, int ival);
+#define StringIntPair_eq(p1, p2) \
+    (((p1->ival) == (p2->ival)) && str_equal(p1->sval, p2->sval))
 void StringIntPair_free(StringIntPair *sip);
 
 DEFINE_VECTORABLE(StringIntPair)

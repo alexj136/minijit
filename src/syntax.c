@@ -64,7 +64,7 @@ bool Func_eq(Func *f, Func *g) {
 
         same = false;
     }
-    
+
     int idx = 0;
     while(same && (idx < Func_num_args(f))) {
         if(Func_arg(f, idx) != Func_arg(g, idx)) { same = false; }
@@ -101,39 +101,42 @@ void Func_free(Func *func) {
  * Commands
  */
 
+Comm *Comm_init(CommType type, Expr *expr, Comm *comm1, Comm *comm2, int name) {
+    Comm *new = challoc(sizeof(Comm));
+    new->type = type;
+    new->expr = expr;
+    new->comm1 = comm1;
+    new->comm2 = comm2;
+    new->name = name;
+    return new;
+}
+
 Comm *While_init(Expr *guard, Comm* body) {
-    Comm *whil = challoc(sizeof(Comm));
-    whil->type = commWhile;
-    While_guard(whil) = guard;
-    While_body(whil) = body;
-    return whil;
+    return Comm_init(commWhile, guard, body, NULL, -1);
 }
 
 Comm *Assign_init(int name, Expr* expr) {
-    Comm *assign = challoc(sizeof(Comm));
-    assign->type = commAssign;
-    Assign_name(assign) = name;
-    Assign_expr(assign) = expr;
-    return assign;
+    return Comm_init(commAssign, expr, NULL, NULL, name);
 }
 
 Comm *Comp_init(Comm *fst, Comm *snd) {
-    Comm *comp = challoc(sizeof(Comm));
-    comp->type = commComp;
-    Comp_fst(comp) = fst;
-    Comp_snd(comp) = snd;
-    return comp;
+    return Comm_init(commComp, NULL, fst, snd, -1);
 }
 
 Comm *Return_init(Expr *expr) {
-    Comm *retur = challoc(sizeof(Comm));
-    retur->type = commReturn;
-    Return_expr(retur) = expr;
-    return retur;
+    return Comm_init(commReturn, expr, NULL, NULL, -1);
 }
 
 bool Comm_eq(Comm *c1, Comm *c2) {
-    if(Comm_isWhile(c1) && Comm_isWhile(c2)) {
+    if((c1 == NULL) || (c2 == NULL))  { return c1 == c2; }
+    else {
+        return ((c1->type) == (c2->type)) &&
+                ((c1->name) == (c2->name)) &&
+                Expr_eq(c1->expr, c2->expr) &&
+                Comm_eq(c1->comm1, c2->comm1) &&
+                Comm_eq(c1->comm2, c2->comm2);
+    }
+    /*if(Comm_isWhile(c1) && Comm_isWhile(c2)) {
         return Expr_eq(While_guard(c1), While_guard(c2)) &&
                 Comm_eq(While_body(c1), While_body(c2));
     }
@@ -150,7 +153,7 @@ bool Comm_eq(Comm *c1, Comm *c2) {
     }
     else {
         return false;
-    }
+    }*/
 }
 
 void Comm_print(Comm *comm, int indent) {
@@ -244,6 +247,15 @@ Expr *Var_init(int name) {
 }
 
 bool Expr_eq(Expr *e1, Expr *e2) {
+    /*if((e1 == NULL) || (e2 == NULL))  { return e1 == e2; }
+    else {
+        return ((e1->type) == (e2->type)) &&
+                ((e1->value) == (e2->value)) &&
+                ((e1->name) == (e2->name)) &&
+                Expr_eq(e1->expr1, e2->expr1) &&
+                Expr_eq(e1->expr2, e2->expr2) &&
+                ExprVector_eq(e1->args, e2->args);
+    }*/
     if(Expr_isInt(e1) && Expr_isInt(e2)) {
         return Int_value(e1) == Int_value(e2);
     }

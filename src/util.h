@@ -18,10 +18,17 @@ struct IntRef {
  * VECTOR MACROS
  * The following macros define 'generic' Vector functions, over struct types,
  * declared in header files, in the following way:
- *     typedef struct MyStruct MyStruct; struct Mystruct { ... };
+ *     typedef struct MyStruct MyStruct;
+ *     struct MyStruct { ... };
  * The Vectors are able to store pointers to structs of types declared in this
- * way only. The type must also have an associated function of the form:
+ * way only. The type must also have associated functions of the form:
+ *
+ *     // Frees the struct
  *     MyStruct_free(MyStruct *ms) { ... }
+ *
+ *     // Determines if two struct instances are equal
+ *     MyStruct_eq(MyStruct *ms1, MyStruct *ms2) { ... }
+ *
  * that frees structs of this type, and is forward-declared in a header file.
  * To use these macros, include e.g.
  *     FORWARD_DECLARE_VECTORABLE(MyStruct)
@@ -30,8 +37,8 @@ struct IntRef {
  * in the file where the freeing function is declared.
  *
  * The defined Vector type supports log(n) time appending, linear time insertion
- * for arbitrary insertion indices, and constant time access. Deletion is not
- * yet supported.
+ * for arbitrary insertion indices, constant time access, and linear time
+ * removal.
  */
 
 #define VECTOR_INITIAL_ARR_SIZE 10
@@ -53,7 +60,8 @@ struct IntRef {
     ty *ty##Vector_get(ty##Vector *vec, int index); \
     void ty##Vector_free(ty##Vector *vec); \
     void ty##Vector_free_elems(ty##Vector *vec); \
-    ty *ty##Vector_remove(ty##Vector *vec, int index);
+    ty *ty##Vector_remove(ty##Vector *vec, int index);\
+    bool ty##Vector_eq(ty##Vector *v1, ty##Vector *v2);
 
 #define DEFINE_VECTORABLE(ty) \
     \
@@ -157,6 +165,21 @@ struct IntRef {
         vec->size--; \
         return elem; \
     } \
+    \
+    /* Determine if two vectors are equal. They are deemed equal if they */ \
+    /* contain elements that are equal according to the type's definition */ \
+    /* of equality, and those elements appear in the same sequence. */ \
+    bool ty##Vector_eq(ty##Vector *v1, ty##Vector *v2) { \
+        bool same = ty##Vector_size(v1) == ty##Vector_size(v2); \
+        int idx = 0; \
+        while(same && (idx < ty##Vector_size(v1))) { \
+            if(!ty##_eq(ty##Vector_get(v1, idx), ty##Vector_get(v2, idx))) { \
+                same = false; \
+            } \
+            idx++; \
+        } \
+        return same; \
+    } \
 
 /*
  * Utility functions
@@ -171,6 +194,7 @@ void put_indent(int num);
 bool str_equal(char *str1, char *str2);
 
 // For Vectors of strings
+#define char_eq str_equal
 FORWARD_DECLARE_VECTORABLE(char)
 
 // For Vectors of integers

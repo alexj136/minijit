@@ -43,7 +43,8 @@
 	if (!(test)) { \
         ___passed = false; \
         ___done_assert = true; \
-		printf("Assertion '%s' failed.\n", message); \
+		printf("%s:%d - Assertion failed:\n", __FILE__, __LINE__); \
+		printf("    %s\n", message); \
 	} \
     else { ___asserts++; ___done_assert = true; }
 
