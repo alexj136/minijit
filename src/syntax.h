@@ -77,7 +77,7 @@ struct Comm {
 #define Expr_isCall(expr) expr->type == exprCall
 #define Expr_isVar(expr) expr->type == exprVar
 
-#define Int_value(eint) eint->value
+#define Int_value(eint) eint->num
 
 #define Add_lhs(add) add->expr1
 #define Add_rhs(add) add->expr2
@@ -85,22 +85,21 @@ struct Comm {
 #define Sub_lhs(sub) sub->expr1
 #define Sub_rhs(sub) sub->expr2
 
-#define Call_name(call) call->name
+#define Call_name(call) call->num
 #define Call_num_args(call) ExprVector_size(call->args)
 #define Call_args(call) call->args
 #define Call_arg(call, num) ExprVector_get(call->args, num)
 
-#define Var_name(var) var->name
+#define Var_name(var) var->num
 
 typedef enum { exprInt, exprAdd, exprSub, exprCall, exprVar } ExprType;
 
 typedef struct Expr Expr;
 struct Expr {
     ExprType type;
-    int value;
+    int num;
     struct Expr *expr1;
     struct Expr *expr2;
-    int name;
     struct ExprVector *args;
 };
 

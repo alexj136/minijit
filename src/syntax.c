@@ -128,7 +128,7 @@ Comm *Return_init(Expr *expr) {
 }
 
 bool Comm_eq(Comm *c1, Comm *c2) {
-    if((c1 == NULL) || (c2 == NULL))  { return c1 == c2; }
+    if((!c1) || (!c2))  { return c1 == c2; } // Null check
     else {
         return ((c1->type) == (c2->type)) &&
                 ((c1->name) == (c2->name)) &&
@@ -136,24 +136,6 @@ bool Comm_eq(Comm *c1, Comm *c2) {
                 Comm_eq(c1->comm1, c2->comm1) &&
                 Comm_eq(c1->comm2, c2->comm2);
     }
-    /*if(Comm_isWhile(c1) && Comm_isWhile(c2)) {
-        return Expr_eq(While_guard(c1), While_guard(c2)) &&
-                Comm_eq(While_body(c1), While_body(c2));
-    }
-    else if(Comm_isAssign(c1) && Comm_isAssign(c2)) {
-        return (Assign_name(c1) == Assign_name(c2)) &&
-                Expr_eq(Assign_expr(c1), Assign_expr(c2));
-    }
-    else if(Comm_isComp(c1) && Comm_isComp(c2)) {
-        return Comm_eq(Comp_fst(c1), Comp_fst(c2)) &&
-                Comm_eq(Comp_snd(c1), Comp_snd(c2));
-    }
-    else if(Comm_isReturn(c1) && Comm_isReturn(c2)) {
-        return Expr_eq(Return_expr(c1), Return_expr(c2));
-    }
-    else {
-        return false;
-    }*/
 }
 
 void Comm_print(Comm *comm, int indent) {
@@ -182,23 +164,10 @@ void Comm_print(Comm *comm, int indent) {
 }
 
 void Comm_free(Comm *comm) {
-    if(Comm_isWhile(comm)) {
-        Expr_free(While_guard(comm));
-        Comm_free(While_body(comm));
-    }
-    else if(Comm_isAssign(comm)) {
-        Expr_free(Assign_expr(comm));
-    }
-    else if(Comm_isComp(comm)) {
-        Comm_free(Comp_fst(comm));
-        Comm_free(Comp_snd(comm));
-    }
-    else if(Comm_isReturn(comm)) {
-        Expr_free(Return_expr(comm));
-    }
-    else {
-        ERROR("Comm type not recognised.");
-    }
+    if(!comm) { return; } // Null check
+    Expr_free(comm->expr);
+    Comm_free(comm->comm1);
+    Comm_free(comm->comm2);
     free(comm);
 }
 
@@ -208,83 +177,46 @@ void Comm_free(Comm *comm) {
 
 DEFINE_VECTORABLE(Expr)
 
+Expr *Expr_init(ExprType type, int num, Expr *expr1, Expr *expr2,
+        ExprVector *args) {
+
+    Expr *expr = challoc(sizeof(Expr));
+    expr->type = type;
+    expr->num = num;
+    expr->expr1 = expr1;
+    expr->expr2 = expr2;
+    expr->args = args;
+    return expr;
+}
+
 Expr *Int_init(int value) {
-    Expr *eint = challoc(sizeof(Expr));
-    eint->type = exprInt;
-    Int_value(eint) = value;
-    return eint;
+    return Expr_init(exprInt, value, NULL, NULL, NULL);
 }
 
 Expr *Add_init(Expr *lhs, Expr *rhs) {
-    Expr *add = challoc(sizeof(Expr));
-    add->type = exprAdd;
-    Add_lhs(add) = lhs;
-    Add_rhs(add) = rhs;
-    return add;
+    return Expr_init(exprAdd, -1, lhs, rhs, NULL);
 }
 
 Expr *Sub_init(Expr *lhs, Expr *rhs) {
-    Expr *sub = challoc(sizeof(Expr));
-    sub->type = exprSub;
-    Sub_lhs(sub) = lhs;
-    Sub_rhs(sub) = rhs;
-    return sub;
+    return Expr_init(exprSub, -1, lhs, rhs, NULL);
 }
 
 Expr *Call_init(int name, ExprVector *args) {
-    Expr *call = challoc(sizeof(Expr));
-    call->type = exprCall;
-    Call_name(call) = name;
-    Call_args(call) = args;
-    return call;
+    return Expr_init(exprCall, name, NULL, NULL, args);
 }
 
 Expr *Var_init(int name) {
-    Expr *var = challoc(sizeof(Expr));
-    var->type = exprVar;
-    Var_name(var) = name;
-    return var;
+    return Expr_init(exprVar, name, NULL, NULL, NULL);
 }
 
 bool Expr_eq(Expr *e1, Expr *e2) {
-    /*if((e1 == NULL) || (e2 == NULL))  { return e1 == e2; }
+    if((!e1) || (!e2))  { return e1 == e2; } // Null check
     else {
         return ((e1->type) == (e2->type)) &&
-                ((e1->value) == (e2->value)) &&
-                ((e1->name) == (e2->name)) &&
+                ((e1->num) == (e2->num)) &&
                 Expr_eq(e1->expr1, e2->expr1) &&
                 Expr_eq(e1->expr2, e2->expr2) &&
                 ExprVector_eq(e1->args, e2->args);
-    }*/
-    if(Expr_isInt(e1) && Expr_isInt(e2)) {
-        return Int_value(e1) == Int_value(e2);
-    }
-    else if(Expr_isAdd(e1) && Expr_isAdd(e2)) {
-        return Expr_eq(Add_lhs(e1), Add_lhs(e2)) &&
-                Expr_eq(Add_rhs(e1), Add_rhs(e2));
-    }
-    else if(Expr_isSub(e1) && Expr_isSub(e2)) {
-        return Expr_eq(Sub_lhs(e1), Sub_lhs(e2)) &&
-                Expr_eq(Sub_rhs(e1), Sub_rhs(e2));
-    }
-    else if(Expr_isCall(e1) && Expr_isCall(e2)) {
-        bool same = true;
-        if((Call_name(e1) != Call_name(e2)) ||
-                (Call_num_args(e1) != Call_num_args(e2))) { same = false; }
-        int idx = 0;
-        while(same && (idx < Call_num_args(e1))) {
-            if(!Expr_eq(Call_arg(e1, idx), Call_arg(e2, idx))) {
-                same = false;
-            }
-            idx++;
-        }
-        return same;
-    }
-    else if(Expr_isVar(e1) && Expr_isVar(e2)) {
-        return Var_name(e1) == Var_name(e2);
-    }
-    else {
-        return false;
     }
 }
 
@@ -319,25 +251,9 @@ void Expr_print(Expr *expr, int indent) {
 }
 
 void Expr_free(Expr *expr) {
-    if(Expr_isInt(expr)) {
-        // Nothing to do
-    }
-    else if(Expr_isAdd(expr)) {
-        Expr_free(Add_lhs(expr));
-        Expr_free(Add_rhs(expr));
-    }
-    else if(Expr_isSub(expr)) {
-        Expr_free(Sub_lhs(expr));
-        Expr_free(Sub_rhs(expr));
-    }
-    else if(Expr_isCall(expr)) {
-        ExprVector_free_elems(Call_args(expr));
-    }
-    else if(Expr_isVar(expr)) {
-        // Nothing to do
-    }
-    else {
-        ERROR("Expr type not recognised.");
-    }
+    if(!expr) { return; } // Null check
+    Expr_free(expr->expr1);
+    Expr_free(expr->expr2);
+    ExprVector_free_elems(expr->args);
     free(expr);
 }

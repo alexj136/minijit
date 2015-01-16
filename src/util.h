@@ -76,12 +76,14 @@ struct IntRef {
     \
     /* Determine the size (number of elements) of a Vector */ \
     int ty##Vector_size(ty##Vector *vec) { \
+        if(!vec) { ERROR("Null Vector"); } \
         return vec->size; \
     } \
     \
     /* Append a new element of type 'ty' to a Vector of elements of that */ \
     /* type. This is a constant time operation. */ \
     void ty##Vector_append(ty##Vector *vec, ty *elem) { \
+        if(!vec) { ERROR("Null Vector"); } \
         if(vec->size >= vec->arr_size) { \
             vec->arr = chrealloc(vec->arr, sizeof(ty *) * 2 * \
                     (vec->arr_size)); \
@@ -97,6 +99,7 @@ struct IntRef {
     /* the Vector are permitted - this is equivalent to an append */ \
     /* operation. */ \
     void ty##Vector_insert(ty##Vector *vec, int index, ty *elem) { \
+        if(!vec) { ERROR("Null Vector"); } \
         if(index < 0) { ERROR("Negative index."); } \
         else if(index > ty##Vector_size(vec)) { \
             ERROR("Index out of bounds."); \
@@ -119,6 +122,7 @@ struct IntRef {
     /* to retrieve an element at an index greater than or equal to the */ \
     /* Vector's size. This is a constant time operation. */ \
     ty *ty##Vector_get(ty##Vector *vec, int index) { \
+        if(!vec) { ERROR("Null Vector"); } \
         if(index >= ty##Vector_size(vec)) { ERROR("Index out of bounds."); } \
         else if(index < 0) { ERROR("Negative index."); } \
         else { return vec->arr[index]; } \
@@ -126,11 +130,13 @@ struct IntRef {
     \
     /* Free a Vector, but not the elements. */ \
     void ty##Vector_free(ty##Vector *vec) { \
+        if(!vec) { return; } /* Null check */ \
         free(vec->arr); \
         free(vec); \
     } \
     /* Free a Vector and its elements. */ \
     void ty##Vector_free_elems(ty##Vector *vec) { \
+        if(!vec) { return; } /* Null check */ \
         int idx; \
         for(idx = 0; idx < vec->size; idx++) { \
             ty##_free(vec->arr[idx]); \
@@ -144,6 +150,7 @@ struct IntRef {
     /* function, although the calling function is responsible for doing so */ \
     /* after calling this function. */ \
     void ty##Vector_shift(ty##Vector *vec, int index) { \
+        if(!vec) { ERROR("Null Vector"); } \
         if(index < 0) { ERROR("Negative index."); } \
         if(index >= ty##Vector_size(vec)) { ERROR("Index out of bounds."); } \
         else if(index == ty##Vector_size(vec) - 1) { \
@@ -158,6 +165,7 @@ struct IntRef {
     /* Remove an element from a Vector, returning a pointer to the removed */ \
     /* element for further usage or freeing. */ \
     ty *ty##Vector_remove(ty##Vector *vec, int index) { \
+        if(!vec) { ERROR("Null Vector"); } \
         if(index < 0) { ERROR("Negative index."); } \
         if(index >= ty##Vector_size(vec)) { ERROR("Index out of bounds."); } \
         ty *elem = ty##Vector_get(vec, index); \
@@ -170,6 +178,7 @@ struct IntRef {
     /* contain elements that are equal according to the type's definition */ \
     /* of equality, and those elements appear in the same sequence. */ \
     bool ty##Vector_eq(ty##Vector *v1, ty##Vector *v2) { \
+        if((!v1) || (!v2)) { return v1 == v2; } /* null check */ \
         bool same = ty##Vector_size(v1) == ty##Vector_size(v2); \
         int idx = 0; \
         while(same && (idx < ty##Vector_size(v1))) { \
