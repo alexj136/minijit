@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
     }
 
     Prog *prog = parse(tokens);
-    Prog_print(prog, 0);
+    Prog_print(prog, 0, LexerResult_name_map(lr));
 
     LexerResult_free(lr);
     Prog_free(prog);

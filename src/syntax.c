@@ -28,12 +28,11 @@ bool Prog_eq(Prog *p, Prog *q) {
     return same;
 }
 
-void Prog_print(Prog *prog, int indent) {
+void Prog_print(Prog *prog, int indent, charVector *name_map) {
     put_indent(indent);
-    printf("PROG: FUNCS=%d:\n", Prog_num_funcs(prog));
     int idx;
     for(idx = 0; idx < Prog_num_funcs(prog); idx++) {
-        Func_print(Prog_func(prog, idx), indent + 1);
+        Func_print(Prog_func(prog, idx), indent, name_map);
     }
 }
 
@@ -79,16 +78,19 @@ bool Func_eq(Func *f, Func *g) {
     return same;
 }
 
-void Func_print(Func *func, int indent) {
+void Func_print(Func *func, int indent, charVector *name_map) {
     put_indent(indent);
-    printf("FUNC: NO=%d, ARGC=%d, ARGIDS=", Func_name(func),
-            Func_num_args(func));
+    printf("%s(", charVector_get(name_map, Func_name(func)));
     int idx;
     for(idx = 0; idx < Func_num_args(func); idx++) {
-        printf("%d ", Func_arg(func, idx));
+        printf("%s", charVector_get(name_map, Func_arg(func, idx)));
+        if(idx + 1 < Func_num_args(func)) { printf(", "); }
     }
-    printf(":\n");
-    Comm_print(Func_body(func), indent + 1);
+    printf(") {\n");
+    Comm_print(Func_body(func), indent + 1, name_map);
+    printf("\n");
+    put_indent(indent);
+    printf("}\n");
 }
 
 void Func_free(Func *func) {
@@ -138,25 +140,31 @@ bool Comm_eq(Comm *c1, Comm *c2) {
     }
 }
 
-void Comm_print(Comm *comm, int indent) {
-    put_indent(indent);
+void Comm_print(Comm *comm, int indent, charVector *name_map) {
     if(Comm_isWhile(comm)) {
-        puts("WHILE:");
-        Expr_print(While_guard(comm), indent + 1);
-        Comm_print(While_body(comm), indent + 1);
+        put_indent(indent);
+        printf("while ");
+        Expr_print(While_guard(comm), name_map);
+        printf(" do {\n");
+        Comm_print(While_body(comm), indent + 1, name_map);
+        printf("\n");
+        put_indent(indent);
+        printf("}");
     }
     else if(Comm_isAssign(comm)) {
-        printf("ASSIGN: ID=%d:\n", Assign_name(comm));
-        Expr_print(Assign_expr(comm), indent + 1);
+        put_indent(indent);
+        printf("%s := ", charVector_get(name_map, Assign_name(comm)));
+        Expr_print(Assign_expr(comm), name_map);
     }
     else if(Comm_isComp(comm)) {
-        puts("COMPOSITION:");
-        Comm_print(Comp_fst(comm), indent + 1);
-        Comm_print(Comp_snd(comm), indent + 1);
+        Comm_print(Comp_fst(comm), indent, name_map);
+        printf(";\n");
+        Comm_print(Comp_snd(comm), indent, name_map);
     }
     else if(Comm_isReturn(comm)) {
-        puts("RETURN:");
-        Expr_print(Return_expr(comm), indent + 1);
+        put_indent(indent);
+        printf("return ");
+        Expr_print(Return_expr(comm), name_map);
     }
     else {
         ERROR("Comm type not recognised.");
@@ -220,30 +228,31 @@ bool Expr_eq(Expr *e1, Expr *e2) {
     }
 }
 
-void Expr_print(Expr *expr, int indent) {
-    put_indent(indent);
+void Expr_print(Expr *expr, charVector *name_map) {
     if(Expr_isInt(expr)) {
-        printf("LITERAL: VALUE=%d\n", Int_value(expr));
+        printf("%d", Int_value(expr));
     }
     else if(Expr_isAdd(expr)) {
-        puts("ADDITION:");
-        Expr_print(Add_lhs(expr), indent + 1);
-        Expr_print(Add_rhs(expr), indent + 1);
+        Expr_print(Add_lhs(expr), name_map);
+        printf(" + ");
+        Expr_print(Add_rhs(expr), name_map);
     }
     else if(Expr_isSub(expr)) {
-        puts("SUBTRACTION:");
-        Expr_print(Sub_lhs(expr), indent + 1);
-        Expr_print(Sub_rhs(expr), indent + 1);
+        Expr_print(Sub_lhs(expr), name_map);
+        printf(" - ");
+        Expr_print(Sub_rhs(expr), name_map);
     }
     else if(Expr_isCall(expr)) {
-        printf("CALL: ID=%d, ARGC=%d:\n", Call_name(expr), Call_num_args(expr));
+        printf("%s(", charVector_get(name_map, Call_name(expr)));
         int idx;
         for(idx = 0; idx < Call_num_args(expr); idx++) {
-            Expr_print(Call_arg(expr, idx), indent + 1);
+            Expr_print(Call_arg(expr, idx), name_map);
+            if(idx + 1 < Call_num_args(expr)) { printf(", "); }
         }
+        printf(")");
     }
     else if(Expr_isVar(expr)) {
-        printf("VARIABLE: ID=%d\n", Var_name(expr));
+        printf("%s", charVector_get(name_map, Var_name(expr)));
     }
     else {
         ERROR("Expr type not recognised.");

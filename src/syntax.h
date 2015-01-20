@@ -111,12 +111,12 @@ FORWARD_DECLARE_VECTORABLE(Expr);
 
 Prog *Prog_init(FuncVector *funcs);
 bool Prog_eq(Prog *p, Prog *q);
-void Prog_print(Prog *prog, int indent);
+void Prog_print(Prog *prog, int indent, charVector *name_map);
 void Prog_free(Prog *prog);
 
 Func *Func_init(int name, IntRefVector *args, Comm *body);
 bool Func_eq(Func *f, Func *g);
-void Func_print(Func *func, int indent);
+void Func_print(Func *func, int indent, charVector *name_map);
 void Func_free(Func *func);
 
 Comm *While_init(Expr *guard, Comm* body);
@@ -124,7 +124,7 @@ Comm *Assign_init(int name, Expr* expr);
 Comm *Comp_init(Comm *fst, Comm *snd);
 Comm *Return_init(Expr *expr);
 bool Comm_eq(Comm *c1, Comm *c2);
-void Comm_print(Comm *comm, int indent);
+void Comm_print(Comm *comm, int indent, charVector *name_map);
 void Comm_free(Comm *comm);
 
 Expr *Int_init(int value);
@@ -133,7 +133,7 @@ Expr *Sub_init(Expr *lhs, Expr *rhs);
 Expr *Call_init(int name, ExprVector *args);
 Expr *Var_init(int name);
 bool Expr_eq(Expr *e1, Expr *e2);
-void Expr_print(Expr *expr, int indent);
+void Expr_print(Expr *expr, charVector *name_map);
 void Expr_free(Expr *expr);
 
 #endif // syntax
