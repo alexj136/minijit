@@ -16,6 +16,10 @@ TokenVector *parser_tokens;
 // The current index into the Token Vector
 int parser_token_idx;
 
+// The current position in the file
+int src_line_no;
+int src_char_no;
+
 // The result of the parse
 Prog *result;
 
@@ -66,24 +70,24 @@ Prog *result;
 prog:  funcs { result = Prog_init($1); }
     ;
 
-func:   name LParen names RParen LCurly comm RCurly { $$ = Func_init($1, $3, $6); }
+func:   name LParen names RParen LCurly comm RCurly { $$ = Func_init($1, $3, $6, 0, 0); }
     ;
 
 funcs:  func funcs { $$ = $2; FuncVector_insert($2, 0, $1); }
     |   func { $$ = FuncVector_init(); FuncVector_append($$, $1); }
     ;
 
-comm:   While expr Do LCurly comm RCurly { $$ = While_init($2, $5); }
-    |   name Assign expr { $$ = Assign_init($1, $3); }
-    |   comm Semi comm { $$ = Comp_init($1, $3); }
-    |   Return expr { $$ = Return_init($2); }
+comm:   While expr Do LCurly comm RCurly { $$ = While_init($2, $5, 0, 0); }
+    |   name Assign expr { $$ = Assign_init($1, $3, 0, 0); }
+    |   comm Semi comm { $$ = Comp_init($1, $3, 0, 0); }
+    |   Return expr { $$ = Return_init($2, 0, 0); }
     ;
 
-expr:   Int { $$ = Int_init(Token_name(yylval.token)); }
-    |   expr Add expr { $$ = Add_init($1, $3); }
-    |   expr Sub expr { $$ = Sub_init($1, $3); }
-    |   name LParen exprs RParen { $$ = Call_init($1, $3); }
-    |   name { $$ = Var_init($1); }
+expr:   Int { $$ = Int_init(Token_name(yylval.token), 0, 0); }
+    |   expr Add expr { $$ = Add_init($1, $3, 0, 0); }
+    |   expr Sub expr { $$ = Sub_init($1, $3, 0, 0); }
+    |   name LParen exprs RParen { $$ = Call_init($1, $3, 0, 0); }
+    |   name { $$ = Var_init($1, 0, 0); }
     ;
 
 name:   Name { $$ = Token_name(yylval.token); }

@@ -32,6 +32,8 @@ struct Func {
     int name;
     struct IntRefVector *args;
     struct Comm *body;
+    int src_line_no;
+    int src_char_no;
 };
 
 FORWARD_DECLARE_VECTORABLE(Func)
@@ -65,6 +67,8 @@ struct Comm {
     struct Comm *comm1;
     struct Comm *comm2;
     int name;
+    int src_line_no;
+    int src_char_no;
 };
 
 /*
@@ -101,6 +105,8 @@ struct Expr {
     struct Expr *expr1;
     struct Expr *expr2;
     struct ExprVector *args;
+    int src_line_no;
+    int src_char_no;
 };
 
 FORWARD_DECLARE_VECTORABLE(Expr);
@@ -114,7 +120,8 @@ bool Prog_eq(Prog *p, Prog *q);
 void Prog_print(Prog *prog, int indent, charVector *name_map);
 void Prog_free(Prog *prog);
 
-Func *Func_init(int name, IntRefVector *args, Comm *body);
+Func *Func_init(int name, IntRefVector *args, Comm *body, int src_line_no,
+        int src_char_no);
 bool Func_eq(Func *f, Func *g);
 void Func_print(Func *func, int indent, charVector *name_map);
 void Func_free(Func *func);
@@ -123,6 +130,10 @@ Comm *While_init(Expr *guard, Comm* body);
 Comm *Assign_init(int name, Expr* expr);
 Comm *Comp_init(Comm *fst, Comm *snd);
 Comm *Return_init(Expr *expr);
+Comm *While_init_pos(Expr *guard, Comm* body, int src_line_no, int src_char_no);
+Comm *Assign_init_pos(int name, Expr* expr, int src_line_no, int src_char_no);
+Comm *Comp_init_pos(Comm *fst, Comm *snd, int src_line_no, int src_char_no);
+Comm *Return_init_pos(Expr *expr, int src_line_no, int src_char_no);
 bool Comm_eq(Comm *c1, Comm *c2);
 void Comm_print(Comm *comm, int indent, charVector *name_map);
 void Comm_free(Comm *comm);
@@ -132,6 +143,12 @@ Expr *Add_init(Expr *lhs, Expr *rhs);
 Expr *Sub_init(Expr *lhs, Expr *rhs);
 Expr *Call_init(int name, ExprVector *args);
 Expr *Var_init(int name);
+Expr *Int_init_pos(int value, int src_line_no, int src_char_no);
+Expr *Add_init_pos(Expr *lhs, Expr *rhs, int src_line_no, int src_char_no);
+Expr *Sub_init_pos(Expr *lhs, Expr *rhs, int src_line_no, int src_char_no);
+Expr *Call_init_pos(int name, ExprVector *args, int src_line_no,
+        int src_char_no);
+Expr *Var_init_pos(int name, int src_line_no, int src_char_no);
 bool Expr_eq(Expr *e1, Expr *e2);
 void Expr_print(Expr *expr, charVector *name_map);
 void Expr_free(Expr *expr);

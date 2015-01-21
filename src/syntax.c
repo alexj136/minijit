@@ -47,11 +47,15 @@ void Prog_free(Prog *prog) {
 
 DEFINE_VECTORABLE(Func)
 
-Func *Func_init(int name, IntRefVector *args, Comm *body) {
+Func *Func_init(int name, IntRefVector *args, Comm *body, int src_line_no,
+        int src_char_no) {
+
     Func *func = challoc(sizeof(Func));
     func->name = name;
     func->args = args;
     func->body = body;
+    func->src_line_no = src_line_no;
+    func->src_char_no = src_char_no;
     return func;
 }
 
@@ -103,30 +107,55 @@ void Func_free(Func *func) {
  * Commands
  */
 
-Comm *Comm_init(CommType type, Expr *expr, Comm *comm1, Comm *comm2, int name) {
+Comm *Comm_init(CommType type, Expr *expr, Comm *comm1, Comm *comm2, int name,
+        int src_line_no, int src_char_no) {
+
     Comm *new = challoc(sizeof(Comm));
     new->type = type;
     new->expr = expr;
     new->comm1 = comm1;
     new->comm2 = comm2;
     new->name = name;
+    new->src_line_no = src_line_no;
+    new->src_char_no = src_char_no;
     return new;
 }
 
 Comm *While_init(Expr *guard, Comm* body) {
-    return Comm_init(commWhile, guard, body, NULL, -1);
+    return Comm_init(commWhile, guard, body, NULL, -1, -1, -1);
 }
 
 Comm *Assign_init(int name, Expr* expr) {
-    return Comm_init(commAssign, expr, NULL, NULL, name);
+    return Comm_init(commAssign, expr, NULL, NULL, name, -1, -1);
 }
 
 Comm *Comp_init(Comm *fst, Comm *snd) {
-    return Comm_init(commComp, NULL, fst, snd, -1);
+    return Comm_init(commComp, NULL, fst, snd, -1, -1, -1);
 }
 
 Comm *Return_init(Expr *expr) {
-    return Comm_init(commReturn, expr, NULL, NULL, -1);
+    return Comm_init(commReturn, expr, NULL, NULL, -1, -1, -1);
+}
+
+Comm *While_init_pos(Expr *guard, Comm* body, int src_line_no,
+        int src_char_no) {
+
+    return Comm_init(commWhile, guard, body, NULL, -1, src_line_no,
+            src_char_no);
+}
+
+Comm *Assign_init_pos(int name, Expr* expr, int src_line_no, int src_char_no) {
+    return Comm_init(commAssign, expr, NULL, NULL, name, src_line_no,
+            src_char_no);
+}
+
+Comm *Comp_init_pos(Comm *fst, Comm *snd, int src_line_no, int src_char_no) {
+    return Comm_init(commComp, NULL, fst, snd, -1, src_line_no, src_char_no);
+}
+
+Comm *Return_init_pos(Expr *expr, int src_line_no, int src_char_no) {
+    return Comm_init(commReturn, expr, NULL, NULL, -1, src_line_no,
+            src_char_no);
 }
 
 bool Comm_eq(Comm *c1, Comm *c2) {
@@ -186,7 +215,7 @@ void Comm_free(Comm *comm) {
 DEFINE_VECTORABLE(Expr)
 
 Expr *Expr_init(ExprType type, int num, Expr *expr1, Expr *expr2,
-        ExprVector *args) {
+        ExprVector *args, int src_line_no, int src_char_no) {
 
     Expr *expr = challoc(sizeof(Expr));
     expr->type = type;
@@ -194,27 +223,31 @@ Expr *Expr_init(ExprType type, int num, Expr *expr1, Expr *expr2,
     expr->expr1 = expr1;
     expr->expr2 = expr2;
     expr->args = args;
+    expr->src_line_no = src_line_no;
+    expr->src_char_no = src_char_no;
     return expr;
 }
 
-Expr *Int_init(int value) {
-    return Expr_init(exprInt, value, NULL, NULL, NULL);
+Expr *Int_init(int value, int src_line_no, int src_char_no) {
+    return Expr_init(exprInt, value, NULL, NULL, NULL, src_line_no,
+            src_char_no);
 }
 
-Expr *Add_init(Expr *lhs, Expr *rhs) {
-    return Expr_init(exprAdd, -1, lhs, rhs, NULL);
+Expr *Add_init(Expr *lhs, Expr *rhs, int src_line_no, int src_char_no) {
+    return Expr_init(exprAdd, -1, lhs, rhs, NULL, src_line_no, src_char_no);
 }
 
-Expr *Sub_init(Expr *lhs, Expr *rhs) {
-    return Expr_init(exprSub, -1, lhs, rhs, NULL);
+Expr *Sub_init(Expr *lhs, Expr *rhs, int src_line_no, int src_char_no) {
+    return Expr_init(exprSub, -1, lhs, rhs, NULL, src_line_no, src_char_no);
 }
 
-Expr *Call_init(int name, ExprVector *args) {
-    return Expr_init(exprCall, name, NULL, NULL, args);
+Expr *Call_init(int name, ExprVector *args, int src_line_no, int src_char_no) {
+    return Expr_init(exprCall, name, NULL, NULL, args, src_line_no,
+            src_char_no);
 }
 
-Expr *Var_init(int name) {
-    return Expr_init(exprVar, name, NULL, NULL, NULL);
+Expr *Var_init(int name, int src_line_no, int src_char_no) {
+    return Expr_init(exprVar, name, NULL, NULL, NULL, src_line_no, src_char_no);
 }
 
 bool Expr_eq(Expr *e1, Expr *e2) {

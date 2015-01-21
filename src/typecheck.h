@@ -13,12 +13,14 @@
  * Types
  */
 
+#define Type_typeID(type) type->typeID
 #define Type_isFuncType(type) type->typeID == typeIDFunc
 #define Type_isIntType(type) type->typeID == typeIDInt
 
 #define FuncType_arity(type) TypeVector_size(type->argTypes)
 #define FuncType_argType(type, num) TypeVector_get(type->argTypes, num)
-#define FuncType_returnType(func) type->returnType
+#define FuncType_argTypes(type) type->argTypes
+#define FuncType_returnType(type) type->returnType
 
 typedef enum { typeIDFunc, typeIDInt } TypeID;
 
@@ -33,6 +35,8 @@ FORWARD_DECLARE_VECTORABLE(Type)
 
 Type *FuncType_init(TypeVector *argTypes, Type *returnType);
 Type *IntType_init();
+bool Type_eq(Type *t1, Type *t2);
+void Type_free(Type *type);
 
 /*
  * Type errors
@@ -52,6 +56,8 @@ struct TypeError {
 FORWARD_DECLARE_VECTORABLE(TypeError)
 
 TypeError *TypeError_init(int name, Type *found, Type *expected);
+bool TypeError_eq(TypeError *error1, TypeError *error2);
+void TypeError_free(TypeError *error);
 
 /*
  * Type checking results - a type and a vector of type errors
@@ -64,8 +70,8 @@ TypeError *TypeError_init(int name, Type *found, Type *expected);
 
 typedef struct TypeCheckResult TypeCheckResult;
 struct TypeCheckResult {
-    Type *type;
-    TypeErrorVector *errors;
+    struct Type *type;
+    struct TypeErrorVector *errors;
 };
 
 TypeCheckResult *TypeCheckResult_init(Type *type, TypeErrorVector *errors);

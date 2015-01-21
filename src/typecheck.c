@@ -6,6 +6,8 @@
  * Functions for types
  */
 
+DEFINE_VECTORABLE(Type)
+
 Type *Type_init(TypeID typeID, TypeVector *argTypes, Type *returnType) {
     Type *type = challoc(sizeof(type));
     type->typeID = typeID;
@@ -22,21 +24,51 @@ Type *IntType_init() {
     return Type_init(typeIDInt, NULL, NULL);
 }
 
+bool Type_eq(Type *t1, Type *t2) {
+    if((!t1) || (!t2)) { return t1 == t2; } // null check
+    else {
+        return (Type_typeID(t1) == Type_typeID(t2))
+                && Type_eq(FuncType_returnType(t1), FuncType_returnType(t2))
+                && TypeVector_eq(FuncType_argTypes(t1), FuncType_argTypes(t2));
+    }
+}
+
+void Type_free(Type *type) {
+    if(!type) { return; }
+    Type_free(FuncType_returnType(type));
+    TypeVector_free(FuncType_argTypes(type));
+    free(type);
+    return;
+}
+
 /*
  * Functions for type errors
  */
 
 TypeError *TypeError_init(int name, Type *found, Type *expected) {
-    TypeError *tyerr = challoc(sizeof(TypeError));
-    tyerr->name = name;
-    tyerr->found = found;
-    tyerr->expected = expected;
-    return tyerr;
+    TypeError *error = challoc(sizeof(TypeError));
+    error->name = name;
+    error->found = found;
+    error->expected = expected;
+    return error;
+}
+
+bool TypeError_eq(TypeError *error1, TypeError *error2) {
+    return error1 == error2;
+}
+
+void TypeError_free(TypeError *error) {
+    Type_free(error->found);
+    Type_free(error->expected);
+    free(error);
+    return;
 }
 
 /*
  * Functions for type check results
  */
+
+DEFINE_VECTORABLE(TypeError)
 
 TypeCheckResult *TypeCheckResult_init(Type *type, TypeErrorVector *errors) {
     TypeCheckResult *tcr = challoc(sizeof(TypeCheckResult));
