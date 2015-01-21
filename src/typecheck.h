@@ -13,20 +13,34 @@
  * Types
  */
 
-typedef enum { notype, function, integer } TypeID;
+#define Type_isFuncType(type) type->typeID == typeIDFunc
+#define Type_isIntType(type) type->typeID == typeIDInt
+
+#define FuncType_arity(type) TypeVector_size(type->argTypes)
+#define FuncType_argType(type, num) TypeVector_get(type->argTypes, num)
+#define FuncType_returnType(func) type->returnType
+
+typedef enum { typeIDFunc, typeIDInt } TypeID;
 
 typedef struct Type Type;
 struct Type {
-    TypeID tid;
+    TypeID typeID;
     struct TypeVector *argTypes;
     struct Type *returnType;
 };
 
 FORWARD_DECLARE_VECTORABLE(Type)
 
+Type *FuncType_init(TypeVector *argTypes, Type *returnType);
+Type *IntType_init();
+
 /*
  * Type errors
  */
+
+#define TypeError_name(tyerr) tyerr->name
+#define TypeError_found(tyerr) tyerr->found
+#define TypeError_expected(tyerr) tyerr->expected
 
 typedef struct TypeError TypeError;
 struct TypeError {
@@ -37,13 +51,32 @@ struct TypeError {
 
 FORWARD_DECLARE_VECTORABLE(TypeError)
 
+TypeError *TypeError_init(int name, Type *found, Type *expected);
+
+/*
+ * Type checking results - a type and a vector of type errors
+ */
+
+#define TypeCheckResult_type(tcr) tcr->type
+#define TypeCheckResult_errors(tcr) tcr->errors
+#define TypeCheckResult_num_errors(tcr) TypeErrorVector_size(tcr->errors)
+#define TypeCheckResult_error(tcr, num) TypeErrorVector_get(tcr->errors, num)
+
+typedef struct TypeCheckResult TypeCheckResult;
+struct TypeCheckResult {
+    Type *type;
+    TypeErrorVector *errors;
+};
+
+TypeCheckResult *TypeCheckResult_init(Type *type, TypeErrorVector *errors);
+
 /*
  * Type checking functions
  */
 
-TypeErrorVector *check_Prog(Prog *prog, TypeVector *symbol_table);
-TypeErrorVector *check_Func(Prog *prog, TypeVector *symbol_table);
-TypeErrorVector *check_Comm(Prog *prog, TypeVector *symbol_table);
-TypeErrorVector *check_Expr(Prog *prog, TypeVector *symbol_table);
+TypeCheckResult *check_Prog(Prog *prog, TypeVector *symbol_table);
+TypeCheckResult *check_Func(Func *func, TypeVector *symbol_table);
+TypeCheckResult *check_Comm(Comm *comm, TypeVector *symbol_table);
+TypeCheckResult *check_Expr(Expr *expr, TypeVector *symbol_table);
 
 #endif // typecheck
