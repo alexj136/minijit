@@ -47,7 +47,11 @@ void Prog_free(Prog *prog) {
 
 DEFINE_VECTORABLE(Func)
 
-Func *Func_init(int name, IntRefVector *args, Comm *body, int src_line_no,
+Func *Func_init(int name, IntRefVector *args, Comm *body) {
+    return Func_init_pos(name, args, body, -1, -1);
+}
+
+Func *Func_init_pos(int name, IntRefVector *args, Comm *body, int src_line_no,
         int src_char_no) {
 
     Func *func = challoc(sizeof(Func));
@@ -228,25 +232,47 @@ Expr *Expr_init(ExprType type, int num, Expr *expr1, Expr *expr2,
     return expr;
 }
 
-Expr *Int_init(int value, int src_line_no, int src_char_no) {
+Expr *Int_init(int value) {
+    return Expr_init(exprInt, value, NULL, NULL, NULL, -1, -1);
+}
+
+Expr *Add_init(Expr *lhs, Expr *rhs) {
+    return Expr_init(exprAdd, -1, lhs, rhs, NULL, -1, -1);
+}
+
+Expr *Sub_init(Expr *lhs, Expr *rhs) {
+    return Expr_init(exprSub, -1, lhs, rhs, NULL, -1, -1);
+}
+
+Expr *Call_init(int name, ExprVector *args) {
+    return Expr_init(exprCall, name, NULL, NULL, args, -1, -1);
+}
+
+Expr *Var_init(int name) {
+    return Expr_init(exprVar, name, NULL, NULL, NULL, -1, -1);
+}
+
+Expr *Int_init_pos(int value, int src_line_no, int src_char_no) {
     return Expr_init(exprInt, value, NULL, NULL, NULL, src_line_no,
             src_char_no);
 }
 
-Expr *Add_init(Expr *lhs, Expr *rhs, int src_line_no, int src_char_no) {
+Expr *Add_init_pos(Expr *lhs, Expr *rhs, int src_line_no, int src_char_no) {
     return Expr_init(exprAdd, -1, lhs, rhs, NULL, src_line_no, src_char_no);
 }
 
-Expr *Sub_init(Expr *lhs, Expr *rhs, int src_line_no, int src_char_no) {
+Expr *Sub_init_pos(Expr *lhs, Expr *rhs, int src_line_no, int src_char_no) {
     return Expr_init(exprSub, -1, lhs, rhs, NULL, src_line_no, src_char_no);
 }
 
-Expr *Call_init(int name, ExprVector *args, int src_line_no, int src_char_no) {
+Expr *Call_init_pos(int name, ExprVector *args, int src_line_no,
+        int src_char_no) {
+
     return Expr_init(exprCall, name, NULL, NULL, args, src_line_no,
             src_char_no);
 }
 
-Expr *Var_init(int name, int src_line_no, int src_char_no) {
+Expr *Var_init_pos(int name, int src_line_no, int src_char_no) {
     return Expr_init(exprVar, name, NULL, NULL, NULL, src_line_no, src_char_no);
 }
 

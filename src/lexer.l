@@ -17,13 +17,18 @@
         char *text = strdup(yytext); \
         int name = (ty == tokenName) ? lease_int_name(yytext) : \
                 ((ty == tokenInt) ? name = atoi(yytext) : -1); \
-        int lineno = yylineno; \
-        return Token_init(ty, text, name, lineno); \
+        int line_no = yylineno; \
+        char_no += yyleng; \
+        return Token_init(ty, text, name, line_no, char_no - yyleng); \
     } while(0)
 
-Token *Token_init(TokenType type, char *str, int name, int line);
+Token *Token_init(TokenType type, char *str, int name, int line_no,
+        int char_no);
 #define Token_eq(t1, t2) (t1 == t2) // Must be pointer-equal to be equal
 void Token_free(Token *token);
+
+// Stores the current position in the line, as flex can't do this
+int char_no;
 
 DEFINE_VECTORABLE(Token)
 
@@ -111,11 +116,13 @@ charVector *flip_name_map(StringIntPairVector *name_map) {
 
 int_const [0-9]+
 name_const [a-zA-Z_][a-zA-Z0-9_]*
-space [\n\r\ \t\b\012]
+line_break [\n\r]
+space [ \t\b\012]
 
 %%
 
-{space}         ;
+{line_break}    { char_no = 1;               }
+{space}         { char_no++;                 }
 "("             { MAKE_TOKEN( tokenLParen ); }
 ")"             { MAKE_TOKEN( tokenRParen ); }
 "{"             { MAKE_TOKEN( tokenLCurly ); }
@@ -139,12 +146,15 @@ space [\n\r\ \t\b\012]
  * Initialise a new Token from the given TokenType, name and line number. Use
  * -1 as the name for non-identifier tokens.
  */
-Token *Token_init(TokenType type, char *str, int name, int line) {
+Token *Token_init(TokenType type, char *str, int name, int line_no,
+        int char_no) {
+
     Token *token = challoc(sizeof(Token));
     Token_type(token) = type;
     Token_str(token)  = str;
     Token_name(token) = name;
-    Token_line(token) = line;
+    Token_line_no(token) = line_no;
+    Token_char_no(token) = char_no;
     return token;
 }
 
@@ -185,7 +195,7 @@ void Token_print(Token *token) {
     else if(Token_type(token) == tokenInt) {
         printf("integer value=%d, ", Token_name(token));
     }
-    printf("lineNo=%d.\n", Token_line(token));
+    printf("line=%d, column=%d.\n", Token_line_no(token), Token_char_no(token));
     return;
 }
 
@@ -248,6 +258,7 @@ LexerResult *do_analysis() {
 
     name_map = StringIntPairVector_init();
     nextIntName = 0;
+    char_no = 1;
 
     // Initialise the Token Vector for the results
     TokenVector *tok_vec = TokenVector_init();
@@ -270,6 +281,7 @@ LexerResult *do_analysis() {
     StringIntPairVector_free(name_map);
     name_map = NULL;
     nextIntName = 0;
+    char_no = 1;
     return LexerResult_init(tok_vec, flipped_name_map);
 }
 
@@ -345,8 +357,8 @@ void print_errors(TokenVector *tok_vec) {
 
         // If the token is an error, print details and set no_errors to false
         if(Token_type(current) == error) {
-            printf("Invalid text on line %d: '%s'.\n", Token_line(current),
-                    Token_str(current));
+            printf("Invalid text at %d,%d: '%s'.\n", Token_line_no(current),
+                    Token_char_no(current), Token_str(current));
         }
     }
     return;

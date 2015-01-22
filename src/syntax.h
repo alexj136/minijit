@@ -120,7 +120,8 @@ bool Prog_eq(Prog *p, Prog *q);
 void Prog_print(Prog *prog, int indent, charVector *name_map);
 void Prog_free(Prog *prog);
 
-Func *Func_init(int name, IntRefVector *args, Comm *body, int src_line_no,
+Func *Func_init(int name, IntRefVector *args, Comm *body);
+Func *Func_init_pos(int name, IntRefVector *args, Comm *body, int src_line_no,
         int src_char_no);
 bool Func_eq(Func *f, Func *g);
 void Func_print(Func *func, int indent, charVector *name_map);

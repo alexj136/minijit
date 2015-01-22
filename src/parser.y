@@ -25,6 +25,8 @@ Prog *result;
 
 %}
 
+%locations
+
 %union {
     Token *token;
     Prog *prog;
@@ -70,24 +72,24 @@ Prog *result;
 prog:  funcs { result = Prog_init($1); }
     ;
 
-func:   name LParen names RParen LCurly comm RCurly { $$ = Func_init($1, $3, $6, 0, 0); }
+func:   name LParen names RParen LCurly comm RCurly { $$ = Func_init_pos($1, $3, $6, @$.first_line, @$.first_column); }
     ;
 
 funcs:  func funcs { $$ = $2; FuncVector_insert($2, 0, $1); }
     |   func { $$ = FuncVector_init(); FuncVector_append($$, $1); }
     ;
 
-comm:   While expr Do LCurly comm RCurly { $$ = While_init($2, $5, 0, 0); }
-    |   name Assign expr { $$ = Assign_init($1, $3, 0, 0); }
-    |   comm Semi comm { $$ = Comp_init($1, $3, 0, 0); }
-    |   Return expr { $$ = Return_init($2, 0, 0); }
+comm:   While expr Do LCurly comm RCurly { $$ = While_init_pos($2, $5, @$.first_line, @$.first_column); }
+    |   name Assign expr { $$ = Assign_init_pos($1, $3, @$.first_line, @$.first_column); }
+    |   comm Semi comm { $$ = Comp_init_pos($1, $3, @$.first_line, @$.first_column); }
+    |   Return expr { $$ = Return_init_pos($2, @$.first_line, @$.first_column); }
     ;
 
-expr:   Int { $$ = Int_init(Token_name(yylval.token), 0, 0); }
-    |   expr Add expr { $$ = Add_init($1, $3, 0, 0); }
-    |   expr Sub expr { $$ = Sub_init($1, $3, 0, 0); }
-    |   name LParen exprs RParen { $$ = Call_init($1, $3, 0, 0); }
-    |   name { $$ = Var_init($1, 0, 0); }
+expr:   Int { $$ = Int_init_pos(Token_name(yylval.token), @$.first_line, @$.first_column); }
+    |   expr Add expr { $$ = Add_init_pos($1, $3, @$.first_line, @$.first_column); }
+    |   expr Sub expr { $$ = Sub_init_pos($1, $3, @$.first_line, @$.first_column); }
+    |   name LParen exprs RParen { $$ = Call_init_pos($1, $3, @$.first_line, @$.first_column); }
+    |   name { $$ = Var_init_pos($1, @$.first_line, @$.first_column); }
     ;
 
 name:   Name { $$ = Token_name(yylval.token); }
@@ -128,6 +130,8 @@ Prog *parse(TokenVector *tok_vec) {
 int yylex() {
     parser_token_idx++;
     yylval.token = TokenVector_get(parser_tokens, parser_token_idx);
+    yylloc.first_line = Token_line_no(yylval.token);
+    yylloc.first_column = Token_char_no(yylval.token);
     if(Token_type(yylval.token) == endOfInput) {
         return 0;
     }
@@ -140,7 +144,8 @@ int yylex() {
  * Indicate that an error occured, with a message.
  */
 void yyerror(const char *s) {
-    printf("Parse error on input '%s', line %d: %s\n", Token_str(yylval.token),
-            Token_line(yylval.token), s);
+    printf("Parse error on input '%s' at line %d, column %d: %s\n",
+            Token_str(yylval.token), Token_line_no(yylval.token),
+            Token_char_no(yylval.token), s);
     exit(EXIT_FAILURE);
 }

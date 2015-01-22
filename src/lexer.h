@@ -31,14 +31,16 @@ typedef enum
 #define Token_type(token) token->type
 #define Token_str(token) token->str
 #define Token_name(token) token->name
-#define Token_line(token) token->line
+#define Token_line_no(token) token->line_no
+#define Token_char_no(token) token->char_no
 
 typedef struct Token Token;
 struct Token {
     TokenType type;
     char *str;
     int name;
-    int line;
+    int line_no;
+    int char_no;
 };
 
 FORWARD_DECLARE_VECTORABLE(Token)
