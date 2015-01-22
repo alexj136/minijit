@@ -46,6 +46,8 @@ FORWARD_DECLARE_VECTORABLE(Func)
 #define Comm_isAssign(comm) comm->type == commAssign
 #define Comm_isComp(comm) comm->type == commComp
 #define Comm_isReturn(comm) comm->type == commReturn
+#define Comm_src_line_no(comm) (comm->src_line_no)
+#define Comm_src_char_no(comm) (comm->src_char_no)
 
 #define While_guard(whil) whil->expr
 #define While_body(whil) whil->comm1
@@ -80,6 +82,8 @@ struct Comm {
 #define Expr_isSub(expr) expr->type == exprSub
 #define Expr_isCall(expr) expr->type == exprCall
 #define Expr_isVar(expr) expr->type == exprVar
+#define Expr_src_line_no(expr) (expr->src_line_no)
+#define Expr_src_char_no(expr) (expr->src_char_no)
 
 #define Int_value(eint) eint->num
 

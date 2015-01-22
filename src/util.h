@@ -58,6 +58,7 @@ struct IntRef {
     void ty##Vector_append(ty##Vector *vec, ty *elem); \
     void ty##Vector_insert(ty##Vector *vec, int index, ty *elem); \
     ty *ty##Vector_get(ty##Vector *vec, int index); \
+    ty##Vector *ty##Vector_concat(ty##Vector *v1, ty##Vector *v2); \
     void ty##Vector_free(ty##Vector *vec); \
     void ty##Vector_free_elems(ty##Vector *vec); \
     ty *ty##Vector_remove(ty##Vector *vec, int index);\
@@ -128,6 +129,20 @@ struct IntRef {
         else { return vec->arr[index]; } \
     } \
     \
+    /* Obtain a Vector that is the concatenation of two Vectors. Elements */ \
+    /* are not copied, only the references, so be careful when freeing */ \
+    /* elements. */ \
+    ty##Vector *ty##Vector_concat(ty##Vector *v1, ty##Vector *v2) { \
+        ty##Vector *res = ty##Vector_init(); \
+        int idx; \
+        for(idx = 0; idx < ty##Vector_size(v1); idx++) { \
+            ty##Vector_append(res, ty##Vector_get(v1, idx)); \
+        } \
+        for(idx = 0; idx < ty##Vector_size(v2); idx++) { \
+            ty##Vector_append(res, ty##Vector_get(v2, idx)); \
+        } \
+        return res; \
+    } \
     /* Free a Vector, but not the elements. */ \
     void ty##Vector_free(ty##Vector *vec) { \
         if(!vec) { return; } /* Null check */ \
