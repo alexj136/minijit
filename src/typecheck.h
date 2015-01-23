@@ -37,6 +37,7 @@ FORWARD_DECLARE_VECTORABLE(Type)
 Type *FuncType_init(TypeVector *argTypes, Type *returnType);
 Type *IntType_init();
 Type *NoneType_init();
+Type *Type_copy(Type *type);
 bool Type_eq(Type *t1, Type *t2);
 void Type_free(Type *type);
 

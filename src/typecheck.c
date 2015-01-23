@@ -28,6 +28,23 @@ Type *NoneType_init() {
     return Type_init(typeIDNone, NULL, NULL);
 }
 
+/*
+ * Obtain a complete deep copy of a type
+ */
+Type *Type_copy(Type *type) {
+    if(Type_isFuncType(type)) {
+        TypeVector *argTypes = TypeVector_init();
+        int idx;
+        for(idx = 0; idx < TypeVector_size(FuncType_argTypes(type)); idx++) {
+            TypeVector_append(argTypes,
+                    Type_copy(TypeVector_get(FuncType_argTypes(type), idx)));
+        }
+        return Type_init(typeIDFunc, argTypes,
+                Type_copy(FuncType_returnType(type)));
+    }
+    else { return Type_init(type->typeID, NULL, NULL); }
+}
+
 bool Type_eq(Type *t1, Type *t2) {
     if((!t1) || (!t2)) { return t1 == t2; } // null check
     else {
@@ -179,10 +196,50 @@ TypeCheckResult *check_Expr(Expr *expr, TypeVector *symbol_table) {
         return TypeCheckResult_init(type, errors);
     }
     else if(Expr_isCall(expr)) {
-        NOT_IMPLEMENTED;
+
+        int name = Call_name(expr);
+        Type *type_in_table = TypeVector_get(symbol_table, name);
+
+        if(!Type_isFuncType(type_in_table)) {
+            return ({ NOT_IMPLEMENTED; NULL; });
+        }
+
+        int declared_arity = FuncType_arity(type_in_table);
+        int usage_arity = Call_num_args(expr);
+
+        if(declared_arity != usage_arity) {
+            return ({ NOT_IMPLEMENTED; NULL; });
+        }
+
+        TypeErrorVector *errors = TypeErrorVector_init();
+        int idx;
+        for(idx = 0; idx < usage_arity; idx++) {
+
+            TypeCheckResult *arg_check_result =
+                    check_Expr(Call_arg(expr, idx), symbol_table);
+            Type *expected_arg_type = FuncType_argType(type_in_table, idx);
+            Type *found_arg_type = TypeCheckResult_type(arg_check_result);
+
+            TypeErrorVector_append_all(errors,
+                    TypeCheckResult_errors(arg_check_result));
+
+            if(Type_typeID(expected_arg_type) != Type_typeID(found_arg_type)) {
+                TypeErrorVector_append(errors, TypeError_init(-1,
+                        Type_copy(found_arg_type), Type_copy(expected_arg_type),
+                        Expr_src_line_no(expr), Expr_src_char_no(expr)));
+            }
+
+            TypeCheckResult_free(arg_check_result);
+        }
+
+        return ({ NOT_IMPLEMENTED; NULL; });
     }
     else if(Expr_isVar(expr)) {
-        NOT_IMPLEMENTED;
+        // Return the type given by the symbol table, with an empty
+        // TypeErrorVector
+        return TypeCheckResult_init(
+                Type_copy(TypeVector_get(symbol_table, Var_name(expr))),
+                TypeErrorVector_init());
     }
     else {
         ERROR("Expr type not recognised");

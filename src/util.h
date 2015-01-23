@@ -56,6 +56,7 @@ struct IntRef {
     ty##Vector *ty##Vector_init(); \
     int ty##Vector_size(ty##Vector *vec); \
     void ty##Vector_append(ty##Vector *vec, ty *elem); \
+    void ty##Vector_append_all(ty##Vector *vec, ty##Vector *new_elems); \
     void ty##Vector_insert(ty##Vector *vec, int index, ty *elem); \
     ty *ty##Vector_get(ty##Vector *vec, int index); \
     ty##Vector *ty##Vector_concat(ty##Vector *v1, ty##Vector *v2); \
@@ -92,6 +93,13 @@ struct IntRef {
         } \
         vec->arr[vec->size] = elem; \
         vec->size++; \
+    } \
+    /* Append all elements of a Vector to another Vector */ \
+    void ty##Vector_append_all(ty##Vector *vec, ty##Vector *new_elems) { \
+        int idx; \
+        for(idx = 0; idx < ty##Vector_size(new_elems); idx++) { \
+            ty##Vector_append(vec, ty##Vector_get(new_elems, idx)); \
+        } \
     } \
     \
     /* Tail-recursively insert an element at a given index into a Vector */ \
