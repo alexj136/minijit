@@ -201,7 +201,12 @@ TypeCheckResult *check_Expr(Expr *expr, TypeVector *symbol_table) {
         Type *type_in_table = TypeVector_get(symbol_table, name);
 
         if(!Type_isFuncType(type_in_table)) {
-            return ({ NOT_IMPLEMENTED; NULL; });
+            NOT_IMPLEMENTED;
+            /*TypeErrorVector* errors = TypeErrorVector_init();
+            TypeError *err = TypeError_init(-1, , FuncType_init(),
+                    Expr_src_line_no(expr), Expr_src_char_no(expr));
+            TypeErrorVector_append(errors, err);
+            return TypeCheckResult_init(NoneType_init(), errors);*/
         }
 
         int declared_arity = FuncType_arity(type_in_table);
@@ -232,7 +237,7 @@ TypeCheckResult *check_Expr(Expr *expr, TypeVector *symbol_table) {
             TypeCheckResult_free(arg_check_result);
         }
 
-        return ({ NOT_IMPLEMENTED; NULL; });
+        return TypeCheckResult_init( ({ NOT_IMPLEMENTED; NULL; }) , errors);
     }
     else if(Expr_isVar(expr)) {
         // Return the type given by the symbol table, with an empty
