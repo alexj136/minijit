@@ -18,16 +18,38 @@ Store *Store_init(IntRefVector *argNames, IntRefVector *argValues) {
  * Does a binary search of a Store within the given start & end indexes,
  * returning the name's index in the list, or -1 if the name is not present.
  */
-int *Store_check_name_index(Store *store, IntRef *name, int startIdx,
-        int endIdx) {
+int Store_check_name_index(Store *store, IntRef *name) {
 
-    if(startIdx == endIdx) {
-        // if name here matches return the value, otherwise return -1
+    int  store_size = IntRefVector_size(store);
+    int  jump_size  = store_size / 4;
+    int  idx        = store_size / 2;
+
+    while(jump_size > 0) {
+
+        int name_at_idx = IntRefVector_get(store->names, idx);
+
+        if(name == name_at_idx) {
+            // Found - return the index.
+            return idx;
+        }
+
+        else if(name < name_at_idx) {
+            // Name at index was greater than the name we're looking for.
+            // Subtract from the index.
+            idx -= jump_size;
+        }
+
+        else /* name > name_at_idx */ {
+            // Name at index was less than the name we're looking for.
+            // Add to the index.
+            idx += jump_size;
+        }
+
+        jump_size /= 2;
     }
-    else {
-        // Make a recursive call
-    }
-    NOT_IMPLEMENTED;
+
+    // Didn't find, so return -1.
+    return -1;
 }
 
 void Store_assign(Store *store, IntRef *name, int value) {
