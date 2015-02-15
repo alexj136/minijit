@@ -1,9 +1,18 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include "syntax.h"
+#include "util.h"
 #include "interpreter.h"
 
 /*
  * Store function definitions
  */
 
+/*
+ * Initialise a store. The argNames parameter value is copied by this function
+ * and destroyed by Store_free(). The argValues are not copied however and are
+ * assumed not to be referenced elsewhere, and are also freed by Store_free().
+ */
 Store *Store_init(IntRefVector *argNames, IntRefVector *argValues) {
 
     if(IntRefVector_size(argNames) != IntRefVector_size(argValues)) {
@@ -11,10 +20,17 @@ Store *Store_init(IntRefVector *argNames, IntRefVector *argValues) {
                 "and actual parameters");
     }
 
+    Store *store = challoc(sizeof(Store));
+    store->names = IntRefVector_init();
+    store->values = argValues;
+
     int idx;
     for(idx = 0; idx < IntRefVector_size(argNames); idx++) {
-        NOT_IMPLEMENTED;
+        int next_name = IntRef_value(IntRefVector_get(argNames, idx));
+        IntRefVector_append(store->names, IntRef_init(next_name));
     }
+
+    return store;
 }
 
 /*
@@ -23,32 +39,33 @@ Store *Store_init(IntRefVector *argNames, IntRefVector *argValues) {
  */
 int Store_check_name_index(Store *store, IntRef *name) {
 
-    int  store_size = IntRefVector_size(store);
-    int  jump_size  = store_size / 2;
-    int  idx        = store_size / 2;
+    int store_size  = IntRefVector_size(store->names);
+    int jump_size   = store_size / 2;
+    int idx         = store_size / 2;
+    int target_name = IntRef_value(name);
 
     while(jump_size > 0) {
 
         // Look at the name in the current index
-        int name_at_idx = IntRefVector_get(store->names, idx);
+        int name_at_idx = IntRef_value(IntRefVector_get(store->names, idx));
 
         // Decrease the jump size. This must be done before the jump with this
         // algorithm. Otherwise, we'll quit the loop before we inspect the last
         // element.
         jump_size /= 2;
 
-        if(name == name_at_idx) {
+        if(target_name == name_at_idx) {
             // Found - return the index.
             return idx;
         }
 
-        else if(name < name_at_idx) {
+        else if(target_name < name_at_idx) {
             // Name at index was greater than the name we're looking for.
             // Subtract from the index.
             idx -= jump_size;
         }
 
-        else /* name > name_at_idx */ {
+        else /* target_name > name_at_idx */ {
             // Name at index was less than the name we're looking for.
             // Add to the index.
             idx += jump_size;
@@ -59,6 +76,10 @@ int Store_check_name_index(Store *store, IntRef *name) {
     return -1;
 }
 
+/*
+ * Assign to a store. If the variable already exists, it is found and updated
+ * with binary search in log(n) time. Otherwise it is inserted in linear time.
+ */
 void Store_assign(Store *store, IntRef *name, int value) {
 
     int idx_of_var = Store_check_name_index(store, name);
@@ -70,11 +91,15 @@ void Store_assign(Store *store, IntRef *name, int value) {
         int idx;
         for(idx = 0; idx < IntRefVector_size(store->names); idx++) {
 
-            if(IntRef_value(name) < IntRefVector_get(store->names, idx)) {
+            if(IntRef_value(name) <
+                    IntRef_value(IntRefVector_get(store->names, idx))) {
+
                 break;
             }
 
-            if(IntRef_value(name) == IntRefVector_get(store->names, idx)) {
+            if(IntRef_value(name) ==
+                    IntRef_value(IntRefVector_get(store->names, idx))) {
+
                 ERROR("Binary search told us that variable was not present in "
                         "store, however linear search told us there was.");
             }
@@ -113,6 +138,16 @@ int Store_lookup(Store *store, IntRef *name) {
     else {
         return IntRef_value(IntRefVector_get(store->values, idx_of_var));
     }
+}
+
+/*
+ * Free a Store.
+ */
+void Store_free(Store *store) {
+    IntRefVector_free_elems(store->names);
+    IntRefVector_free_elems(store->values);
+    free(store);
+    return;
 }
 
 /*

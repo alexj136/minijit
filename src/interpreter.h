@@ -39,6 +39,7 @@ struct Store {
 Store *Store_init(IntRefVector *argNames, IntRefVector *argValues);
 void Store_assign(Store *store, IntRef *name, int value);
 int Store_lookup(Store *store, IntRef *name);
+void Store_free(Store *store);
 
 InterpretResult *interpret_Prog(Prog *prog, int *args);
 InterpretResult *interpret_Func(Func *func, int *args);
