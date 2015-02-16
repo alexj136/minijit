@@ -4,6 +4,14 @@
 
 MINUNIT_TESTS
 
+    TEST("Store stuff")
+        IntRefVector *names = IntRefVector_init();
+        IntRefVector_append(names, IntRef_init(0));
+        IntRefVector *values = IntRefVector_init();
+        IntRefVector_append(values, IntRef_init(1));
+        Store *store = Store_init(names, values);
+    END
+
     TEST("Store creation")
 
         // Create an IntRefVector of names

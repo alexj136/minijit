@@ -9,9 +9,8 @@
  */
 
 /*
- * Initialise a store. The argNames parameter value is copied by this function
- * and destroyed by Store_free(). The argValues are not copied however and are
- * assumed not to be referenced elsewhere, and are also freed by Store_free().
+ * Initialise a store. The passed parameters are copied, so can be freed without
+ * interfering with the Store.
  */
 Store *Store_init(IntRefVector *argNames, IntRefVector *argValues) {
 
@@ -22,12 +21,13 @@ Store *Store_init(IntRefVector *argNames, IntRefVector *argValues) {
 
     Store *store = challoc(sizeof(Store));
     store->names = IntRefVector_init();
-    store->values = argValues;
+    store->values = IntRefVector_init();
 
     int idx;
     for(idx = 0; idx < IntRefVector_size(argNames); idx++) {
         int next_name = IntRef_value(IntRefVector_get(argNames, idx));
-        IntRefVector_append(store->names, IntRef_init(next_name));
+        int next_value = IntRef_value(IntRefVector_get(argValues, idx));
+        Store_assign(store, IntRef_init(next_name), next_value);
     }
 
     return store;
