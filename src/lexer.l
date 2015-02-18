@@ -45,13 +45,13 @@ StringIntPairVector *name_map;
 
 // Stores the next integer to be used as a representation of a string name.
 // Initialised to 0 by lex_file().
-int nextIntName;
+int next_int_name;
 
 /*
  * Retreive an integer to represent the given string name. If the string has not
- * been seen before, use the nextIntName (and increment nextIntName afterwards),
- * associating that integer with the given name in name_map. If the string has
- * been seen, just return the integer already associated with it.
+ * been seen before, use the next_int_name (and increment next_int_name
+ * afterwards), associating that integer with the given name in name_map. If the
+ * string has been seen, just return the integer already associated with it.
  */
 int lease_int_name(char *string_name) {
 
@@ -71,13 +71,13 @@ int lease_int_name(char *string_name) {
         idx++;
     }
 
-    // If we didn't find it, use the nextIntName, and add a new association to
-    // the list, and increment nextIntName for next time we get here
+    // If we didn't find it, use the next_int_name, and add a new association to
+    // the list, and increment next_int_name for next time we get here
     if(!found_name) {
-        name = nextIntName;
+        name = next_int_name;
         StringIntPairVector_append(name_map,
-                StringIntPair_init(strdup(string_name), nextIntName));
-        nextIntName++;
+                StringIntPair_init(strdup(string_name), next_int_name));
+        next_int_name++;
     }
 
     return name;
@@ -231,7 +231,9 @@ void StringIntPair_free(StringIntPair *sip) {
  * Create a LexerResult struct from a Token Vector and a mapping from integer
  * names to string names.
  */
-LexerResult *LexerResult_init(TokenVector *tokens, charVector *name_map) {
+LexerResult *LexerResult_init(TokenVector *tokens, charVector *name_map,
+        int next_name) {
+
     LexerResult *lr = challoc(sizeof(LexerResult));
     LexerResult_tokens(lr) = tokens;
     LexerResult_name_map(lr) = name_map;
@@ -257,7 +259,7 @@ void LexerResult_free(LexerResult *lr) {
 LexerResult *do_analysis() {
 
     name_map = StringIntPairVector_init();
-    nextIntName = 0;
+    next_int_name = 0;
     char_no = 1;
 
     // Initialise the Token Vector for the results
@@ -280,9 +282,8 @@ LexerResult *do_analysis() {
     // Clean up and return the results
     StringIntPairVector_free(name_map);
     name_map = NULL;
-    nextIntName = 0;
     char_no = 1;
-    return LexerResult_init(tok_vec, flipped_name_map);
+    return LexerResult_init(tok_vec, flipped_name_map, next_int_name);
 }
 
 /*

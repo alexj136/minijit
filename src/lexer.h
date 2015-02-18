@@ -73,14 +73,17 @@ FORWARD_DECLARE_VECTORABLE(StringIntPair)
 
 #define LexerResult_tokens(lr) lr->tokens
 #define LexerResult_name_map(lr) lr->name_map
+#define LexerResult_next_name(lr) lr->next_name
 
 typedef struct LexerResult LexerResult;
 struct LexerResult {
     TokenVector *tokens;
     charVector *name_map;
+    int next_name;
 };
 
-LexerResult *LexerResult_init(TokenVector *tokens, charVector *name_map);
+LexerResult *LexerResult_init(TokenVector *tokens, charVector *name_map,
+        int next_name);
 void LexerResult_free(LexerResult *lr);
 
 // The lexer functions

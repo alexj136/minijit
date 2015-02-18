@@ -4,12 +4,23 @@
 
 MINUNIT_TESTS
 
-    TEST("Store stuff")
+    TEST("Single entry store test")
+
+        IntRef *name = IntRef_init(0);
         IntRefVector *names = IntRefVector_init();
-        IntRefVector_append(names, IntRef_init(0));
+        IntRefVector_append(names, name);
+
         IntRefVector *values = IntRefVector_init();
         IntRefVector_append(values, IntRef_init(1));
+
         Store *store = Store_init(names, values);
+
+        ASSERT(Store_lookup(store, name) == 1, "Store returns correct value");
+
+        Store_free(store);
+        IntRefVector_free_elems(names);
+        IntRefVector_free_elems(values);
+
     END
 
     TEST("Store creation")
