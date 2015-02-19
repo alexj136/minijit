@@ -33,19 +33,15 @@ int main(int argc, char *argv[]) {
         printf("Warning: file '%s' did not close properly.\n", argv[1]);
     }
 
-	TokenVector *tokens = LexerResult_tokens(lr);
-
     // If there are lexical errors, print them and quit
-    if(!verify_lex(tokens)) {
-        print_errors(tokens);
-        LexerResult_free(lr);
+    if(!verify_lex(lr)) {
+        print_errors(lr);
         exit(EXIT_FAILURE);
     }
 
-    Prog *prog = parse(tokens);
-    Prog_print(prog, 0, LexerResult_name_map(lr));
+    Prog *prog = parse(lr);
+    Prog_print(prog, 0);
 
-    LexerResult_free(lr);
     Prog_free(prog);
 
     return 0;

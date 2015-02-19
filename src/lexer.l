@@ -325,10 +325,13 @@ LexerResult *lex_string(const char *str) {
 }
 
 /*
- * Check if a Token array contains errors. Print error details if found. Return
+ * Check if a LexerResult contains errors. Print error details if found. Return
  * true if there are no errors, false if there are.
  */
-bool verify_lex(TokenVector *tok_vec) {
+bool verify_lex(LexerResult *lexer_result) {
+
+    TokenVector *tok_vec = LexerResult_tokens(lexer_result);
+
     bool no_errors = true; // Is the token list error-free?
 
     // For each token...
@@ -349,9 +352,12 @@ bool verify_lex(TokenVector *tok_vec) {
 }
 
 /*
- * Print information on any errors that may exist in a TokenVector.
+ * Print information on any errors that may exist in a LexerResult.
  */
-void print_errors(TokenVector *tok_vec) {
+void print_errors(LexerResult *lexer_result) {
+
+    TokenVector *tok_vec = LexerResult_tokens(lexer_result);
+
     int idx;
     for(idx = 0; idx < TokenVector_size(tok_vec); idx++) {
         Token *current = TokenVector_get(tok_vec, idx);

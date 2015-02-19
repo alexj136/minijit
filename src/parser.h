@@ -1,6 +1,6 @@
 #ifndef parser
 #define parser
 
-Prog *parse(TokenVector *tok_vec);
+Prog *parse(LexerResult *lexer_result);
 
 #endif // parser

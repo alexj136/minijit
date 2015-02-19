@@ -47,8 +47,6 @@ FORWARD_DECLARE_VECTORABLE(Token)
 
 void Token_print(Token *token);
 void Token_free(Token *token);
-bool verify_lex(TokenVector *tok_vec);
-void print_errors(TokenVector *tok_vec);
 
 /*
  * StringIntPair datatype definitions. Used to store mappings between string
@@ -89,5 +87,7 @@ void LexerResult_free(LexerResult *lr);
 // The lexer functions
 LexerResult *lex_file(FILE *file);
 LexerResult *lex_string(const char *str);
+bool verify_lex(LexerResult *lexer_result);
+void print_errors(LexerResult *lexer_result);
 
 #endif // lexer

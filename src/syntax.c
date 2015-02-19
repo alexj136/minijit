@@ -7,10 +7,40 @@
  * Programs
  */
 
-Prog *Prog_init(FuncVector *funcs) {
+Prog *Prog_init(FuncVector *funcs, charVector *name_map, int next_name) {
     Prog *prog = challoc(sizeof(Prog));
+    prog->name_map = name_map;
+    prog->next_name = next_name;
     prog->funcs = funcs;
     return prog;
+}
+
+/*
+ * Retreive a function from a program based on the function's name. Returns null
+ * if there is no function by that name.
+ */
+Func *Prog_lookup_Func(Prog *prog, int name) {
+
+    int  idx   = 0;
+    bool found = false;
+
+    while((!found) && idx < Prog_num_funcs(prog)) {
+
+        if(name == Func_name(Prog_func(prog, idx))) {
+            found = true;
+        }
+        else {
+            idx++;
+        }
+
+    }
+
+    if(found) {
+        return Prog_func(prog, idx);
+    }
+    else {
+        return NULL;
+    }
 }
 
 /*
@@ -28,16 +58,17 @@ bool Prog_eq(Prog *p, Prog *q) {
     return same;
 }
 
-void Prog_print(Prog *prog, int indent, charVector *name_map) {
+void Prog_print(Prog *prog, int indent) {
     put_indent(indent);
     int idx;
     for(idx = 0; idx < Prog_num_funcs(prog); idx++) {
-        Func_print(Prog_func(prog, idx), indent, name_map);
+        Func_print(Prog_func(prog, idx), indent, prog->name_map);
     }
 }
 
 void Prog_free(Prog *prog) {
     FuncVector_free_elems(prog->funcs);
+    charVector_free_elems(prog->name_map);
     free(prog);
 }
 

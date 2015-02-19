@@ -11,15 +11,22 @@
 typedef enum {
     iSuccess,
     iFailIncorrectNumArgs,
-    iFailCouldNotParseArgs
+    iFailCouldNotParseArgs,
+    iFailFunctionNotFound
 } interpretResultType;
 
 typedef struct InterpretResult InterpretResult;
 struct InterpretResult {
     interpretResultType type;
     int result;
-    char *msg;
+    int line_no;
+    int char_no;
 };
+
+InterpretResult *InterpretSuccess_init(int result);
+InterpretResult *InterpretFailIncorrectNumArgs_init(int line_no, int char_no);
+InterpretResult *InterpretFailCouldNotParseArgs_init(int line_no, int char_no);
+InterpretResult *InterpretFailFunctionNotFound_init(int line_no, int char_no);
 
 /*
  * A store contains two Vectors of integer references. The first is a list of
@@ -30,20 +37,9 @@ struct InterpretResult {
  * function).
  */
 
-typedef struct Store Store;
-struct Store {
-    struct IntRefVector *names;
-    struct IntRefVector *values;
-};
-
-Store *Store_init(IntRefVector *argNames, IntRefVector *argValues);
-void Store_assign(Store *store, IntRef *name, int value);
-int Store_lookup(Store *store, IntRef *name);
-void Store_free(Store *store);
-
 InterpretResult *interpret_Prog(Prog *prog, int *args);
-InterpretResult *interpret_Func(Func *func, int *args);
-InterpretResult *interpret_Comm(Comm *comm, Store *store);
-InterpretResult *interpret_Expr(Expr *expr, Store *store);
+InterpretResult *interpret_Func(Prog *prog, Func *func, int *args);
+InterpretResult *interpret_Comm(Prog *prog, Comm *comm, int *store);
+InterpretResult *interpret_Expr(Prog *prog, Expr *expr, int *store);
 
 #endif // interpreter
