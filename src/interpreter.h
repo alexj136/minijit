@@ -12,13 +12,15 @@ typedef enum {
     iSuccess,
     iFailIncorrectNumArgs,
     iFailCouldNotParseArgs,
-    iFailFunctionNotFound
+    iFailFunctionNotFound,
+    iFailEndWithoutReturn
 } interpretResultType;
 
 typedef struct InterpretResult InterpretResult;
 struct InterpretResult {
     interpretResultType type;
     int result;
+    bool returning;
     int line_no;
     int char_no;
 };
@@ -27,6 +29,7 @@ InterpretResult *InterpretSuccess_init(int result);
 InterpretResult *InterpretFailIncorrectNumArgs_init(int line_no, int char_no);
 InterpretResult *InterpretFailCouldNotParseArgs_init(int line_no, int char_no);
 InterpretResult *InterpretFailFunctionNotFound_init(int line_no, int char_no);
+InterpretResult *InterpretFailEndWithoutReturn_init(int line_no, int char_no);
 
 /*
  * A store contains two Vectors of integer references. The first is a list of

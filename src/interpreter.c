@@ -5,30 +5,39 @@
 #include "interpreter.h"
 
 InterpretResult *InterpretResult_init(interpretResultType type, int result,
-        int line_no, int char_no) {
+        bool returning, int line_no, int char_no) {
 
     InterpretResult *ir = challoc(sizeof(InterpretResult));
-    ir->type = type;
-    ir->result = result;
-    ir->line_no = line_no;
-    ir->char_no = char_no;
+    ir->type      = type;
+    ir->result    = result;
+    ir->returning = returning;
+    ir->line_no   = line_no;
+    ir->char_no   = char_no;
     return ir;
 }
 
 InterpretResult *InterpretSuccess_init(int result) {
-    return InterpretResult_init(iSuccess, result, -1, -1);
+    return InterpretResult_init(iSuccess, result, false, -1, -1);
 }
 
 InterpretResult *InterpretFailIncorrectNumArgs_init(int line_no, int char_no) {
-    return InterpretResult_init(iFailIncorrectNumArgs, 0, line_no, char_no);
+    return InterpretResult_init(iFailIncorrectNumArgs, 0, false, line_no,
+            char_no);
 }
 
 InterpretResult *InterpretFailCouldNotParseArgs_init(int line_no, int char_no) {
-    return InterpretResult_init(iFailCouldNotParseArgs, 0, line_no, char_no);
+    return InterpretResult_init(iFailCouldNotParseArgs, 0, false, line_no,
+            char_no);
 }
 
 InterpretResult *InterpretFailFunctionNotFound_init(int line_no, int char_no) {
-    return InterpretResult_init(iFailFunctionNotFound, 0, line_no, char_no);
+    return InterpretResult_init(iFailFunctionNotFound, 0, false, line_no,
+            char_no);
+}
+
+InterpretResult *InterpretFailEndWithoutReturn_init(int line_no, int char_no) {
+    return InterpretResult_init(iFailEndWithoutReturn, 0, false, line_no,
+            char_no);
 }
 
 /*
@@ -36,18 +45,67 @@ InterpretResult *InterpretFailFunctionNotFound_init(int line_no, int char_no) {
  */
 
 InterpretResult *interpret_Prog(Prog *prog, int *args) {
-    NOT_IMPLEMENTED;
+    return interpret_Func(prog, Prog_func(prog, 0), args);
 }
 
 InterpretResult *interpret_Func(Prog *prog, Func *func, int *args) {
-    NOT_IMPLEMENTED;
+
+    int *store = challoc(sizeof(int) * Prog_next_name(prog));
+
+    // Set initial store values to zero
+    int idx;
+    for(idx = 0; idx < Prog_next_name(prog); idx++) {
+        store[idx] = 0;
+    }
+
+    // Initialise the arguments to their given values in the store
+    for(idx = 0; idx < Func_num_args(func); idx++) {
+        store[Func_arg(func, idx)] = args[idx];
+    }
+
+    InterpretResult *res = interpret_Comm(prog, Func_body(func), store);
+
+    free(store);
+
+    if(res->type == iSuccess && res->returning == false) {
+        free(res);
+        return InterpretFailEndWithoutReturn_init(Func_src_line_no(func),
+                Func_src_char_no(func));
+    }
+    else {
+        return res;
+    }
 }
 
 InterpretResult *interpret_Comm(Prog *prog, Comm *comm, int *store) {
     if(Comm_isWhile(comm)) {
-        NOT_IMPLEMENTED;
+
+        InterpretResult *comm_res = NULL;
+
+        while(true) {
+
+            InterpretResult *guard_res =
+                    interpret_Expr(prog, While_guard(comm), store);
+
+            if((guard_res->type != iSuccess) || (comm_res == NULL)) {
+                return guard_res;
+            }
+            else if((guard_res->result == 0 && comm_res != NULL) ||
+                    (guard_res->result != 0 && comm_res->type != iSuccess) ||
+                    (guard_res->result != 0 && comm_res->returning)) {
+
+                free(guard_res);
+                return comm_res;
+            }
+            else {
+                free(guard_res);
+                free(comm_res);
+
+                comm_res = interpret_Comm(prog, While_body(comm), store);
+            }
+        }
     }
-    else if(Comm_isAssign(comm)) {
+    else if(Comm_isAssign(comm) || Comm_isReturn(comm)) {
 
         InterpretResult *res = interpret_Expr(prog, Assign_expr(comm), store);
 
@@ -55,16 +113,26 @@ InterpretResult *interpret_Comm(Prog *prog, Comm *comm, int *store) {
             return res;
         }
 
-        store[Assign_name(comm)] = res->result;
+        if(Comm_isAssign(comm)) {
+            store[Assign_name(comm)] = res->result;
+        }
+        else /* if(Comm_isReturn(comm)) */ {
+            res->returning = true;
+        }
 
         return res;
-
     }
     else if(Comm_isComp(comm)) {
-        NOT_IMPLEMENTED;
-    }
-    else if(Comm_isReturn(comm)) {
-        NOT_IMPLEMENTED;
+
+        InterpretResult *res = interpret_Comm(prog, Comp_fst(comm), store);
+
+        if(res->type != iSuccess || res->returning) {
+            return res;
+        }
+
+        free(res);
+
+        return interpret_Comm(prog, Comp_snd(comm), store);
     }
     else {
         ERROR("Comm type not recognised.");
@@ -115,6 +183,11 @@ InterpretResult *interpret_Expr(Prog *prog, Expr *expr, int *store) {
 
         if(callee == NULL) {
             return InterpretFailFunctionNotFound_init(Expr_src_line_no(expr),
+                    Expr_src_char_no(expr));
+        }
+
+        if(Func_num_args(callee) != Call_num_args(expr)) {
+            return InterpretFailIncorrectNumArgs_init(Expr_src_line_no(expr),
                     Expr_src_char_no(expr));
         }
 

@@ -5,6 +5,7 @@
 #include "syntax.h"
 #include "lexer.h"
 #include "parser.h"
+#include "interpreter.h"
 
 int main(int argc, char *argv[]) {
 
@@ -42,6 +43,11 @@ int main(int argc, char *argv[]) {
     Prog *prog = parse(lr);
     Prog_print(prog, 0);
 
+    int arg = 10;
+    InterpretResult *res = interpret_Prog(prog, &arg);
+    printf("RESULT = %d\n", res->result);
+
+    free(res);
     Prog_free(prog);
 
     return 0;

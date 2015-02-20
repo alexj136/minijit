@@ -12,6 +12,7 @@
 #define Prog_num_funcs(prog) FuncVector_size(prog->funcs)
 #define Prog_funcs(prog) prog->funcs
 #define Prog_func(prog, num) FuncVector_get(prog->funcs, num)
+#define Prog_next_name(prog) (prog->next_name)
 
 typedef struct Prog Prog;
 struct Prog {
@@ -28,6 +29,8 @@ struct Prog {
 #define Func_num_args(func) IntRefVector_size(func->args)
 #define Func_arg(func, num) IntRef_value(IntRefVector_get(func->args, num))
 #define Func_body(func) func->body
+#define Func_src_line_no(func) (func->src_line_no)
+#define Func_src_char_no(func) (func->src_char_no)
 
 typedef struct Func Func;
 struct Func {
