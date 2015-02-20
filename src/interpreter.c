@@ -44,7 +44,31 @@ InterpretResult *interpret_Func(Prog *prog, Func *func, int *args) {
 }
 
 InterpretResult *interpret_Comm(Prog *prog, Comm *comm, int *store) {
-    NOT_IMPLEMENTED;
+    if(Comm_isWhile(comm)) {
+        NOT_IMPLEMENTED;
+    }
+    else if(Comm_isAssign(comm)) {
+
+        InterpretResult *res = interpret_Expr(prog, Assign_expr(comm), store);
+
+        if(res->type != iSuccess) {
+            return res;
+        }
+
+        store[Assign_name(comm)] = res->result;
+
+        return res;
+
+    }
+    else if(Comm_isComp(comm)) {
+        NOT_IMPLEMENTED;
+    }
+    else if(Comm_isReturn(comm)) {
+        NOT_IMPLEMENTED;
+    }
+    else {
+        ERROR("Comm type not recognised.");
+    }
 }
 
 InterpretResult *interpret_Expr(Prog *prog, Expr *expr, int *store) {
