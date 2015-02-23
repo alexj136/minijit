@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
     // If argument parsing failed, quit with an appropriate error message
     if(!no_errors) {
         free(prog_args);
-        printf("Could not parse command line arguments.");
+        printf("Could not parse command line arguments.\n");
         exit(EXIT_FAILURE);
     }
 

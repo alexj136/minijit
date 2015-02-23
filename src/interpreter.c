@@ -75,29 +75,35 @@ InterpretResult *interpret_Func(Prog *prog, Func *func, int *args) {
 InterpretResult *interpret_Comm(Prog *prog, Comm *comm, int *store) {
     if(Comm_isWhile(comm)) {
 
-        InterpretResult *comm_res = NULL;
+        InterpretResult *guard_res =
+                interpret_Expr(prog, While_guard(comm), store);
+
+        if((guard_res->type != iSuccess) || (guard_res->result < 1)) {
+            return guard_res;
+        }
 
         while(true) {
 
-            InterpretResult *guard_res =
-                    interpret_Expr(prog, While_guard(comm), store);
+            InterpretResult *comm_res =
+                    interpret_Comm(prog, While_body(comm), store);
 
-            if((guard_res->type != iSuccess) || (comm_res == NULL)) {
-                return guard_res;
-            }
-            else if((guard_res->result == 0 && comm_res != NULL) ||
-                    (guard_res->result != 0 && comm_res->type != iSuccess) ||
-                    (guard_res->result != 0 && comm_res->returning)) {
-
+            if((comm_res->type != iSuccess) ||(comm_res->returning == true)) {
                 free(guard_res);
                 return comm_res;
             }
-            else {
-                free(guard_res);
-                free(comm_res);
 
-                comm_res = interpret_Comm(prog, While_body(comm), store);
+            guard_res = interpret_Expr(prog, While_guard(comm), store);
+
+            if(guard_res->type != iSuccess) {
+                free(comm_res);
+                return guard_res;
             }
+            else if(guard_res->result < 1) {
+                free(guard_res);
+                return comm_res;
+            }
+
+            free(comm_res);
         }
     }
     else if(Comm_isAssign(comm) || Comm_isReturn(comm)) {
@@ -121,7 +127,7 @@ InterpretResult *interpret_Comm(Prog *prog, Comm *comm, int *store) {
 
         InterpretResult *res = interpret_Comm(prog, Comp_fst(comm), store);
 
-        if(res->type != iSuccess || res->returning) {
+        if((res->type != iSuccess) || res->returning) {
             return res;
         }
 
