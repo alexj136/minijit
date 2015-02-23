@@ -225,6 +225,8 @@ void put_indent(int num);
 
 bool str_equal(char *str1, char *str2);
 
+IntRef *str_to_int(char *str);
+
 // For Vectors of strings
 #define char_eq str_equal
 FORWARD_DECLARE_VECTORABLE(char)

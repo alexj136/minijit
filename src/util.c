@@ -52,6 +52,26 @@ void put_indent(int num) {
 }
 
 /*
+ * Parse an integer from a null-terminated string. Return the integer in an
+ * IntRef if parsing was successful, or null if it fails.
+ */
+IntRef *str_to_int(char *str) {
+    int result = 0;
+    char *char_ptr = str;
+    bool no_errors = true;
+    while(*char_ptr != '\0' && no_errors) {
+        if(isdigit(*char_ptr)) {
+            result = (result * 10) + (*char_ptr - '0');
+            char_ptr++;
+        }
+        else {
+            no_errors = false;
+        }
+    }
+    return no_errors ? IntRef_init(result) : NULL;
+}
+
+/*
  * Free a string. Required for DEFINE_VECTORABLE(char).
  */
 void char_free(char *str) { free(str); }

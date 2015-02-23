@@ -25,11 +25,6 @@ InterpretResult *InterpretFailIncorrectNumArgs_init(int line_no, int char_no) {
             char_no);
 }
 
-InterpretResult *InterpretFailCouldNotParseArgs_init(int line_no, int char_no) {
-    return InterpretResult_init(iFailCouldNotParseArgs, 0, false, line_no,
-            char_no);
-}
-
 InterpretResult *InterpretFailFunctionNotFound_init(int line_no, int char_no) {
     return InterpretResult_init(iFailFunctionNotFound, 0, false, line_no,
             char_no);

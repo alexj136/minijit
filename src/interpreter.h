@@ -11,7 +11,6 @@
 typedef enum {
     iSuccess,
     iFailIncorrectNumArgs,
-    iFailCouldNotParseArgs,
     iFailFunctionNotFound,
     iFailEndWithoutReturn
 } interpretResultType;
@@ -27,7 +26,6 @@ struct InterpretResult {
 
 InterpretResult *InterpretSuccess_init(int result);
 InterpretResult *InterpretFailIncorrectNumArgs_init(int line_no, int char_no);
-InterpretResult *InterpretFailCouldNotParseArgs_init(int line_no, int char_no);
 InterpretResult *InterpretFailFunctionNotFound_init(int line_no, int char_no);
 InterpretResult *InterpretFailEndWithoutReturn_init(int line_no, int char_no);
 

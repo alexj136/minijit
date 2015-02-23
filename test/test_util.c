@@ -50,4 +50,23 @@ MINUNIT_TESTS
         charVector_free(cv);
     END
 
+    TEST("Test of str_to_int()")
+        char *a = "1";
+        char *b = "1000";
+        char *c = "error";
+        char *d = "3rror";
+        IntRef *ar = str_to_int(a);
+        IntRef *br = str_to_int(b);
+        IntRef *cr = str_to_int(c);
+        IntRef *dr = str_to_int(d);
+        ASSERT(IntRef_value(ar) == 1, "str_to_int() worked correctly");
+        ASSERT(IntRef_value(br) == 1000, "str_to_int() worked correctly");
+        ASSERT(cr == NULL, "str_to_int() worked correctly");
+        ASSERT(dr == NULL, "str_to_int() worked correctly");
+        IntRef_free(ar);
+        IntRef_free(br);
+        IntRef_free(cr);
+        IntRef_free(dr);
+    END
+
 END_TESTS

@@ -12,6 +12,7 @@
 #define Prog_num_funcs(prog) FuncVector_size(prog->funcs)
 #define Prog_funcs(prog) prog->funcs
 #define Prog_func(prog, num) FuncVector_get(prog->funcs, num)
+#define Prog_num_args(prog) Func_num_args(FuncVector_get(prog->funcs, 0))
 #define Prog_next_name(prog) (prog->next_name)
 
 typedef struct Prog Prog;
