@@ -1,0 +1,34 @@
+main(a, b) { return equal(a, b) }
+
+greater(a, b) {
+    while a - b do {
+        return 1
+    };
+    return 0
+}
+
+less(a, b) {
+    return greater(b, a)
+}
+
+equal(a, b) {
+    return and(not(greater(a, b)), not(less(a, b)))
+}
+
+not(a) {
+    while a do {
+        return 0
+    };
+    return 1
+}
+
+and(a, b) {
+    res := 0;
+    while a do {
+        res := res + 1
+    };
+    while b do {
+        res := res + 1
+    };
+    return greater(res, 1)
+}

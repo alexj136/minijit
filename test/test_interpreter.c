@@ -45,4 +45,32 @@ MINUNIT_TESTS
 
     END
 
+    TEST("Randomised addition and subtraction of literals")
+
+        int idx;
+        for(idx = 0; idx < 5000; idx++) {
+
+            int lhs = (rand() % 10000) - 5000;
+            int rhs = (rand() % 10000) - 5000;
+            bool subtract = rand() % 2;
+            Expr *expr;
+
+            if(subtract) {
+                expr = Sub_init(Int_init(lhs), Int_init(rhs));
+            }
+            else {
+                expr = Add_init(Int_init(lhs), Int_init(rhs));
+            }
+
+            InterpretResult *res = interpret_Expr(NULL, expr, NULL);
+
+            ASSERT(res->result == subtract ? lhs - rhs : lhs + rhs,
+                    "Arithmetic evaluates correctly")
+
+            Expr_free(expr);
+            free(res);
+        }
+
+    END
+
 END_TESTS
