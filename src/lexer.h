@@ -87,7 +87,5 @@ void LexerResult_free(LexerResult *lr);
 // The lexer functions
 LexerResult *lex_file(FILE *file);
 LexerResult *lex_string(const char *str);
-bool verify_lex(LexerResult *lexer_result);
-void print_errors(LexerResult *lexer_result);
 
 #endif // lexer

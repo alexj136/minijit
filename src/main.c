@@ -62,13 +62,6 @@ int main(int argc, char *argv[]) {
         printf("Warning: file '%s' did not close properly.\n", argv[1]);
     }
 
-    // If there are lexical errors, print them and quit
-    if(!verify_lex(lr)) {
-        print_errors(lr);
-        LexerResult_free(lr);
-        exit(EXIT_FAILURE);
-    }
-
     // Do the parsing of the source file
     ParseResult *pr = parse(lr);
 
