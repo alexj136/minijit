@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <ctype.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <malloc.h>
@@ -23,7 +24,16 @@ void *chrealloc(void *ptr, int size) {
 	return new;
 }
 
-/* 
+/*
+ * Copy a string and check for a null pointer.
+ */
+char *chstrdup(char *str) {
+    char *new_str = strdup(str);
+    if(!new_str) { ERROR("string copy failed"); }
+    return new_str;
+}
+
+/*
  * Function that decides if two strings are equal. Returns 1 (true) if they are
  * the same, or 0 (false) if they differ.
  */

@@ -221,6 +221,8 @@ void *challoc(int size);
 
 void *chrealloc(void *ptr, int size);
 
+char *chstrdup(char *str);
+
 void put_indent(int num);
 
 bool str_equal(char *str1, char *str2);

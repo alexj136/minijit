@@ -7,11 +7,82 @@
 #include "lexer.h"
 #include "parser.h"
 
+/*
+ * ParseError definitions
+ */
+
+ParseError *ParseError_init(char *text, int line_no, int char_no) {
+    ParseError *err = challoc(sizeof(ParseError));
+    err->text       = text;
+    err->line_no    = line_no;
+    err->char_no    = char_no;
+    return err;
+}
+
+void ParseError_print(ParseError *err) {
+    printf("Parse error on input '%s' at line %d, column %d.\n",
+            err->text, err->line_no, err->char_no);
+    return;
+}
+
+bool ParseError_eq(ParseError *err1, ParseError *err2) {
+    // Considered equal when pointer-equal.
+    return err1 == err2;
+}
+
+void ParseError_free(ParseError *err) {
+    free(err->text);
+    free(err);
+    return;
+}
+
+DEFINE_VECTORABLE(ParseError)
+
+/*
+ * ParseResult definitions
+ */
+
+ParseResult *ParseSuccess_init(Prog *prog) {
+    ParseResult *res = challoc(sizeof(ParseResult));
+    res->type        = parseSuccess;
+    res->prog        = prog;
+    res->errors      = NULL;
+    return res;
+}
+
+ParseResult *ParseFail_init(ParseErrorVector *errors) {
+    ParseResult *res = challoc(sizeof(ParseResult));
+    res->type        = parseFail;
+    res->prog        = NULL;
+    res->errors      = errors;
+    return res;
+}
+
+void ParseResult_free(ParseResult *res) {
+    if(res->type == parseSuccess) {
+        Prog_free(res->prog);
+    }
+    else if(res->type == parseFail) {
+        ParseErrorVector_free_elems(res->errors);
+    }
+    else {
+        ERROR("Unrecognised ParseResult type");
+    }
+    free(res);
+}
+
+/*
+ * Data used by the parser
+ */
+
 int yylex();
 void yyerror(const char *s);
 
 // The Token Vector from which parsing occurs
 TokenVector *parser_tokens;
+
+// The name map and next int name output by the lexer. These will be forwarded
+// on in the output of the parser.
 charVector *name_map;
 int next_name;
 
@@ -24,6 +95,9 @@ int src_char_no;
 
 // The result of the parse
 Prog *result;
+
+// Stores details of any errors encountered
+ParseErrorVector *errors;
 
 %}
 
@@ -83,12 +157,20 @@ func:
     {
         $$ = Func_init_pos($1, $3, $6, @$.first_line, @$.first_column);
     }
+    |
+    error
+    {
+        // Could have any type safe thing here
+        // main() { return 0 }
+        $$ = Func_init(0, IntRefVector_init(), Return_init(Int_init(0)));
+    }
     ;
 
 funcs:
     func funcs
     {
-        $$ = $2; FuncVector_insert($2, 0, $1);
+        $$ = $2;
+        FuncVector_insert($2, 0, $1);
     }
     |
     func
@@ -117,12 +199,19 @@ comm:
     {
         $$ = Return_init_pos($2, @$.first_line, @$.first_column);
     }
+    |
+    error
+    {
+        // Could have any type safe thing here
+        $$ = Assign_init(0, Var_init(0));
+    }
     ;
 
 expr:
     Int
     {
-        $$ = Int_init_pos(Token_name(yylval.token), @$.first_line, @$.first_column);
+        $$ = Int_init_pos(Token_name(yylval.token),
+                @$.first_line, @$.first_column);
     }
     |
     expr Add expr
@@ -144,12 +233,24 @@ expr:
     {
         $$ = Var_init_pos($1, @$.first_line, @$.first_column);
     }
+    |
+    error
+    {
+        // Could have any type safe thing here
+        $$ = Int_init(0);
+    }
     ;
 
 name:
     Name
     {
         $$ = Token_name(yylval.token);
+    }
+    |
+    error
+    {
+        // Could have any type safe thing here
+        $$ = 0;
     }
     ;
 
@@ -161,7 +262,8 @@ names:
     |
     name namescont
     {
-        IntRefVector_insert($2, 0, IntRef_init($1)); $$ = $2;
+        IntRefVector_insert($2, 0, IntRef_init($1));
+        $$ = $2;
     }
     ;
 
@@ -173,7 +275,8 @@ namescont:
     |
     Comma name namescont
     {
-        IntRefVector_insert($3, 0, IntRef_init($2)); $$ = $3;
+        IntRefVector_insert($3, 0, IntRef_init($2));
+        $$ = $3;
     }
     ;
 
@@ -185,7 +288,8 @@ exprs:
     |
     expr exprscont
     {
-        ExprVector_insert($2, 0, $1); $$ = $2;
+        ExprVector_insert($2, 0, $1);
+        $$ = $2;
     }
     ;
 
@@ -197,32 +301,48 @@ exprscont:
     |
     Comma expr exprscont
     {
-        ExprVector_insert($3, 0, $2); $$ = $3;
+        ExprVector_insert($3, 0, $2);
+        $$ = $3;
     }
     ;
 %%
 
 /*
- * Do the parsing. The input is a LexerResult, and the output is a Prog. The
- * LexerResult will be freed by this call, so do not keep it afterwards.
+ * Do the parsing. The input is a LexerResult, and the output is a ParseResult,
+ * which contains either a Prog, or a ParseErrorVector. The LexerResult will be
+ * freed by this call, so do not keep it afterwards.
  */
-Prog *parse(LexerResult *lexer_result) {
+ParseResult *parse(LexerResult *lexer_result) {
 
-    parser_tokens = LexerResult_tokens(lexer_result);
-    name_map = LexerResult_name_map(lexer_result);
-    next_name = LexerResult_next_name(lexer_result);
-
+    // Initialise variables
+    parser_tokens    = LexerResult_tokens(lexer_result);
+    name_map         = LexerResult_name_map(lexer_result);
+    next_name        = LexerResult_next_name(lexer_result);
+    errors           = ParseErrorVector_init();
+    result           = NULL;
     parser_token_idx = -1;
+
+    // Do the parse
     yyparse();
 
     // Clean up
     TokenVector_free_elems(parser_tokens);
     free(lexer_result);
     parser_tokens = NULL;
-    name_map = NULL;
-    next_name = -1;
+    name_map      = NULL;
+    next_name     = -1;
 
-    return result;
+    if(ParseErrorVector_size(errors) > 0) {
+        Prog_free(result);
+        result = NULL;
+        return ParseFail_init(errors);
+    }
+    else {
+        ParseErrorVector_free_elems(errors);
+        errors = NULL;
+        return ParseSuccess_init(result);
+    }
+
 }
 
 /*
@@ -237,6 +357,12 @@ int yylex() {
     if(Token_type(yylval.token) == endOfInput) {
         return 0;
     }
+    else if(Token_type(yylval.token) == error) {
+        ParseErrorVector_append(errors,
+                ParseError_init(chstrdup(Token_str(yylval.token)),
+                Token_line_no(yylval.token), Token_char_no(yylval.token)));
+        return yylex();
+    }
     else {
         return Token_type(yylval.token);
     }
@@ -246,8 +372,8 @@ int yylex() {
  * Indicate that an error occured, with a message.
  */
 void yyerror(const char *s) {
-    printf("Parse error on input '%s' at line %d, column %d: %s\n",
-            Token_str(yylval.token), Token_line_no(yylval.token),
-            Token_char_no(yylval.token), s);
-    exit(EXIT_FAILURE);
+    ParseErrorVector_append(errors,
+            ParseError_init(chstrdup(Token_str(yylval.token)),
+            Token_line_no(yylval.token), Token_char_no(yylval.token)));
+    return;
 }

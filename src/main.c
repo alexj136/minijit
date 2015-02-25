@@ -70,22 +70,31 @@ int main(int argc, char *argv[]) {
     }
 
     // Do the parsing of the source file
-    Prog *prog = parse(lr);
+    ParseResult *pr = parse(lr);
+
+    // Handle a failed parse
+    if(pr->type == parseFail) {
+        int idx;
+        for(idx = 0; idx < ParseErrorVector_size(pr->errors); idx++) {
+            ParseError_print(ParseErrorVector_get(pr->errors, idx));
+        }
+        exit(EXIT_FAILURE);
+    }
 
     // Check that we got the appropriate number of arguments on the command line
-    if(argc - 2 != Prog_num_args(prog)) {
+    if(argc - 2 != Prog_num_args(pr->prog)) {
         printf("main expects %d arguments, but %d were given.\n",
-                Prog_num_args(prog), argc - 2);
+                Prog_num_args(pr->prog), argc - 2);
 
-        Prog_free(prog);
+        ParseResult_free(pr);
         free(prog_args);
         exit(EXIT_FAILURE);
     }
 
     // Run the interpreter
-    InterpretResult *res = interpret_Prog(prog, prog_args);
+    InterpretResult *res = interpret_Prog(pr->prog, prog_args);
     if(res->type != iSuccess) {
-        puts("Runtime error.");
+        puts("Runtime error (type checker not yet implemented).");
     }
     else {
         printf("RESULT = %d\n", res->result);
@@ -93,7 +102,7 @@ int main(int argc, char *argv[]) {
 
     // Free things
     free(res);
-    Prog_free(prog);
+    ParseResult_free(pr);
     free(prog_args);
 
     return 0;
