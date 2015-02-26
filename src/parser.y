@@ -350,10 +350,13 @@ ParseResult *parse(LexerResult *lexer_result) {
  * to the next token.
  */
 int yylex() {
+
     parser_token_idx++;
-    yylval.token = TokenVector_get(parser_tokens, parser_token_idx);
-    yylloc.first_line = Token_line_no(yylval.token);
+
+    yylval.token        = TokenVector_get(parser_tokens, parser_token_idx);
+    yylloc.first_line   = Token_line_no(yylval.token);
     yylloc.first_column = Token_char_no(yylval.token);
+
     if(Token_type(yylval.token) == endOfInput) {
         return 0;
     }
