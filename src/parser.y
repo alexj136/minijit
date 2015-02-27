@@ -163,7 +163,8 @@ ParseErrorVector *errors;
 prog:
     funcs
     {
-        result = Prog_init($1, name_map, next_name);
+        $$ = Prog_init($1, name_map, next_name);
+        result = $$;
     }
     ;
 
@@ -190,7 +191,8 @@ funcs:
     |
     func
     {
-        $$ = FuncVector_init(); FuncVector_append($$, $1);
+        $$ = FuncVector_init();
+        FuncVector_append($$, $1);
     }
     ;
 

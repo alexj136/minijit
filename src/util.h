@@ -1,6 +1,8 @@
 #ifndef util
 #define util
 
+#include <execinfo.h>
+
 // Booleans
 typedef enum { false, true } bool;
 
@@ -240,11 +242,26 @@ IntRef *IntRef_init(int val);
 bool IntRef_eq(IntRef *i1, IntRef *i2);
 void IntRef_free(IntRef *ri);
 
-// Error macro
+/*
+ * Error macro - print a given message and a stack trace.
+ */
 #define ERROR(msg) \
     do { \
+        /* Print the given error message */ \
         printf("ERROR - %s:%d (%s):\n", __FILE__, __LINE__, __func__); \
         printf("    %s\n", msg); \
+        \
+        /* Print a stack trace */ \
+        void *backtrace_buffer[1000]; \
+        int num_frames_found = backtrace(backtrace_buffer, 1000); \
+        char **frame_info_strs = \
+                backtrace_symbols(backtrace_buffer, num_frames_found); \
+        printf("BACKTRACE:\n"); \
+        int idx; for(idx = 0; idx < num_frames_found; idx++) { \
+            printf("    %s\n", frame_info_strs[idx]); \
+        } \
+        \
+        /* Stop execution */ \
         exit(EXIT_FAILURE); \
     } while(0)
 

@@ -34,6 +34,7 @@ int main(int argc, char *argv[]) {
 
         prog_args_idx++;
         argv_idx++;
+        IntRef_free(arg_result);
     }
 
     // If argument parsing failed, quit with an appropriate error message

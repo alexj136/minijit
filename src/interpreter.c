@@ -92,6 +92,7 @@ InterpretResult *interpret_Comm(Prog *prog, Comm *comm, int *store) {
                 return comm_res;
             }
 
+            free(guard_res);
             guard_res = interpret_Expr(prog, While_guard(comm), store);
 
             if(guard_res->type != iSuccess) {
@@ -196,6 +197,7 @@ InterpretResult *interpret_Expr(Prog *prog, Expr *expr, int *store) {
         bool failed_arg_eval = false;
         InterpretResult *arg_res;
 
+        // Evaluate each argument expression
         int idx;
         for(idx = 0; idx < Call_num_args(expr); idx++) {
 
@@ -215,7 +217,10 @@ InterpretResult *interpret_Expr(Prog *prog, Expr *expr, int *store) {
             return arg_res;
         }
 
-        return interpret_Func(prog, callee, args);
+        // Make the call, free the argument array, and return the call result
+        InterpretResult *call_res = interpret_Func(prog, callee, args);
+        free(args);
+        return call_res;
     }
     else if(Expr_isVar(expr)) {
         return InterpretSuccess_init(store[Var_name(expr)]);

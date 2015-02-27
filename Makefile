@@ -1,4 +1,4 @@
-GCC     = gcc -Wall -Wextra -g
+GCC     = gcc -Wall -Wextra -g -rdynamic
 SRCDIR  = ./src
 BINDIR  = ./bin
 TESTDIR = ./test
