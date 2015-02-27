@@ -18,6 +18,7 @@ ParseError *ParseError_init(char *text, int line_no, int char_no);
 void ParseError_print(ParseError *err);
 bool ParseError_eq(ParseError *err1, ParseError *err2);
 void ParseError_free(ParseError *err);
+void ParseErrorVector_print(ParseErrorVector *errs);
 
 /*
  * ParseResult definitions

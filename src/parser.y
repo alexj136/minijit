@@ -38,6 +38,21 @@ void ParseError_free(ParseError *err) {
 
 DEFINE_VECTORABLE(ParseError)
 
+void ParseErrorVector_print(ParseErrorVector *errs) {
+
+    if(ParseErrorVector_size(errs) < 1) { return; }
+
+    else {
+        printf("Parse error(s) found:\n");
+        int idx;
+        for(idx = 0; idx < ParseErrorVector_size(errs); idx++) {
+            ParseError *err = ParseErrorVector_get(errs, idx);
+            printf("    '%s' at line %d, column %d.\n",
+                    err->text, err->line_no, err->char_no);
+        }
+    }
+}
+
 /*
  * ParseResult definitions
  */

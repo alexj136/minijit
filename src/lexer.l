@@ -237,6 +237,7 @@ LexerResult *LexerResult_init(TokenVector *tokens, charVector *name_map,
     LexerResult *lr = challoc(sizeof(LexerResult));
     LexerResult_tokens(lr) = tokens;
     LexerResult_name_map(lr) = name_map;
+    LexerResult_next_name(lr) = next_name;
     return lr;
 }
 

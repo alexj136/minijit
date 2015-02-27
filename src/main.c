@@ -67,10 +67,8 @@ int main(int argc, char *argv[]) {
 
     // Handle a failed parse
     if(pr->type == parseFail) {
-        int idx;
-        for(idx = 0; idx < ParseErrorVector_size(pr->errors); idx++) {
-            ParseError_print(ParseErrorVector_get(pr->errors, idx));
-        }
+        ParseErrorVector_print(pr->errors);
+        ParseResult_free(pr);
         exit(EXIT_FAILURE);
     }
 

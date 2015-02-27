@@ -73,6 +73,8 @@ TypeError *TypeError_init(int name, Type *found, Type *expected,
     error->name = name;
     error->found = found;
     error->expected = expected;
+    error->src_line_no = src_line_no;
+    error->src_char_no = src_char_no;
     return error;
 }
 

@@ -1,4 +1,4 @@
-GCC     = gcc -Wall -g
+GCC     = gcc -Wall -Wextra -g
 SRCDIR  = ./src
 BINDIR  = ./bin
 TESTDIR = ./test
