@@ -235,9 +235,9 @@ LexerResult *LexerResult_init(TokenVector *tokens, charVector *name_map,
         int next_name) {
 
     LexerResult *lr = challoc(sizeof(LexerResult));
-    LexerResult_tokens(lr) = tokens;
-    LexerResult_name_map(lr) = name_map;
-    LexerResult_next_name(lr) = next_name;
+    lr->tokens      = tokens;
+    lr->name_map    = name_map;
+    lr->next_name   = next_name;
     return lr;
 }
 
@@ -245,8 +245,8 @@ LexerResult *LexerResult_init(TokenVector *tokens, charVector *name_map,
  * Free a LexerResult and its constituents.
  */
 void LexerResult_free(LexerResult *lr) {
-    TokenVector_free_elems(LexerResult_tokens(lr));
-    charVector_free_elems(LexerResult_name_map(lr));
+    TokenVector_free_elems(lr->tokens);
+    charVector_free_elems(lr->name_map);
     free(lr);
     return;
 }
@@ -259,9 +259,9 @@ void LexerResult_free(LexerResult *lr) {
  */
 LexerResult *do_analysis() {
 
-    name_map = StringIntPairVector_init();
+    name_map      = StringIntPairVector_init();
     next_int_name = 0;
-    char_no = 1;
+    char_no       = 1;
 
     // Initialise the Token Vector for the results
     TokenVector *tok_vec = TokenVector_init();

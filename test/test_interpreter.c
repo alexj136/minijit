@@ -64,7 +64,7 @@ MINUNIT_TESTS
 
             InterpretResult *res = interpret_Expr(NULL, expr, NULL);
 
-            ASSERT(res->result == subtract ? lhs - rhs : lhs + rhs,
+            ASSERT(res->result == (subtract ? lhs - rhs : lhs + rhs),
                     "Arithmetic evaluates correctly")
 
             Expr_free(expr);

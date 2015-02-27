@@ -7,7 +7,8 @@
 
 #define MINUNIT_TESTS \
     int main(int argc, char *argv[]) { \
-        int ___passes = 0, ___fails = 0, ___asserts = 0;
+        int ___passes = 0, ___fails = 0, ___asserts = 0; \
+        argc = argc; /* supress warnings about argc being unused */
 #define END_TESTS \
         int ___total = ___passes + ___fails; \
         printf("%s: Ran %d test%s with %d pass%s and %d failure%s. ", \
