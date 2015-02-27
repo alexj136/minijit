@@ -263,12 +263,6 @@ name:
     {
         $$ = Token_name(yylval.token);
     }
-    |
-    error
-    {
-        // Could have any type safe thing here
-        $$ = 0;
-    }
     ;
 
 names:
@@ -280,6 +274,13 @@ names:
     name namescont
     {
         IntRefVector_insert($2, 0, IntRef_init($1));
+        $$ = $2;
+    }
+    |
+    error namescont
+    {
+        // Could have any type safe thing here
+        // Just ignore the erroneous input and carry on with the list
         $$ = $2;
     }
     ;
@@ -350,7 +351,7 @@ ParseResult *parse(LexerResult *lexer_result) {
     next_name     = -1;
 
     if(ParseErrorVector_size(errors) > 0) {
-        Prog_free(result);
+        if(result) { Prog_free(result); }
         result = NULL;
         return ParseFail_init(errors);
     }

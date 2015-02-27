@@ -14,7 +14,7 @@
 
 #define MAKE_TOKEN(ty) \
     do { \
-        char *text = chstrdup(yytext); \
+        char *text = chstrdup((ty == endOfInput) ? "EOF" : yytext); \
         int name = (ty == tokenName) ? lease_int_name(yytext) : \
                 ((ty == tokenInt) ? name = atoi(yytext) : -1); \
         int line_no = yylineno; \
