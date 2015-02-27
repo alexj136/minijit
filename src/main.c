@@ -16,35 +16,6 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    // Parse the command line arguments
-    int *prog_args    = challoc(sizeof(int) * (argc - 2));
-    int prog_args_idx = 0;
-    int argv_idx      = 2;
-    bool no_errors    = true;
-    while((argv_idx < argc) && no_errors) {
-
-        IntRef *arg_result = str_to_int(argv[argv_idx]);
-
-        if(arg_result == NULL) {
-            no_errors = false;
-        }
-        else {
-            prog_args[prog_args_idx] = IntRef_value(arg_result);
-        }
-
-        prog_args_idx++;
-        argv_idx++;
-        IntRef_free(arg_result);
-    }
-
-    // If argument parsing failed, quit with an appropriate error message
-    if(!no_errors) {
-        free(prog_args);
-        printf("Could not parse command line arguments.\n");
-        exit(EXIT_FAILURE);
-    }
-
-
     // Try to open the file
 	FILE *file = fopen(argv[1], "r");
 
@@ -79,7 +50,35 @@ int main(int argc, char *argv[]) {
                 Prog_num_args(pr->prog), argc - 2);
 
         ParseResult_free(pr);
+        exit(EXIT_FAILURE);
+    }
+
+    // Parse the command line arguments
+    int *prog_args    = challoc(sizeof(int) * (argc - 2));
+    int prog_args_idx = 0;
+    int argv_idx      = 2;
+    bool no_errors    = true;
+    while((argv_idx < argc) && no_errors) {
+
+        IntRef *arg_result = str_to_int(argv[argv_idx]);
+
+        if(arg_result == NULL) {
+            no_errors = false;
+        }
+        else {
+            prog_args[prog_args_idx] = IntRef_value(arg_result);
+        }
+
+        prog_args_idx++;
+        argv_idx++;
+        IntRef_free(arg_result);
+    }
+
+    // If argument parsing failed, quit with an appropriate error message
+    if(!no_errors) {
         free(prog_args);
+        ParseResult_free(pr);
+        printf("Could not parse command line arguments.\n");
         exit(EXIT_FAILURE);
     }
 

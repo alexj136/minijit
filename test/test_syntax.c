@@ -65,8 +65,8 @@ MINUNIT_TESTS
         FuncVector *fvq = FuncVector_init();
         FuncVector_append(fvq, g);
         ASSERT(Func_eq(f, g), "Equal functions");
-        Func_free(f);
-        Func_free(g);
+        FuncVector_free_elems(fvp);
+        FuncVector_free_elems(fvq);
     END
 
     TEST("Simple non-equal functions")
@@ -79,8 +79,8 @@ MINUNIT_TESTS
         FuncVector *fvq = FuncVector_init();
         FuncVector_append(fvq, g);
         ASSERT(!Func_eq(f, g), "Non-equal functions");
-        Func_free(f);
-        Func_free(g);
+        FuncVector_free_elems(fvp);
+        FuncVector_free_elems(fvq);
     END
 
     TEST("Simple while command equality")

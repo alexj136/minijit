@@ -14,7 +14,7 @@
 
 #define MAKE_TOKEN(ty) \
     do { \
-        char *text = strdup(yytext); \
+        char *text = chstrdup(yytext); \
         int name = (ty == tokenName) ? lease_int_name(yytext) : \
                 ((ty == tokenInt) ? name = atoi(yytext) : -1); \
         int line_no = yylineno; \
@@ -76,7 +76,7 @@ int lease_int_name(char *string_name) {
     if(!found_name) {
         name = next_int_name;
         StringIntPairVector_append(name_map,
-                StringIntPair_init(strdup(string_name), next_int_name));
+                StringIntPair_init(chstrdup(string_name), next_int_name));
         next_int_name++;
     }
 
@@ -219,10 +219,10 @@ StringIntPair *StringIntPair_init(char *sval, int ival) {
 }
 
 /*
- * Free a StringIntPair. Frees the contained string.
+ * Free a StringIntPair. Does not free the contained string, as these will be
+ * passed on to further stages of the compilation process.
  */
 void StringIntPair_free(StringIntPair *sip) {
-    free(StringIntPair_str(sip));
     free(sip);
     return;
 }
@@ -281,7 +281,7 @@ LexerResult *do_analysis() {
     charVector *flipped_name_map = flip_name_map(name_map);
 
     // Clean up and return the results
-    StringIntPairVector_free(name_map);
+    StringIntPairVector_free_elems(name_map);
     name_map = NULL;
     char_no = 1;
     return LexerResult_init(tok_vec, flipped_name_map, next_int_name);
