@@ -125,6 +125,17 @@ ParseErrorVector *errors;
     IntRefVector *names;
 }
 
+/* No destructor rule for prog, as bison always discards the start symbol upon
+ * returning. Obviously we don't want it to be freed as a result.
+ */
+%destructor { free($$);                     } func
+%destructor { free($$);                     } comm
+%destructor { free($$);                     } expr
+%destructor { FuncVector_free($$);          } funcs
+%destructor { ExprVector_free($$);          } exprs
+%destructor { IntRefVector_free_elems($$);  } names
+
+/* Token ID numbers - these must correspond to those declared in lexer.h. */
 %token LParen 1
 %token RParen 2
 %token LCurly 3
@@ -347,7 +358,7 @@ ParseResult *parse(LexerResult *lexer_result) {
         LexerResult_free(lexer_result);
 
         // Free the AST
-        //if(result) { FuncVector_free_elems(result); } // Need something better
+        FuncVector_free_elems(result);
     }
     else {
 
