@@ -7,44 +7,65 @@
 #include "parser.h"
 #include "interpreter.h"
 
+/*
+ * Proceeds through the interpreter pipeline, checking the output of each stage
+ * for errors, and halting early if necessary.
+ */
 int main(int argc, char *argv[]) {
 
-    // Lex and parse the given file and print the results
-
+    /* =========================================================================
+     * Check that an argument file was supplied. Quit if not.
+     */
     if(argc < 2) {
         puts("No arguments provided.");
         exit(EXIT_FAILURE);
     }
 
-    // Try to open the file
+    /* =========================================================================
+     * We now know a file argument was supplied - try to open it, and quit if it
+     * fails.
+     */
 	FILE *file = fopen(argv[1], "r");
 
-    // If it couldn't be opened, quit with an appropriate error message
 	if (!file) {
         printf("Could not open file: '%s'.\n", argv[1]);
         exit(EXIT_FAILURE);
 	}
 
-    // Lex the file
+    /* =========================================================================
+     * We now know that the file opened successfully, so perform lexical
+     * analysis on its contents.
+     */
     LexerResult *lr = lex_file(file);
 
-    // Close the file
+    /* =========================================================================
+     * Close the file now that lexical analysis has concluded. Print a warning
+     * if closing fails, but continue with the pipeline anyway.
+     */
     int close_status = fclose(file);
     if(close_status != 0) {
         printf("Warning: file '%s' did not close properly.\n", argv[1]);
     }
 
-    // Do the parsing of the source file
+    /* =========================================================================
+     * Do the parse. We don't need to check if the lexer failed because the
+     * parser can deal with token lists that contain errors, and return any
+     * lexical errors along with parse errors.
+     *     If parsing fails, print the errors and exit.
+     */
     ParseResult *pr = parse(lr);
 
-    // Handle a failed parse
     if(pr->type == parseFail) {
         ParseErrorVector_print(pr->errors);
         ParseResult_free(pr);
         exit(EXIT_FAILURE);
     }
 
-    // Check that we got the appropriate number of arguments on the command line
+    /* =========================================================================
+     * If we got here, we know that we have a syntactically valid program.
+     *     Check that the number of arguments we got on the command line matches
+     * the number of arguments that the main function takes. Quit if not.
+     */
     if(argc - 2 != Prog_num_args(pr->prog)) {
         printf("main expects %d arguments, but %d were given.\n",
                 Prog_num_args(pr->prog), argc - 2);
@@ -53,7 +74,10 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    // Parse the command line arguments
+    /* =========================================================================
+     * We got the correct number of arguments, so now parse the command-line
+     * arguments. If parsing fails, quit with an appropriate error message.
+     */
     int *prog_args    = challoc(sizeof(int) * (argc - 2));
     int prog_args_idx = 0;
     int argv_idx      = 2;
@@ -74,7 +98,6 @@ int main(int argc, char *argv[]) {
         IntRef_free(arg_result);
     }
 
-    // If argument parsing failed, quit with an appropriate error message
     if(!no_errors) {
         free(prog_args);
         ParseResult_free(pr);
@@ -82,7 +105,10 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    // Run the interpreter
+    /* =========================================================================
+     * We now have everything we need to run the program, so run the program and
+     * print the result.
+     */
     InterpretResult *res = interpret_Prog(pr->prog, prog_args);
     if(res->type != iSuccess) {
         puts("Runtime error (type checker not yet implemented).");
@@ -91,7 +117,9 @@ int main(int argc, char *argv[]) {
         printf("RESULT = %d\n", res->result);
     }
 
-    // Free things
+    /* =========================================================================
+     * Deallocate the remaining heap objects.
+     */
     free(res);
     ParseResult_free(pr);
     free(prog_args);
