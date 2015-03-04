@@ -96,11 +96,6 @@ void yyerror(const char *s);
 // The Token Vector from which parsing occurs
 TokenVector *parser_tokens;
 
-// The name map and next int name output by the lexer. These will be forwarded
-// on in the output of the parser.
-charVector *name_map;
-int next_name;
-
 // The current index into the Token Vector
 int parser_token_idx;
 
@@ -109,7 +104,7 @@ int src_line_no;
 int src_char_no;
 
 // The result of the parse
-Prog *result;
+FuncVector *result;
 
 // Stores details of any errors encountered
 ParseErrorVector *errors;
@@ -120,7 +115,7 @@ ParseErrorVector *errors;
 
 %union {
     Token *token;
-    Prog *prog;
+    FuncVector *prog;
     Func *func;
     Comm *comm;
     Expr *expr;
@@ -163,7 +158,7 @@ ParseErrorVector *errors;
 prog:
     funcs
     {
-        $$ = Prog_init($1, name_map, next_name);
+        $$ = $1;
         result = $$;
     }
     ;
@@ -334,8 +329,6 @@ ParseResult *parse(LexerResult *lexer_result) {
 
     // Initialise variables
     parser_tokens    = LexerResult_tokens(lexer_result);
-    name_map         = LexerResult_name_map(lexer_result);
-    next_name        = LexerResult_next_name(lexer_result);
     errors           = ParseErrorVector_init();
     result           = NULL;
     parser_token_idx = -1;
@@ -343,24 +336,40 @@ ParseResult *parse(LexerResult *lexer_result) {
     // Do the parse
     yyparse();
 
-    // Clean up
-    TokenVector_free_elems(parser_tokens);
-    free(lexer_result);
-    parser_tokens = NULL;
-    name_map      = NULL;
-    next_name     = -1;
-
+    // Create the ParseResult & free things (different things to free depending
+    // on success or failure)
+    ParseResult *to_return = NULL;
     if(ParseErrorVector_size(errors) > 0) {
-        if(result) { Prog_free(result); }
-        result = NULL;
-        return ParseFail_init(errors);
+
+        to_return = ParseFail_init(errors);
+
+        // Free lexer_result, no need to preserve name_map
+        LexerResult_free(lexer_result);
+
+        // Free the AST
+        //if(result) { FuncVector_free_elems(result); } // Need something better
     }
     else {
+
+        to_return = ParseSuccess_init(Prog_init(result,
+                LexerResult_name_map(lexer_result),
+                LexerResult_next_name(lexer_result)));
+
+        // Free lexer_result, preserving name_map
+        TokenVector_free_elems(LexerResult_tokens(lexer_result));
+        free(lexer_result);
+
+        // Free the parse errors
         ParseErrorVector_free_elems(errors);
-        errors = NULL;
-        return ParseSuccess_init(result);
     }
 
+    // Clean up dangling pointers
+    parser_tokens    = NULL;
+    errors           = NULL;
+    result           = NULL;
+    parser_token_idx = -1;
+
+    return to_return;
 }
 
 /*
