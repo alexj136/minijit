@@ -98,6 +98,7 @@ struct IntRef {
     } \
     /* Append all elements of a Vector to another Vector */ \
     void ty##Vector_append_all(ty##Vector *vec, ty##Vector *new_elems) { \
+        if((!vec) || (!new_elems)) { ERROR("Null Vector"); } \
         int idx; \
         for(idx = 0; idx < ty##Vector_size(new_elems); idx++) { \
             ty##Vector_append(vec, ty##Vector_get(new_elems, idx)); \
@@ -203,7 +204,7 @@ struct IntRef {
     /* contain elements that are equal according to the type's definition */ \
     /* of equality, and those elements appear in the same sequence. */ \
     bool ty##Vector_eq(ty##Vector *v1, ty##Vector *v2) { \
-        if((!v1) || (!v2)) { return v1 == v2; } /* null check */ \
+        if((!v1) || (!v2)) { ERROR("Null Vector"); } /* null check */ \
         bool same = ty##Vector_size(v1) == ty##Vector_size(v2); \
         int idx = 0; \
         while(same && (idx < ty##Vector_size(v1))) { \
