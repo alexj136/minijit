@@ -38,8 +38,16 @@ void Type_free(Type *type);
  * TypeErrors
  */
 
+typedef enum
+    { invalidArgumentToFunction
+    , invalidArgumentToAdd
+    , invalidArgumentToSub
+    , invalidReturn
+    } TypeErrorInfo;
+
 typedef struct TypeError TypeError;
 struct TypeError {
+    TypeErrorInfo info;
     int name;
     struct Type *found;
     struct Type *expected;
@@ -50,8 +58,8 @@ struct TypeError {
 FORWARD_DECLARE_VECTORABLE(TypeError)
 
 // Constructor
-TypeError *TypeError_init(int name, Type *found, Type *expected, int line_no,
-        int char_no);
+TypeError *TypeError_init(TypeErrorInfo info, int name, Type *found,
+        Type *expected, int line_no, int char_no);
 
 // Methods
 bool TypeError_eq(TypeError *error1, TypeError *error2);

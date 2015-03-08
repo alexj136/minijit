@@ -314,7 +314,9 @@ bool Expr_eq(Expr *e1, Expr *e2) {
                 ((e1->num) == (e2->num)) &&
                 Expr_eq(e1->expr1, e2->expr1) &&
                 Expr_eq(e1->expr2, e2->expr2) &&
-                ExprVector_eq(e1->args, e2->args);
+                (((e1->args) && (e2->args)) ?
+                        ExprVector_eq(e1->args, e2->args) :
+                        ((e1->args) == (e2->args)));
     }
 }
 

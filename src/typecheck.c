@@ -78,9 +78,11 @@ void Type_free(Type *type) {
 
 DEFINE_VECTORABLE(TypeError)
 
-TypeError *TypeError_init(int name, Type *found, Type *expected, int line_no,
-        int char_no) {
+TypeError *TypeError_init(TypeErrorInfo info, int name, Type *found,
+        Type *expected, int line_no, int char_no) {
+
     TypeError *error = challoc(sizeof(TypeError));
+    error->info      = info;
     error->name      = name;
     error->found     = found;
     error->expected  = expected;
@@ -180,12 +182,12 @@ TypeCheckResult *check_Expr(Expr *expr, TypeVector *symbol_table) {
         }
 
         // Fail case
-        TypeErrorVector *errors = TypeVector_init();
+        TypeErrorVector *errors = TypeErrorVector_init();
         if(!(lhs_res->success)) {
-            TypeErrorVector_append_all(errors, lhs->errors);
+            TypeErrorVector_append_all(errors, lhs_res->errors);
         }
         if(!(rhs_res->success)) {
-            TypeErrorVector_append_all(errors, rhs->errors);
+            TypeErrorVector_append_all(errors, rhs_res->errors);
         }
 
         TypeCheckResult_free(lhs_res);
