@@ -10,7 +10,7 @@
  */
 
 #define Prog_num_funcs(prog) FuncVector_size(prog->funcs)
-#define Prog_funcs(prog) prog->funcs
+#define Prog_funcs(prog) (prog->funcs)
 #define Prog_func(prog, num) FuncVector_get(prog->funcs, num)
 #define Prog_num_args(prog) Func_num_args(FuncVector_get(prog->funcs, 0))
 #define Prog_next_name(prog) (prog->next_name)
@@ -19,6 +19,7 @@ typedef struct Prog Prog;
 struct Prog {
     struct FuncVector *funcs;
     struct charVector *name_map;
+    struct IntRefVector *func_name_map;
     int next_name;
 };
 
@@ -26,17 +27,16 @@ struct Prog {
  * Functions
  */
 
-#define Func_name(func) func->name
-#define Func_num_args(func) IntRefVector_size(func->args)
-#define Func_arg(func, num) IntRef_value(IntRefVector_get(func->args, num))
-#define Func_body(func) func->body
+#define Func_body(func) (func->body)
+#define Func_num_args(func) (func->num_args)
+#define Func_num_vars(func) IntRefVector_size(func->local_name_map)
 #define Func_src_line_no(func) (func->src_line_no)
 #define Func_src_char_no(func) (func->src_char_no)
 
 typedef struct Func Func;
 struct Func {
-    int name;
-    struct IntRefVector *args;
+    int num_args;
+    struct IntRefVector *local_name_map; // Yeilds indexes into global name map
     struct Comm *body;
     int src_line_no;
     int src_char_no;
@@ -126,16 +126,17 @@ FORWARD_DECLARE_VECTORABLE(Expr);
  */
 
 Prog *Prog_init(FuncVector *funcs, charVector *name_map, int next_name);
-Func *Prog_lookup_Func(Prog *prog, int name);
+//Func *Prog_lookup_Func(Prog *prog, int name);
 bool Prog_eq(Prog *p, Prog *q);
 void Prog_print(Prog *prog, int indent);
 void Prog_free(Prog *prog);
 
-Func *Func_init(int name, IntRefVector *args, Comm *body);
-Func *Func_init_pos(int name, IntRefVector *args, Comm *body, int src_line_no,
-        int src_char_no);
+Func *Func_init(int num_args, IntRefVector *local_name_map, Comm *body);
+Func *Func_init_pos(int num_args, IntRefVector *local_name_map, Comm *body,
+        int src_line_no, int src_char_no);
 bool Func_eq(Func *f, Func *g);
-void Func_print(Func *func, int indent, charVector *name_map);
+void Func_print(Func *func, IntRefVector *func_name_map, int func_idx,
+        int indent, charVector *name_map);
 void Func_free(Func *func);
 
 Comm *While_init(Expr *guard, Comm* body);

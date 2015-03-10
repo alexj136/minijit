@@ -19,7 +19,7 @@ Prog *Prog_init(FuncVector *funcs, charVector *name_map, int next_name) {
  * Retreive a function from a program based on the function's name. Returns null
  * if there is no function by that name.
  */
-Func *Prog_lookup_Func(Prog *prog, int name) {
+/*Func *Prog_lookup_Func(Prog *prog, int name) {
 
     int  idx   = 0;
     bool found = false;
@@ -41,7 +41,7 @@ Func *Prog_lookup_Func(Prog *prog, int name) {
     else {
         return NULL;
     }
-}
+}*/
 
 /*
  * Syntactic equality - NOT alpha-equivalence. Sensetive to virtually
@@ -62,13 +62,15 @@ void Prog_print(Prog *prog, int indent) {
     put_indent(indent);
     int idx;
     for(idx = 0; idx < Prog_num_funcs(prog); idx++) {
-        Func_print(Prog_func(prog, idx), indent, prog->name_map);
+        Func_print(Prog_func(prog, idx), prog->func_name_map, idx, indent,
+                prog->name_map);
     }
 }
 
 void Prog_free(Prog *prog) {
     FuncVector_free_elems(prog->funcs);
     charVector_free_elems(prog->name_map);
+    IntRefVector_free_elems(prog->func_name_map);
     free(prog);
 }
 
@@ -78,51 +80,39 @@ void Prog_free(Prog *prog) {
 
 DEFINE_VECTORABLE(Func)
 
-Func *Func_init(int name, IntRefVector *args, Comm *body) {
-    return Func_init_pos(name, args, body, -1, -1);
+Func *Func_init(int num_args, IntRefVector *local_name_map, Comm *body) {
+    return Func_init_pos(num_args, local_name_map, body, -1, -1);
 }
 
-Func *Func_init_pos(int name, IntRefVector *args, Comm *body, int src_line_no,
-        int src_char_no) {
+Func *Func_init_pos(int num_args, IntRefVector *local_name_map, Comm *body,
+        int src_line_no, int src_char_no) {
 
-    Func *func = challoc(sizeof(Func));
-    func->name = name;
-    func->args = args;
-    func->body = body;
-    func->src_line_no = src_line_no;
-    func->src_char_no = src_char_no;
+    Func *func           = challoc(sizeof(Func));
+    func->num_args       = num_args;
+    func->local_name_map = local_name_map;
+    func->body           = body;
+    func->src_line_no    = src_line_no;
+    func->src_char_no    = src_char_no;
     return func;
 }
 
 bool Func_eq(Func *f, Func *g) {
-    bool same = true;
-
-    if((Func_name(f) != Func_name(g)) ||
-            (Func_num_args(f) != Func_num_args(g))) {
-
-        same = false;
-    }
-
-    int idx = 0;
-    while(same && (idx < Func_num_args(f))) {
-        if(Func_arg(f, idx) != Func_arg(g, idx)) { same = false; }
-        idx++;
-    }
-
-    // Extra 'same &&' guard condition prevents us from doing a potentially
-    // expensive call to Comm_eq() when we already know the functions are
-    // different.
-    if(same && (!Comm_eq(Func_body(f), Func_body(g)))) { same = false; }
-
-    return same;
+    return (Func_num_args(f) == Func_num_args(g))
+            && IntRefVector_eq(f->local_name_map, g->local_name_map)
+            && Comm_eq(Func_body(f), Func_body(g));
 }
 
-void Func_print(Func *func, int indent, charVector *name_map) {
+void Func_print(Func *func, IntRefVector *func_name_map, int func_idx,
+        int indent, charVector *name_map) {
+
     put_indent(indent);
-    printf("%s(", charVector_get(name_map, Func_name(func)));
+    printf("%s(", charVector_get(name_map,
+            IntRef_value(IntRefVector_get(func_name_map, func_idx))));
+
     int idx;
     for(idx = 0; idx < Func_num_args(func); idx++) {
-        printf("%s", charVector_get(name_map, Func_arg(func, idx)));
+        printf("%s", charVector_get(name_map,
+                IntRef_value(IntRefVector_get(func->local_name_map, idx))));
         if(idx + 1 < Func_num_args(func)) { printf(", "); }
     }
     printf(") {\n");
@@ -133,7 +123,7 @@ void Func_print(Func *func, int indent, charVector *name_map) {
 }
 
 void Func_free(Func *func) {
-    IntRefVector_free_elems(func->args);
+    IntRefVector_free_elems(func->local_name_map);
     Comm_free(Func_body(func));
     free(func);
 }

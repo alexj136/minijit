@@ -65,7 +65,8 @@ struct IntRef {
     void ty##Vector_free(ty##Vector *vec); \
     void ty##Vector_free_elems(ty##Vector *vec); \
     ty *ty##Vector_remove(ty##Vector *vec, int index);\
-    bool ty##Vector_eq(ty##Vector *v1, ty##Vector *v2);
+    bool ty##Vector_eq(ty##Vector *v1, ty##Vector *v2); \
+    bool ty##Vector_contains(ty##Vector *vec, ty *elem); \
 
 #define DEFINE_VECTORABLE(ty) \
     \
@@ -214,6 +215,23 @@ struct IntRef {
             idx++; \
         } \
         return same; \
+    } \
+    \
+    /* Determine if a Vector contains the given element. A Vector contains */ \
+    /* a given element if there is at least one element for which an */ \
+    /* equality test returns true, according to the type's definition of */ \
+    /* equality. */ \
+    bool ty##Vector_contains(ty##Vector *vec, ty *elem) { \
+        if(!vec) { ERROR("Null Vector"); } \
+        if(!elem) { ERROR("Null element"); } \
+        int idx = 0; \
+        while(idx < ty##Vector_size(vec)) { \
+            if(ty##_eq(ty##Vector_get(vec, idx), elem)) { \
+                return true; \
+            } \
+            idx++; \
+        } \
+        return false; \
     } \
 
 /*
