@@ -38,8 +38,8 @@ InterpretResult *InterpretFailEndWithoutReturn_init(int line_no, int char_no);
  * function).
  */
 
-InterpretResult *interpret_Prog(Prog *prog, int *args);
-InterpretResult *interpret_Func(Prog *prog, Func *func, int *args);
+InterpretResult *interpret_Prog(Prog *prog, IntRefVector *args);
+InterpretResult *interpret_Func(Prog *prog, Func *func, int *store);
 InterpretResult *interpret_Comm(Prog *prog, Comm *comm, int *store);
 InterpretResult *interpret_Expr(Prog *prog, Expr *expr, int *store);
 

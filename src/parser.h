@@ -43,4 +43,11 @@ void ParseResult_free(ParseResult *res);
 
 ParseResult *parse(LexerResult *lexer_result);
 
+/*
+ * Helper functions used in the parser
+ */
+void complete_local_name_map_Comm(IntRefVector *local_name_map, Comm *comm);
+void complete_local_name_map_Expr(IntRefVector *local_name_map, Expr *expr);
+int lease_local_name(IntRefVector *local_name_map, int global_name);
+
 #endif // parser

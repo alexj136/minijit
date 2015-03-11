@@ -19,7 +19,6 @@ typedef struct Prog Prog;
 struct Prog {
     struct FuncVector *funcs;
     struct charVector *name_map;
-    struct IntRefVector *func_name_map;
     int next_name;
 };
 
@@ -27,6 +26,7 @@ struct Prog {
  * Functions
  */
 
+#define Func_name(func) (func->name)
 #define Func_body(func) (func->body)
 #define Func_num_args(func) (func->num_args)
 #define Func_num_vars(func) IntRefVector_size(func->local_name_map)
@@ -35,7 +35,7 @@ struct Prog {
 
 typedef struct Func Func;
 struct Func {
-    int global_name;
+    int name;
     int num_args;
     struct IntRefVector *local_name_map; // Yeilds indexes into global name map
     struct Comm *body;
@@ -127,18 +127,17 @@ FORWARD_DECLARE_VECTORABLE(Expr);
  */
 
 Prog *Prog_init(FuncVector *funcs, charVector *name_map, int next_name);
-//Func *Prog_lookup_Func(Prog *prog, int name);
+Func *Prog_lookup_Func(Prog *prog, int name);
 bool Prog_eq(Prog *p, Prog *q);
 void Prog_print(Prog *prog, int indent);
 void Prog_free(Prog *prog);
 
-Func *Func_init(int global_name, int num_args, IntRefVector *local_name_map,
+Func *Func_init(int name, int num_args, IntRefVector *local_name_map,
         Comm *body);
-Func *Func_init_pos(int global_name, int num_args, IntRefVector *local_name_map,
+Func *Func_init_pos(int name, int num_args, IntRefVector *local_name_map,
         Comm *body, int src_line_no, int src_char_no);
 bool Func_eq(Func *f, Func *g);
-void Func_print(Func *func, IntRefVector *func_name_map, int func_idx,
-        int indent, charVector *name_map);
+void Func_print(Func *func, int indent, charVector *name_map);
 void Func_free(Func *func);
 
 Comm *While_init(Expr *guard, Comm* body);

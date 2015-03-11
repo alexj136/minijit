@@ -62,24 +62,10 @@ int main(int argc, char *argv[]) {
     }
 
     /* =========================================================================
-     * If we got here, we know that we have a syntactically valid program.
-     *     Check that the number of arguments we got on the command line matches
-     * the number of arguments that the main function takes. Quit if not.
-     */
-    if(argc - 2 != Prog_num_args(pr->prog)) {
-        printf("main expects %d arguments, but %d were given.\n",
-                Prog_num_args(pr->prog), argc - 2);
-
-        ParseResult_free(pr);
-        exit(EXIT_FAILURE);
-    }
-
-    /* =========================================================================
      * We got the correct number of arguments, so now parse the command-line
      * arguments. If parsing fails, quit with an appropriate error message.
      */
-    int *prog_args    = challoc(sizeof(int) * (argc - 2));
-    int prog_args_idx = 0;
+    IntRefVector *prog_args = IntRefVector_init();
     int argv_idx      = 2;
     bool no_errors    = true;
     while((argv_idx < argc) && no_errors) {
@@ -90,16 +76,14 @@ int main(int argc, char *argv[]) {
             no_errors = false;
         }
         else {
-            prog_args[prog_args_idx] = IntRef_value(arg_result);
+            IntRefVector_append(prog_args, arg_result);
         }
 
-        prog_args_idx++;
         argv_idx++;
-        IntRef_free(arg_result);
     }
 
     if(!no_errors) {
-        free(prog_args);
+        IntRefVector_free_elems(prog_args);
         ParseResult_free(pr);
         printf("Could not parse command line arguments.\n");
         exit(EXIT_FAILURE);
@@ -122,7 +106,7 @@ int main(int argc, char *argv[]) {
      */
     free(res);
     ParseResult_free(pr);
-    free(prog_args);
+    IntRefVector_free_elems(prog_args);
 
     return 0;
 }

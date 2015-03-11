@@ -39,28 +39,33 @@ InterpretResult *InterpretFailEndWithoutReturn_init(int line_no, int char_no) {
  * Interpreter function definitions
  */
 
-InterpretResult *interpret_Prog(Prog *prog, int *args) {
-    return interpret_Func(prog, Prog_func(prog, 0), args);
+InterpretResult *interpret_Prog(Prog *prog, IntRefVector *args) {
+
+    // Create a Call Expr to call main
+    ExprVector *arg_exprs = ExprVector_init();
+    int idx;
+    for(idx = 0; idx < IntRefVector_size(args); idx++) {
+        ExprVector_append(arg_exprs,
+                Int_init(IntRef_value(IntRefVector_get(args, idx))));
+    }
+    Expr *main_call = Call_init(0, arg_exprs);
+
+    // Run the call
+    InterpretResult *result = interpret_Expr(prog, main_call, NULL);
+
+    // Free the call
+    Expr_free(main_call);
+
+    // Return the result
+    return result;
 }
 
-InterpretResult *interpret_Func(Prog *prog, Func *func, int *args) {
+InterpretResult *interpret_Func(Prog *prog, Func *func, int *store) {
 
-    int *store = challoc(sizeof(int) * Prog_next_name(prog));
-
-    // Set initial store values to zero
-    int idx;
-    for(idx = 0; idx < Prog_next_name(prog); idx++) {
-        store[idx] = 0;
-    }
-
-    // Initialise the arguments to their given values in the store
-    for(idx = 0; idx < Func_num_args(func); idx++) {
-        store[Func_arg(func, idx)] = args[idx];
-    }
+    // The store is created for us in the interpret_Expr() Call case. Run the
+    // command with the store, check for errors, and return.
 
     InterpretResult *res = interpret_Comm(prog, Func_body(func), store);
-
-    free(store);
 
     if(res->type == iSuccess && res->returning == false) {
         free(res);
@@ -193,16 +198,17 @@ InterpretResult *interpret_Expr(Prog *prog, Expr *expr, int *store) {
                     Expr_src_char_no(expr));
         }
 
-        int *args = challoc(sizeof(int) * Call_num_args(expr));
+        int *callee_store = challoc(sizeof(int) * Func_num_vars(callee));
         bool failed_arg_eval = false;
         InterpretResult *arg_res;
 
-        // Evaluate each argument expression
+        // Evaluate each argument expression. Stop early if we encounter an
+        // error.
         int idx;
         for(idx = 0; idx < Call_num_args(expr); idx++) {
 
             arg_res = interpret_Expr(prog, Call_arg(expr, idx), store);
-            args[idx] = arg_res->result;
+            callee_store[idx] = arg_res->result;
 
             if(arg_res->type != iSuccess) {
                 failed_arg_eval = true;
@@ -212,14 +218,22 @@ InterpretResult *interpret_Expr(Prog *prog, Expr *expr, int *store) {
             free(arg_res);
         }
 
+        // If an error was encountered in argument evaluation, clean up and
+        // return an error as the result of the entire call
         if(failed_arg_eval) {
-            free(args);
+            free(callee_store);
             return arg_res;
         }
 
+        // Argument evaluation succeeded, so write zero in place for the initial
+        // values of the other variables in the callee's store
+        for(idx = Func_num_args(callee); idx < Func_num_vars(callee); idx++) {
+            callee_store[idx] = 0;
+        }
+
         // Make the call, free the argument array, and return the call result
-        InterpretResult *call_res = interpret_Func(prog, callee, args);
-        free(args);
+        InterpretResult *call_res = interpret_Func(prog, callee, callee_store);
+        free(callee_store);
         return call_res;
     }
     else if(Expr_isVar(expr)) {

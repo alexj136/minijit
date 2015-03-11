@@ -177,7 +177,12 @@ prog:
 func:
     name LParen names RParen LCurly comm RCurly
     {
-        $$ = Func_init_pos($1, IntRefVector_size($3), $3, $6,
+        IntRefVector *local_name_map = $3; // Initially containing arguments
+        Comm *body = $6;
+        int num_args = IntRefVector_size(local_name_map);
+        complete_local_name_map_Comm(local_name_map, body);
+
+        $$ = Func_init_pos($1, num_args, local_name_map, body,
                 @$.first_line, @$.first_column);
     }
     |
@@ -185,7 +190,7 @@ func:
     {
         // Could have any type safe thing here
         // main() { return 0 }
-        $$ = Func_init(0, IntRefVector_init(), Return_init(Int_init(0)));
+        $$ = Func_init(0, 0, IntRefVector_init(), Return_init(Int_init(0)));
     }
     ;
 
@@ -411,11 +416,102 @@ int yylex() {
 }
 
 /*
- * Indicate that an error occured, with a message.
+ * Called by bison when an error occurs during parsing. Adds details of the
+ * error to the list of errors.
  */
 void yyerror(const char *s) {
     ParseErrorVector_append(errors,
             ParseError_init(chstrdup(Token_str(yylval.token)),
             Token_line_no(yylval.token), Token_char_no(yylval.token)));
     return;
+}
+
+/*
+ * Complete the local name map for a function. Takes an IntRefVector initially
+ * containing the names of the function's arguments, and the body of the
+ * function.
+ *     The names of the variables in the function are added to the local name
+ * map, and are changed within the body so that they are no longer indexes in
+ * the global name map kept by the Prog, but are indexes into the local name
+ * map, which yeild the index into the global name map for that variable.
+ *     Representing names in this way makes the later stages of the pipeline
+ * much simpler.
+ */
+void complete_local_name_map_Comm(IntRefVector *local_name_map, Comm *comm) {
+    if(Comm_isWhile(comm)) {
+        complete_local_name_map_Expr(local_name_map, While_guard(comm));
+        complete_local_name_map_Comm(local_name_map, While_body(comm));
+    }
+    else if(Comm_isAssign(comm)) {
+        Assign_name(comm) = lease_local_name(local_name_map, Assign_name(comm));
+        complete_local_name_map_Expr(local_name_map, Assign_expr(comm));
+    }
+    else if(Comm_isComp(comm)) {
+        complete_local_name_map_Comm(local_name_map, Comp_fst(comm));
+        complete_local_name_map_Comm(local_name_map, Comp_snd(comm));
+    }
+    else if(Comm_isReturn(comm)) {
+        complete_local_name_map_Expr(local_name_map, Return_expr(comm));
+    }
+    else {
+        ERROR("Comm type not recognised.");
+    }
+}
+
+/*
+ * Extension of the complete_local_name_map_Comm() function for the expressions
+ * contained in the commands.
+ */
+void complete_local_name_map_Expr(IntRefVector *local_name_map, Expr *expr) {
+    if(Expr_isInt(expr)) { /* Nothing to do */ }
+    else if(Expr_isAdd(expr)) {
+        complete_local_name_map_Expr(local_name_map, Add_lhs(expr));
+        complete_local_name_map_Expr(local_name_map, Add_rhs(expr));
+    }
+    else if(Expr_isSub(expr)) {
+        complete_local_name_map_Expr(local_name_map, Sub_lhs(expr));
+        complete_local_name_map_Expr(local_name_map, Sub_rhs(expr));
+    }
+    else if(Expr_isCall(expr)) {
+        // Note that we do not touch the Call_name, because this is a function
+        // name, not a variable name. Function names remain global after parsing
+        // unlike other variable names, which become local (although we keep the
+        // local name map if we ever need to retreive the original variable
+        // name, e.g. for printing error messages).
+        int idx;
+        for(idx = 0; idx < Call_num_args(expr); idx++) {
+            complete_local_name_map_Expr(local_name_map, Call_arg(expr, idx));
+        }
+    }
+    else if(Expr_isVar(expr)) {
+        Var_name(expr) = lease_local_name(local_name_map, Var_name(expr));
+    }
+    else {
+        ERROR("Expr type not recognised.");
+    }
+}
+
+/*
+ * Takes a local name map and a global name. If the global name is not mapped to
+ * by the given name map, first add it to the map, and then return the index of
+ * its entry for insertion into an AST. If it is already in the map, just return
+ * its index.
+ */
+int lease_local_name(IntRefVector *local_name_map, int global_name) {
+    int idx = 0;
+    while(idx < IntRefVector_size(local_name_map)) {
+        if(IntRef_value(IntRefVector_get(local_name_map, idx)) == global_name) {
+            // If we get here, we've found that the global_name was already
+            // mapped to in the name map, so return the index that maps to it.
+            return idx;
+        }
+        else {
+            idx++;
+        }
+    }
+
+    // If we get here, the global_name was not in the map, so add it to the map
+    // before returning its index.
+    IntRefVector_append(local_name_map, IntRef_init(global_name));
+    return idx;
 }
