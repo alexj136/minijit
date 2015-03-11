@@ -35,6 +35,7 @@ struct Prog {
 
 typedef struct Func Func;
 struct Func {
+    int global_name;
     int num_args;
     struct IntRefVector *local_name_map; // Yeilds indexes into global name map
     struct Comm *body;
@@ -131,9 +132,10 @@ bool Prog_eq(Prog *p, Prog *q);
 void Prog_print(Prog *prog, int indent);
 void Prog_free(Prog *prog);
 
-Func *Func_init(int num_args, IntRefVector *local_name_map, Comm *body);
-Func *Func_init_pos(int num_args, IntRefVector *local_name_map, Comm *body,
-        int src_line_no, int src_char_no);
+Func *Func_init(int global_name, int num_args, IntRefVector *local_name_map,
+        Comm *body);
+Func *Func_init_pos(int global_name, int num_args, IntRefVector *local_name_map,
+        Comm *body, int src_line_no, int src_char_no);
 bool Func_eq(Func *f, Func *g);
 void Func_print(Func *func, IntRefVector *func_name_map, int func_idx,
         int indent, charVector *name_map);

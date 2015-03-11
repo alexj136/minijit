@@ -177,7 +177,8 @@ prog:
 func:
     name LParen names RParen LCurly comm RCurly
     {
-        $$ = Func_init_pos($1, $3, $6, @$.first_line, @$.first_column);
+        $$ = Func_init_pos($1, IntRefVector_size($3), $3, $6,
+                @$.first_line, @$.first_column);
     }
     |
     error

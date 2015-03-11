@@ -80,14 +80,16 @@ void Prog_free(Prog *prog) {
 
 DEFINE_VECTORABLE(Func)
 
-Func *Func_init(int num_args, IntRefVector *local_name_map, Comm *body) {
-    return Func_init_pos(num_args, local_name_map, body, -1, -1);
+Func *Func_init(int global_name, int num_args, IntRefVector *local_name_map,
+        Comm *body) {
+    return Func_init_pos(global_name, num_args, local_name_map, body, -1, -1);
 }
 
-Func *Func_init_pos(int num_args, IntRefVector *local_name_map, Comm *body,
-        int src_line_no, int src_char_no) {
+Func *Func_init_pos(int global_name, int num_args, IntRefVector *local_name_map,
+        Comm *body, int src_line_no, int src_char_no) {
 
     Func *func           = challoc(sizeof(Func));
+    func->global_name    = global_name;
     func->num_args       = num_args;
     func->local_name_map = local_name_map;
     func->body           = body;
