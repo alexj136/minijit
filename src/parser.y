@@ -369,8 +369,7 @@ ParseResult *parse(LexerResult *lexer_result) {
     else {
 
         to_return = ParseSuccess_init(Prog_init(result,
-                LexerResult_name_map(lexer_result),
-                LexerResult_next_name(lexer_result)));
+                LexerResult_name_map(lexer_result)));
 
         // Free lexer_result, preserving name_map
         TokenVector_free_elems(LexerResult_tokens(lexer_result));

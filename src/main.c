@@ -94,16 +94,30 @@ int main(int argc, char *argv[]) {
      * print the result.
      */
     InterpretResult *res = interpret_Prog(pr->prog, prog_args);
-    if(res->type != iSuccess) {
-        puts("Runtime error (type checker not yet implemented).");
+    if(res->type == iFailIncorrectNumArgs) {
+        puts("Runtime Error: Function call with incorrect number of "
+                "arguments.");
+    }
+    else if(res->type == iFailFunctionNotFound) {
+        puts("Runtime Error: Call to an undefined function.");
+    }
+    else if(res->type == iFailEndWithoutReturn) {
+        puts("Runtime Error: Reached end of function without return.");
+    }
+    else if(res->type == iSuccess) {
+        printf("RESULT = %d\n", res->result);
     }
     else {
-        printf("RESULT = %d\n", res->result);
+        free(res);
+        ParseResult_free(pr);
+        IntRefVector_free_elems(prog_args);
+        ERROR("InterpretResult type not recognised");
     }
 
     /* =========================================================================
      * Deallocate the remaining heap objects.
      */
+    Prog_print(pr->prog, 0);
     free(res);
     ParseResult_free(pr);
     IntRefVector_free_elems(prog_args);

@@ -7,11 +7,10 @@
  * Programs
  */
 
-Prog *Prog_init(FuncVector *funcs, charVector *name_map, int next_name) {
-    Prog *prog = challoc(sizeof(Prog));
-    prog->name_map = name_map;
-    prog->next_name = next_name;
-    prog->funcs = funcs;
+Prog *Prog_init(FuncVector *funcs, charVector *global_name_map) {
+    Prog *prog            = challoc(sizeof(Prog));
+    prog->global_name_map = global_name_map;
+    prog->funcs           = funcs;
     return prog;
 }
 
@@ -48,27 +47,21 @@ Func *Prog_lookup_Func(Prog *prog, int name) {
  * everything, e.g. choice of identifier names, order of declared functions etc.
  */
 bool Prog_eq(Prog *p, Prog *q) {
-    bool same = true;
-    if(Prog_num_funcs(p) != Prog_num_funcs(q)) { same = false; }
-    int idx = 0;
-    while(same && (idx < Prog_num_funcs(p))) {
-        if(!Func_eq(Prog_func(p, idx), Prog_func(q, idx))) { same = false; }
-        idx++;
-    }
-    return same;
+    return FuncVector_eq(p->funcs, q->funcs)
+            && charVector_eq(p->global_name_map, q->global_name_map);
 }
 
 void Prog_print(Prog *prog, int indent) {
     put_indent(indent);
     int idx;
     for(idx = 0; idx < Prog_num_funcs(prog); idx++) {
-        Func_print(Prog_func(prog, idx), indent, prog->name_map);
+        Func_print(Prog_func(prog, idx), indent, prog->global_name_map);
     }
 }
 
 void Prog_free(Prog *prog) {
     FuncVector_free_elems(prog->funcs);
-    charVector_free_elems(prog->name_map);
+    charVector_free_elems(prog->global_name_map);
     free(prog);
 }
 
@@ -97,24 +90,26 @@ Func *Func_init_pos(int name, int num_args, IntRefVector *local_name_map,
 }
 
 bool Func_eq(Func *f, Func *g) {
-    return (Func_num_args(f) == Func_num_args(g))
+    return ((f->name) == (g->name))
+            && (Func_num_args(f) == Func_num_args(g))
             && IntRefVector_eq(f->local_name_map, g->local_name_map)
             && Comm_eq(Func_body(f), Func_body(g));
 }
 
-void Func_print(Func *func, int indent, charVector *name_map) {
+void Func_print(Func *func, int indent, charVector *global_name_map) {
 
     put_indent(indent);
-    printf("%s(", charVector_get(name_map, Func_name(func)));
+    printf("%s(", charVector_get(global_name_map, Func_name(func)));
 
     int idx;
     for(idx = 0; idx < Func_num_args(func); idx++) {
-        printf("%s", charVector_get(name_map,
+        printf("%s", charVector_get(global_name_map,
                 IntRef_value(IntRefVector_get(func->local_name_map, idx))));
         if(idx + 1 < Func_num_args(func)) { printf(", "); }
     }
     printf(") {\n");
-    Comm_print(Func_body(func), indent + 1, name_map);
+    Comm_print(Func_body(func), indent + 1, func->local_name_map,
+            global_name_map);
     printf("\n");
     put_indent(indent);
     printf("}\n");
@@ -192,31 +187,36 @@ bool Comm_eq(Comm *c1, Comm *c2) {
     }
 }
 
-void Comm_print(Comm *comm, int indent, charVector *name_map) {
+void Comm_print(Comm *comm, int indent, IntRefVector *local_name_map,
+        charVector *global_name_map) {
+
     if(Comm_isWhile(comm)) {
         put_indent(indent);
         printf("while ");
-        Expr_print(While_guard(comm), name_map);
+        Expr_print(While_guard(comm), local_name_map, global_name_map);
         printf(" do {\n");
-        Comm_print(While_body(comm), indent + 1, name_map);
+        Comm_print(While_body(comm), indent + 1, local_name_map,
+                global_name_map);
         printf("\n");
         put_indent(indent);
         printf("}");
     }
     else if(Comm_isAssign(comm)) {
         put_indent(indent);
-        printf("%s := ", charVector_get(name_map, Assign_name(comm)));
-        Expr_print(Assign_expr(comm), name_map);
+        printf("%s := ", charVector_get(global_name_map,
+                IntRef_value(IntRefVector_get(local_name_map,
+                Assign_name(comm)))));
+        Expr_print(Assign_expr(comm), local_name_map, global_name_map);
     }
     else if(Comm_isComp(comm)) {
-        Comm_print(Comp_fst(comm), indent, name_map);
+        Comm_print(Comp_fst(comm), indent, local_name_map, global_name_map);
         printf(";\n");
-        Comm_print(Comp_snd(comm), indent, name_map);
+        Comm_print(Comp_snd(comm), indent, local_name_map, global_name_map);
     }
     else if(Comm_isReturn(comm)) {
         put_indent(indent);
         printf("return ");
-        Expr_print(Return_expr(comm), name_map);
+        Expr_print(Return_expr(comm), local_name_map, global_name_map);
     }
     else {
         ERROR("Comm type not recognised.");
@@ -308,31 +308,35 @@ bool Expr_eq(Expr *e1, Expr *e2) {
     }
 }
 
-void Expr_print(Expr *expr, charVector *name_map) {
+void Expr_print(Expr *expr, IntRefVector *local_name_map,
+        charVector *global_name_map) {
+
     if(Expr_isInt(expr)) {
         printf("%d", Int_value(expr));
     }
     else if(Expr_isAdd(expr)) {
-        Expr_print(Add_lhs(expr), name_map);
+        Expr_print(Add_lhs(expr), local_name_map, global_name_map);
         printf(" + ");
-        Expr_print(Add_rhs(expr), name_map);
+        Expr_print(Add_rhs(expr), local_name_map, global_name_map);
     }
     else if(Expr_isSub(expr)) {
-        Expr_print(Sub_lhs(expr), name_map);
+        Expr_print(Sub_lhs(expr), local_name_map, global_name_map);
         printf(" - ");
-        Expr_print(Sub_rhs(expr), name_map);
+        Expr_print(Sub_rhs(expr), local_name_map, global_name_map);
     }
     else if(Expr_isCall(expr)) {
-        printf("%s(", charVector_get(name_map, Call_name(expr)));
+        printf("%s(", charVector_get(global_name_map, Call_name(expr)));
         int idx;
         for(idx = 0; idx < Call_num_args(expr); idx++) {
-            Expr_print(Call_arg(expr, idx), name_map);
+            Expr_print(Call_arg(expr, idx), local_name_map, global_name_map);
             if(idx + 1 < Call_num_args(expr)) { printf(", "); }
         }
         printf(")");
     }
     else if(Expr_isVar(expr)) {
-        printf("%s", charVector_get(name_map, Var_name(expr)));
+        printf("%s", charVector_get(global_name_map,
+                IntRef_value(IntRefVector_get(local_name_map,
+                Var_name(expr)))));
     }
     else {
         ERROR("Expr type not recognised.");

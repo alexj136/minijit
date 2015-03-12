@@ -13,13 +13,11 @@
 #define Prog_funcs(prog) (prog->funcs)
 #define Prog_func(prog, num) FuncVector_get(prog->funcs, num)
 #define Prog_num_args(prog) Func_num_args(FuncVector_get(prog->funcs, 0))
-#define Prog_next_name(prog) (prog->next_name)
 
 typedef struct Prog Prog;
 struct Prog {
     struct FuncVector *funcs;
-    struct charVector *name_map;
-    int next_name;
+    struct charVector *global_name_map;
 };
 
 /*
@@ -126,7 +124,7 @@ FORWARD_DECLARE_VECTORABLE(Expr);
  * Syntax functions
  */
 
-Prog *Prog_init(FuncVector *funcs, charVector *name_map, int next_name);
+Prog *Prog_init(FuncVector *funcs, charVector *global_name_map);
 Func *Prog_lookup_Func(Prog *prog, int name);
 bool Prog_eq(Prog *p, Prog *q);
 void Prog_print(Prog *prog, int indent);
@@ -137,7 +135,7 @@ Func *Func_init(int name, int num_args, IntRefVector *local_name_map,
 Func *Func_init_pos(int name, int num_args, IntRefVector *local_name_map,
         Comm *body, int src_line_no, int src_char_no);
 bool Func_eq(Func *f, Func *g);
-void Func_print(Func *func, int indent, charVector *name_map);
+void Func_print(Func *func, int indent, charVector *global_name_map);
 void Func_free(Func *func);
 
 Comm *While_init(Expr *guard, Comm* body);
@@ -149,7 +147,8 @@ Comm *Assign_init_pos(int name, Expr* expr, int src_line_no, int src_char_no);
 Comm *Comp_init_pos(Comm *fst, Comm *snd, int src_line_no, int src_char_no);
 Comm *Return_init_pos(Expr *expr, int src_line_no, int src_char_no);
 bool Comm_eq(Comm *c1, Comm *c2);
-void Comm_print(Comm *comm, int indent, charVector *name_map);
+void Comm_print(Comm *comm, int indent, IntRefVector *local_name_map,
+        charVector *global_name_map);
 void Comm_free(Comm *comm);
 
 Expr *Int_init(int value);
@@ -164,7 +163,8 @@ Expr *Call_init_pos(int name, ExprVector *args, int src_line_no,
         int src_char_no);
 Expr *Var_init_pos(int name, int src_line_no, int src_char_no);
 bool Expr_eq(Expr *e1, Expr *e2);
-void Expr_print(Expr *expr, charVector *name_map);
+void Expr_print(Expr *expr, IntRefVector *local_name_map,
+        charVector *global_name_map);
 void Expr_free(Expr *expr);
 
 #endif // syntax
