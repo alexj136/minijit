@@ -9,27 +9,34 @@
  * Register names
  */
 
-#define STACK_POINTER        (-4)
-#define FRAME_POINTER        (-3)
-#define RETURN_ADDRESS       (-2)
-#define PROGRAM_COUNTER      (-1)
-#define GENERAL_PURPOSE(num) (num)
+#define ACCUMULATOR     (-6)
+#define TEMPORARY       (-5)
+#define STACK_POINTER   (-4)
+#define FRAME_POINTER   (-3)
+#define RETURN_ADDRESS  (-2)
+#define PROGRAM_COUNTER (-1)
+#define REGISTER(num)   (num)
 
 /*
  * Operation structs - intermediate level representation
  */
 
 typedef enum
-    { LOAD
-    , STORE
-    , ADD
-    , SUB
-    , LOADIMM
-    , JUMP
-    , JUMPCOND
-    , JUMPLINK
-    , LABEL
-    , HALT
+    { MOVE      // Move the contents of register arg1 to register arg2
+    , LOAD      // Load the value at address arg1 into register arg2
+    , STORE     // Store the value in register arg1 at address arg2
+    , ADD       // Add the contents of register arg1 to the contents of register
+                // arg2, leaving the result in register arg1
+    , SUB       // Subtract the contents of register arg2 from the contents of
+                // register arg1, leaving the result in register arg1
+    , LOADIMM   // Load the value arg1 into register arg2
+    , JUMP      // Jump to label arg1
+    , JUMPCOND  // Jump to label arg1 if the value of register arg2 is less
+                // than 1
+    , JUMPLINK  // Store the address of the next instruction in RETURN_ADDRESS
+                // and jump to label arg1
+    , LABEL     // Define the label arg1
+    , HALT      // Halt execution and return to caller
     } Opcode;
 
 typedef struct Operation Operation;
