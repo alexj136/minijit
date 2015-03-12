@@ -117,7 +117,6 @@ int main(int argc, char *argv[]) {
     /* =========================================================================
      * Deallocate the remaining heap objects.
      */
-    Prog_print(pr->prog, 0);
     free(res);
     ParseResult_free(pr);
     IntRefVector_free_elems(prog_args);

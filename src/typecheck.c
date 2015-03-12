@@ -145,10 +145,14 @@ void TypeCheckResult_free(TypeCheckResult *result) {
  */
 
 TypeCheckResult *check_Prog(Prog *prog, TypeVector *symbol_table) {
+    if(!prog) { NOT_IMPLEMENTED; }
+    if(!symbol_table) { NOT_IMPLEMENTED; }
     NOT_IMPLEMENTED;
 }
 
 TypeCheckResult *check_Func(Func *func, TypeVector *symbol_table) {
+    if(!func) { NOT_IMPLEMENTED; }
+    if(!symbol_table) { NOT_IMPLEMENTED; }
     NOT_IMPLEMENTED;
 }
 

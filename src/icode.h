@@ -2,8 +2,8 @@
 #include "util.h"
 #endif // util
 
-#ifndef bytecodegen
-#define bytecodegen
+#ifndef icode
+#define icode
 
 /*
  * Register names
@@ -26,7 +26,7 @@ typedef enum
     , SUB
     , LOADIMM
     , JUMP
-    , JUMPIF0
+    , JUMPCOND
     , JUMPLINK
     , LABEL
     , HALT
@@ -45,4 +45,4 @@ void Operation_free(Operation *op);
 
 FORWARD_DECLARE_VECTORABLE(Operation)
 
-#endif // bytecodegen
+#endif // icode

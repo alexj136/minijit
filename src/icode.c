@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "util.h"
-#include "bytecodegen.h"
+#include "icode.h"
 
 /*
  * Operation functions
