@@ -88,7 +88,12 @@ OperationVector *icodegen_Comm(Comm *comm, int *next_label) {
         INSERT_COMM_CODE(   Comp_snd(comm)                              );
     }
     else if(Comm_isReturn(comm)) {
-        NOT_IMPLEMENTED;
+
+        // Evaluate the expression
+        INSERT_EXPR_CODE(   Assign_expr(comm)                           );
+
+        // Return to caller
+        INSERT_OPERATION(   JUMP    , RETURN_ADDRESS    , 0             );
     }
     else {
         ERROR("Comm type not recognised.");
@@ -102,6 +107,8 @@ OperationVector *icodegen_Expr(Expr *expr, int *next_label) {
     BEGIN_CODE_GENERATION;
 
     if(Expr_isInt(expr)) {
+
+        // Just load the literal value into the accumulator
         INSERT_OPERATION(   LOADIMM , Int_value(expr)   , ACCUMULATOR   );
     }
     else if(Expr_isAdd(expr)) {
@@ -147,14 +154,53 @@ OperationVector *icodegen_Expr(Expr *expr, int *next_label) {
         INSERT_OPERATION(   SUB     , ACCUMULATOR       , TEMPORARY     );
     }
     else if(Expr_isCall(expr)) {
-        //INSERT_OPERATION(  STORE   , , );
 
+        // For each argument expression, evaluate and push the result on the
+        // stack
         int idx;
         for(idx = 0; idx < Call_num_args(expr); idx++) {
 
+            // Evaluate the idxth argument expression
+            INSERT_EXPR_CODE(   Call_arg(expr, idx)                         );
+
+            // Push the result on the stack
+            INSERT_OPERATION(   STORE   , ACCUMULATOR       , STACK_POINTER );
+            INSERT_OPERATION(   LOADIMM , 1                 , ACCUMULATOR   );
+            INSERT_OPERATION(   ADD     , STACK_POINTER     , ACCUMULATOR   );
         }
+
+        // Add zeros to the stack for the non-argument variables in the callee
+
+        // Push the current frame pointer on the stack
+        INSERT_OPERATION(   STORE   , FRAME_POINTER     , STACK_POINTER );
+        INSERT_OPERATION(   LOADIMM , 1                 , ACCUMULATOR   );
+        INSERT_OPERATION(   ADD     , STACK_POINTER     , ACCUMULATOR   );
+
+        // Push the current return address on the stack
+        INSERT_OPERATION(   STORE   , RETURN_ADDRESS    , STACK_POINTER );
+        INSERT_OPERATION(   LOADIMM , 1                 , ACCUMULATOR   );
+        INSERT_OPERATION(   ADD     , STACK_POINTER     , ACCUMULATOR   );
+
+        // Set the frame pointer for the callee
+        INSERT_OPERATION(           ,                   ,               );
+
+        // Jump to the function
+        INSERT_OPERATION(   JUMP    ,                   , 0             );
+
+        // Restore the return address
+        INSERT_OPERATION(           ,                   ,               );
+        INSERT_OPERATION(           ,                   ,               );
+        INSERT_OPERATION(           ,                   ,               );
+
+        // Restore the frame pointer
+        INSERT_OPERATION(           ,                   ,               );
+        INSERT_OPERATION(           ,                   ,               );
+        INSERT_OPERATION(           ,                   ,               );
+
+        // Pop the arguments and variables off the stack
     }
     else if(Expr_isVar(expr)) {
+
         // Calculate the address from which to load
         INSERT_OPERATION(   LOADIMM , Var_name(expr)    , TEMPORARY     );
         INSERT_OPERATION(   ADD     , TEMPORARY         , FRAME_POINTER );
