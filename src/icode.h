@@ -9,13 +9,13 @@
  * Register names
  */
 
-#define ACCUMULATOR     (-6)
-#define TEMPORARY       (-5)
 #define STACK_POINTER   (-4)
 #define FRAME_POINTER   (-3)
 #define RETURN_ADDRESS  (-2)
 #define PROGRAM_COUNTER (-1)
 #define REGISTER(num)   (num)
+#define ACCUMULATOR     (0)
+#define TEMPORARY       (1)
 
 /*
  * Operation structs - intermediate level representation
