@@ -7,39 +7,14 @@
  * Programs
  */
 
-Prog *Prog_init(FuncVector *funcs, charVector *global_name_map) {
+Prog *Prog_init(FuncVector *funcs, IntRefVector *func_name_map,
+        charVector *global_name_map) {
+
     Prog *prog            = challoc(sizeof(Prog));
+    prog->func_name_map   = func_name_map;
     prog->global_name_map = global_name_map;
     prog->funcs           = funcs;
     return prog;
-}
-
-/*
- * Retreive a function from a program based on the function's name. Returns null
- * if there is no function by that name.
- */
-Func *Prog_lookup_Func(Prog *prog, int name) {
-
-    int  idx   = 0;
-    bool found = false;
-
-    while((!found) && idx < Prog_num_funcs(prog)) {
-
-        if(name == Func_name(Prog_func(prog, idx))) {
-            found = true;
-        }
-        else {
-            idx++;
-        }
-
-    }
-
-    if(found) {
-        return Prog_func(prog, idx);
-    }
-    else {
-        return NULL;
-    }
 }
 
 /*
@@ -61,6 +36,7 @@ void Prog_print(Prog *prog, int indent) {
 
 void Prog_free(Prog *prog) {
     FuncVector_free_elems(prog->funcs);
+    IntRefVector_free_elems(prog->func_name_map);
     charVector_free_elems(prog->global_name_map);
     free(prog);
 }
@@ -128,12 +104,12 @@ void Func_free(Func *func) {
 Comm *Comm_init(CommType type, Expr *expr, Comm *comm1, Comm *comm2, int name,
         int src_line_no, int src_char_no) {
 
-    Comm *new = challoc(sizeof(Comm));
-    new->type = type;
-    new->expr = expr;
-    new->comm1 = comm1;
-    new->comm2 = comm2;
-    new->name = name;
+    Comm *new        = challoc(sizeof(Comm));
+    new->type        = type;
+    new->expr        = expr;
+    new->comm1       = comm1;
+    new->comm2       = comm2;
+    new->name        = name;
     new->src_line_no = src_line_no;
     new->src_char_no = src_char_no;
     return new;
@@ -240,12 +216,12 @@ DEFINE_VECTORABLE(Expr)
 Expr *Expr_init(ExprType type, int num, Expr *expr1, Expr *expr2,
         ExprVector *args, int src_line_no, int src_char_no) {
 
-    Expr *expr = challoc(sizeof(Expr));
-    expr->type = type;
-    expr->num = num;
-    expr->expr1 = expr1;
-    expr->expr2 = expr2;
-    expr->args = args;
+    Expr *expr        = challoc(sizeof(Expr));
+    expr->type        = type;
+    expr->num         = num;
+    expr->expr1       = expr1;
+    expr->expr2       = expr2;
+    expr->args        = args;
     expr->src_line_no = src_line_no;
     expr->src_char_no = src_char_no;
     return expr;

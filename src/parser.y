@@ -367,8 +367,10 @@ ParseResult *parse(LexerResult *lexer_result) {
         FuncVector_free_elems(result);
     }
     else {
+        IntRefVector *func_name_map = IntRefVector_init();
+        complete_func_name_map_FuncVector(func_name_map, result);
 
-        to_return = ParseSuccess_init(Prog_init(result,
+        to_return = ParseSuccess_init(Prog_init(result, func_name_map,
                 LexerResult_name_map(lexer_result)));
 
         // Free lexer_result, preserving name_map
@@ -419,10 +421,39 @@ int yylex() {
  * error to the list of errors.
  */
 void yyerror(const char *s) {
+    if(s) { /*Supress unused parameter warning. */ }
     ParseErrorVector_append(errors,
             ParseError_init(chstrdup(Token_str(yylval.token)),
             Token_line_no(yylval.token), Token_char_no(yylval.token)));
     return;
+}
+
+/*
+ * Name mapping functions
+ */
+
+/*
+ * Takes a name map and a name. If the name is not mapped to by the given name
+ * map, first add it to the map, and then return the index of its entry for
+ * insertion into an AST. If it is already in the map, just return its index.
+ */
+int lease_name(IntRefVector *name_map, int name) {
+    int idx = 0;
+    while(idx < IntRefVector_size(name_map)) {
+        if(IntRef_value(IntRefVector_get(name_map, idx)) == name) {
+            // If we get here, we've found that the global_name was already
+            // mapped to in the name map, so return the index that maps to it.
+            return idx;
+        }
+        else {
+            idx++;
+        }
+    }
+
+    // If we get here, the global_name was not in the map, so add it to the map
+    // before returning its index.
+    IntRefVector_append(name_map, IntRef_init(name));
+    return idx;
 }
 
 /*
@@ -442,7 +473,7 @@ void complete_local_name_map_Comm(IntRefVector *local_name_map, Comm *comm) {
         complete_local_name_map_Comm(local_name_map, While_body(comm));
     }
     else if(Comm_isAssign(comm)) {
-        Assign_name(comm) = lease_local_name(local_name_map, Assign_name(comm));
+        Assign_name(comm) = lease_name(local_name_map, Assign_name(comm));
         complete_local_name_map_Expr(local_name_map, Assign_expr(comm));
     }
     else if(Comm_isComp(comm)) {
@@ -483,7 +514,7 @@ void complete_local_name_map_Expr(IntRefVector *local_name_map, Expr *expr) {
         }
     }
     else if(Expr_isVar(expr)) {
-        Var_name(expr) = lease_local_name(local_name_map, Var_name(expr));
+        Var_name(expr) = lease_name(local_name_map, Var_name(expr));
     }
     else {
         ERROR("Expr type not recognised.");
@@ -491,26 +522,63 @@ void complete_local_name_map_Expr(IntRefVector *local_name_map, Expr *expr) {
 }
 
 /*
- * Takes a local name map and a global name. If the global name is not mapped to
- * by the given name map, first add it to the map, and then return the index of
- * its entry for insertion into an AST. If it is already in the map, just return
- * its index.
+ * Complete a function name map for the given FuncVector, which is assumed to be
+ * the entire program. Link the function names in the bodies of the function to
+ * the corresponding function name map values, so that function calls can
+ * directly index into the Prog's FuncVector to access Func objects.
  */
-int lease_local_name(IntRefVector *local_name_map, int global_name) {
-    int idx = 0;
-    while(idx < IntRefVector_size(local_name_map)) {
-        if(IntRef_value(IntRefVector_get(local_name_map, idx)) == global_name) {
-            // If we get here, we've found that the global_name was already
-            // mapped to in the name map, so return the index that maps to it.
-            return idx;
-        }
-        else {
-            idx++;
+void complete_func_name_map_FuncVector(IntRefVector *func_name_map,
+        FuncVector *funcs) {
+
+    // We must make sure that the function names are first seen in sequence, to
+    // ensure that function calls index into the correct function once linked.
+    // This is why we first iterate over the functions and lease names for the
+    // functions without delving into the bodies. Once the names are leased in
+    // order of appearence, we can safely lease names in the bodies.
+    int idx;
+    for(idx = 0; idx < FuncVector_size(funcs); idx++) {
+        Func *func = FuncVector_get(funcs, idx);
+        Func_name(func) = lease_name(func_name_map, Func_name(func));
+    }
+    for(idx = 0; idx < FuncVector_size(funcs); idx++) {
+        complete_func_name_map_Comm(func_name_map,
+                Func_body(FuncVector_get(funcs, idx)));
+    }
+}
+
+void complete_func_name_map_Comm(IntRefVector *func_name_map, Comm *comm) {
+    if(comm->expr) {
+        complete_func_name_map_Expr(func_name_map, comm->expr);
+    }
+    if(comm->comm1) {
+        complete_func_name_map_Comm(func_name_map, comm->comm1);
+    }
+    if(comm->comm2) {
+        complete_func_name_map_Comm(func_name_map, comm->comm2);
+    }
+}
+
+void complete_func_name_map_Expr(IntRefVector *func_name_map, Expr *expr) {
+    if(Expr_isInt(expr)) { /* Nothing to do */ }
+    else if(Expr_isAdd(expr)) {
+        complete_func_name_map_Expr(func_name_map, Add_lhs(expr));
+        complete_func_name_map_Expr(func_name_map, Add_rhs(expr));
+    }
+    else if(Expr_isSub(expr)) {
+        complete_func_name_map_Expr(func_name_map, Sub_lhs(expr));
+        complete_func_name_map_Expr(func_name_map, Sub_rhs(expr));
+    }
+    else if(Expr_isCall(expr)) {
+        Call_name(expr) = lease_name(func_name_map, Call_name(expr));
+        int idx;
+        for(idx = 0; idx < Call_num_args(expr); idx++) {
+            complete_func_name_map_Expr(func_name_map, Call_arg(expr, idx));
         }
     }
-
-    // If we get here, the global_name was not in the map, so add it to the map
-    // before returning its index.
-    IntRefVector_append(local_name_map, IntRef_init(global_name));
-    return idx;
+    else if(Expr_isVar(expr)) {
+        /* Nothing to do - variable names are local. */
+    }
+    else {
+        ERROR("Expr type not recognised.");
+    }
 }

@@ -186,7 +186,7 @@ InterpretResult *interpret_Expr(Prog *prog, Expr *expr, int *store) {
     }
     else if(Expr_isCall(expr)) {
 
-        Func *callee = Prog_lookup_Func(prog, Call_name(expr));
+        Func *callee = Prog_func(prog, Call_name(expr));
 
         if(callee == NULL) {
             return InterpretFailFunctionNotFound_init(Expr_src_line_no(expr),

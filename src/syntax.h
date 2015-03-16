@@ -17,6 +17,7 @@
 typedef struct Prog Prog;
 struct Prog {
     struct FuncVector *funcs;
+    struct IntRefVector *func_name_map;
     struct charVector *global_name_map;
 };
 
@@ -124,8 +125,8 @@ FORWARD_DECLARE_VECTORABLE(Expr);
  * Syntax functions
  */
 
-Prog *Prog_init(FuncVector *funcs, charVector *global_name_map);
-Func *Prog_lookup_Func(Prog *prog, int name);
+Prog *Prog_init(FuncVector *funcs, IntRefVector *func_name_map,
+        charVector *global_name_map);
 bool Prog_eq(Prog *p, Prog *q);
 void Prog_print(Prog *prog, int indent);
 void Prog_free(Prog *prog);

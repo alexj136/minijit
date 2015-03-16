@@ -4,15 +4,18 @@
 MINUNIT_TESTS
 
     TEST("Test that two empty programs are equal")
-        Prog *p = Prog_init(FuncVector_init(), charVector_init());
-        Prog *q = Prog_init(FuncVector_init(), charVector_init());
+        Prog *p = Prog_init(FuncVector_init(), IntRefVector_init(),
+                charVector_init());
+        Prog *q = Prog_init(FuncVector_init(), IntRefVector_init(),
+                charVector_init());
         ASSERT(Prog_eq(p, q), "empty programs");
         Prog_free(p);
         Prog_free(q);
     END
 
     TEST("Test that an empty program is equal to itself")
-        Prog *p = Prog_init(FuncVector_init(), charVector_init());
+        Prog *p = Prog_init(FuncVector_init(), IntRefVector_init(),
+                charVector_init());
         ASSERT(Prog_eq(p, p), "empty program with itself");
         Prog_free(p);
     END
@@ -30,8 +33,8 @@ MINUNIT_TESTS
                 Return_init(Int_init(9)));
         FuncVector *fvq = FuncVector_init();
         FuncVector_append(fvq, g);
-        Prog *p = Prog_init(fvp, charVector_init());
-        Prog *q = Prog_init(fvq, charVector_init());
+        Prog *p = Prog_init(fvp, IntRefVector_init(), charVector_init());
+        Prog *q = Prog_init(fvq, IntRefVector_init(), charVector_init());
         ASSERT(!Prog_eq(p, q), "Non-equal programs");
         Prog_free(p);
         Prog_free(q);
@@ -50,8 +53,8 @@ MINUNIT_TESTS
         Func *g = Func_init(0, 0, IntRefVector_init(), e2);
         FuncVector *fvq = FuncVector_init();
         FuncVector_append(fvq, g);
-        Prog *p = Prog_init(fvp, charVector_init());
-        Prog *q = Prog_init(fvq, charVector_init());
+        Prog *p = Prog_init(fvp, IntRefVector_init(), charVector_init());
+        Prog *q = Prog_init(fvq, IntRefVector_init(), charVector_init());
         ASSERT(Prog_eq(p, q), "Equal programs");
         Prog_free(p);
         Prog_free(q);

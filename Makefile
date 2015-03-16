@@ -2,7 +2,7 @@ GCC     = gcc -Wall -Wextra -g -rdynamic
 SRCDIR  = ./src
 BINDIR  = ./bin
 TESTDIR = ./test
-MODULES = util syntax lexer parser typecheck interpreter icode icodegen
+MODULES = util syntax lexer parser typecheck interpreter icode
 MAIN    = ./main
 
 all: $(MAIN)
