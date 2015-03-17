@@ -23,8 +23,8 @@
 
 typedef enum
     { MOVE      // Move the contents of register arg1 to register arg2
-    , LOAD      // Load the value at address arg1 into register arg2
-    , STORE     // Store the value in register arg1 at address arg2
+    , LOAD      // Load the value at address in register arg1 into register arg2
+    , STORE     // Store the value in register arg1 at address in register arg2
     , ADD       // Add the contents of register arg1 to the contents of register
                 // arg2, leaving the result in register arg1
     , SUB       // Subtract the contents of register arg2 from the contents of
@@ -49,7 +49,11 @@ struct Operation {
 Operation *Operation_init(Opcode opc, int arg1, int arg2);
 bool Operation_eq(Operation *op1, Operation *op2);
 void Operation_free(Operation *op);
+void Operation_print(Operation *op);
+void reg_print(int reg);
 
 FORWARD_DECLARE_VECTORABLE(Operation)
+
+void OperationVector_print(OperationVector *ops);
 
 #endif // icode
