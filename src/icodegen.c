@@ -20,7 +20,8 @@
 #define INSERT_EXPR_CODE(___expr) ___INSERT_CODE(Expr, ___expr)
 #define ___INSERT_CODE(___ty, ___ast) \
     do { \
-        OperationVector *___code = icodegen_##___ty(___ast, next_label); \
+        OperationVector *___code = \
+                icodegen_##___ty(prog, ___ast, next_label, func_labels); \
         OperationVector_append_all(ops, ___code); \
         OperationVector_free(___code); \
     } while(0)
@@ -38,13 +39,24 @@ OperationVector *icodegen_Prog(Prog *prog, int *next_label) {
     NOT_IMPLEMENTED;
 }
 
-OperationVector *icodegen_Func(Func *func, int *next_label) {
-    if(!func) { NOT_IMPLEMENTED; }
-    if(!next_label) { NOT_IMPLEMENTED; }
-    NOT_IMPLEMENTED;
+OperationVector *icodegen_Func(Prog *prog, Func *func, int *next_label,
+        int *func_labels) {
+
+    // Determine the label to use as the entry label for this function
+    int func_label = func_labels[Func_name(func)];
+
+    BEGIN_CODE_GENERATION;
+
+    // Since the caller does all the work of a function call, all we include is
+    // an entry label and code for the function body.
+    INSERT_OPERATION(   LABEL   , func_label        , 0             );
+    INSERT_COMM_CODE(   Func_body(func)                             );
+
+    RETURN_GENERATED_CODE;
 }
 
-OperationVector *icodegen_Comm(Comm *comm, int *next_label) {
+OperationVector *icodegen_Comm(Prog *prog, Comm *comm, int *next_label,
+        int *func_labels) {
 
     BEGIN_CODE_GENERATION;
 
@@ -75,8 +87,8 @@ OperationVector *icodegen_Comm(Comm *comm, int *next_label) {
         INSERT_EXPR_CODE(   Assign_expr(comm)                           );
 
         // Calculate the address to store the value
-        INSERT_OPERATION(   LOADIMM , Assign_name(comm) , TEMPORARY     );
-        INSERT_OPERATION(   ADD     , TEMPORARY         , FRAME_POINTER );
+        INSERT_OPERATION(   MOVE    , FRAME_POINTER     , TEMPORARY     );
+        INSERT_OPERATION(   SUB     , TEMPORARY         , Assign_name(comm));
 
         // Store the value at the calculated address
         INSERT_OPERATION(   STORE   , ACCUMULATOR       , TEMPORARY     );
@@ -102,7 +114,8 @@ OperationVector *icodegen_Comm(Comm *comm, int *next_label) {
     RETURN_GENERATED_CODE;
 }
 
-OperationVector *icodegen_Expr(Expr *expr, int *next_label) {
+OperationVector *icodegen_Expr(Prog *prog, Expr *expr, int *next_label,
+        int *func_labels) {
 
     BEGIN_CODE_GENERATION;
 
@@ -155,21 +168,11 @@ OperationVector *icodegen_Expr(Expr *expr, int *next_label) {
     }
     else if(Expr_isCall(expr)) {
 
-        // For each argument expression, evaluate and push the result on the
-        // stack
+        // Determine the label number to jump to in the call
+        int callee_address = func_labels[Call_name(expr)];
+        int num_args       = Call_num_args(expr);
+        int num_vars       = Func_num_vars(Prog_func(prog, Call_name(expr)));
         int idx;
-        for(idx = 0; idx < Call_num_args(expr); idx++) {
-
-            // Evaluate the idxth argument expression
-            INSERT_EXPR_CODE(   Call_arg(expr, idx)                         );
-
-            // Push the result on the stack
-            INSERT_OPERATION(   STORE   , ACCUMULATOR       , STACK_POINTER );
-            INSERT_OPERATION(   LOADIMM , 1                 , ACCUMULATOR   );
-            INSERT_OPERATION(   ADD     , STACK_POINTER     , ACCUMULATOR   );
-        }
-
-        // Add zeros to the stack for the non-argument variables in the callee
 
         // Push the current frame pointer on the stack
         INSERT_OPERATION(   STORE   , FRAME_POINTER     , STACK_POINTER );
@@ -181,29 +184,53 @@ OperationVector *icodegen_Expr(Expr *expr, int *next_label) {
         INSERT_OPERATION(   LOADIMM , 1                 , ACCUMULATOR   );
         INSERT_OPERATION(   ADD     , STACK_POINTER     , ACCUMULATOR   );
 
+        // Add zeros to the stack for the non-argument variables in the callee
+        for(idx = num_vars - 1; idx >= num_args; idx--) {
+
+            INSERT_OPERATION(   LOADIMM , 0                 , ACCUMULATOR   );
+            INSERT_OPERATION(   STORE   , ACCUMULATOR       , STACK_POINTER );
+            INSERT_OPERATION(   LOADIMM , 1                 , ACCUMULATOR   );
+            INSERT_OPERATION(   ADD     , STACK_POINTER     , ACCUMULATOR   );
+        }
+
+        // For each argument expression, evaluate and push the result on the
+        // stack
+        for(idx = num_args - 1; idx >= 0; idx--) {
+
+            // Evaluate the idxth argument expression
+            INSERT_EXPR_CODE(   Call_arg(expr, idx)                         );
+
+            // Push the result on the stack
+            INSERT_OPERATION(   STORE   , ACCUMULATOR       , STACK_POINTER );
+            INSERT_OPERATION(   LOADIMM , 1                 , ACCUMULATOR   );
+            INSERT_OPERATION(   ADD     , STACK_POINTER     , ACCUMULATOR   );
+        }
+
         // Set the frame pointer for the callee
-        INSERT_OPERATION(           ,                   ,               );
+        INSERT_OPERATION(   MOVE    , STACK_POINTER     , FRAME_POINTER );
 
         // Jump to the function
-        INSERT_OPERATION(   JUMP    ,                   , 0             );
-
-        // Restore the return address
-        INSERT_OPERATION(           ,                   ,               );
-        INSERT_OPERATION(           ,                   ,               );
-        INSERT_OPERATION(           ,                   ,               );
-
-        // Restore the frame pointer
-        INSERT_OPERATION(           ,                   ,               );
-        INSERT_OPERATION(           ,                   ,               );
-        INSERT_OPERATION(           ,                   ,               );
+        INSERT_OPERATION(   JUMPLINK, callee_address    , 0             );
 
         // Pop the arguments and variables off the stack
+        INSERT_OPERATION(   LOADIMM , num_vars          , TEMPORARY     );
+        INSERT_OPERATION(   SUB     , STACK_POINTER     , TEMPORARY     );
+
+        // Restore the return address
+        INSERT_OPERATION(   LOADIMM , 1                 , TEMPORARY     );
+        INSERT_OPERATION(   SUB     , STACK_POINTER     , TEMPORARY     );
+        INSERT_OPERATION(   LOAD    , STACK_POINTER     , RETURN_ADDRESS);
+
+        // Restore the frame pointer
+        INSERT_OPERATION(   LOADIMM , 1                 , TEMPORARY     );
+        INSERT_OPERATION(   SUB     , STACK_POINTER     , TEMPORARY     );
+        INSERT_OPERATION(   LOAD    , STACK_POINTER     , FRAME_POINTER );
     }
     else if(Expr_isVar(expr)) {
 
         // Calculate the address from which to load
-        INSERT_OPERATION(   LOADIMM , Var_name(expr)    , TEMPORARY     );
-        INSERT_OPERATION(   ADD     , TEMPORARY         , FRAME_POINTER );
+        INSERT_OPERATION(   MOVE    , FRAME_POINTER     , TEMPORARY     );
+        INSERT_OPERATION(   SUB     , TEMPORARY         , Var_name(expr));
 
         // Perform the load operation with the calculated address
         INSERT_OPERATION(   LOAD    , TEMPORARY         , ACCUMULATOR   );
