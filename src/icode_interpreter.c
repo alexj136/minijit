@@ -6,7 +6,7 @@
 #include "icode_interpreter.h"
 
 ICodeInterpreterState *ICodeInterpreterState_init(ICodeOperationVector *code,
-        int stack_size, int next_reg) {
+        int stack_size, int next_reg, int next_label) {
 
     ICodeInterpreterState *state = challoc(sizeof(ICodeInterpreterState));
     state->code       = code;
@@ -14,7 +14,41 @@ ICodeInterpreterState *ICodeInterpreterState_init(ICodeOperationVector *code,
     state->stack      = challoc(sizeof(int) * stack_size);
     state->next_reg   = next_reg;
     state->registers  = challoc(sizeof(int) * next_reg);
+    state->next_label = next_label;
+    state->labels     = challoc(sizeof(int) * next_label);
+
+    // Populate the labels array. The labels array maps label names to indexes
+    // into the ICodeOperationVector.
+    int idx;
+    for(idx = 0; idx < ICodeOperationVector_size(code); idx++) {
+        ICodeOperation *next = ICodeOperationVector_get(code, idx);
+        if(next->opc == LABEL) {
+            (state->labels)[next->arg1] = idx;
+        }
+    }
+
     return state;
+}
+
+void prepare_stack(ICodeInterpreterState *state, Prog *prog,
+        IntRefVector *args) {
+
+    int num_args     = IntRefVector_size(args);
+    int num_vars     = Func_num_vars(Prog_func(prog, 0));
+    int non_arg_vars = num_vars - num_args;
+
+    int stack_idx    = num_vars - 1;
+    int args_idx     = 0;
+    while(stack_idx >= non_arg_vars) {
+        (state->stack)[stack_idx] =
+                IntRef_value(IntRefVector_get(args, args_idx));
+        stack_idx--;
+        args_idx++;
+    }
+    while(stack_idx >= 0) {
+        (state->stack)[stack_idx] = 0;
+        stack_idx--;
+    }
 }
 
 void ICodeInterpreterState_step(ICodeInterpreterState *state) {

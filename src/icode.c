@@ -25,57 +25,72 @@ bool ICodeOperation_eq(ICodeOperation *op1, ICodeOperation *op2) {
 void ICodeOperation_free(ICodeOperation *op) { free(op); }
 
 void ICodeOperation_print(ICodeOperation *op) {
-    switch(op->opc) {
-        case MOVE     : printf("MOVE ");
-                        reg_print(op->arg1);
-                        printf(" ");
-                        reg_print(op->arg2);
-                        printf("\n");
 
-        case LOAD     : printf("LOAD ");
-                        reg_print(op->arg1);
-                        printf(" ");
-                        reg_print(op->arg2);
-                        printf("\n");
-
-        case STORE    : printf("STORE ");
-                        reg_print(op->arg1);
-                        printf(" ");
-                        reg_print(op->arg2);
-                        printf("\n");
-
-        case ADD      : printf("ADD ");
-                        reg_print(op->arg1);
-                        printf(" ");
-                        reg_print(op->arg2);
-                        printf("\n");
-
-        case SUB      : printf("SUB ");
-                        reg_print(op->arg1);
-                        printf(" ");
-                        reg_print(op->arg2);
-                        printf("\n");
-
-        case LOADIMM  : printf("LOADIMM %d\n", op->arg1);
-
-        case JUMP     : printf("JUMP L%d\n", op->arg1);
-
-        case JUMPCOND : printf("JUMPCOND L%d ", op->arg1);
-                        reg_print(op->arg2);
-                        printf("\n");
-
-        case JUMPLINK : printf("JUMPLINK L%d\n", op->arg1);
-
-        case LABEL    : printf("--- L%d ---", op->arg1);
-
-        case HALT     : printf("HALT\n");
-
-        default       : ERROR("Invalid Opcode");
+    if(op->opc == MOVE) {
+        printf("MOVE ");
+        reg_print(op->arg1);
+        printf(" ");
+        reg_print(op->arg2);
+        printf("\n");
+    }
+    else if(op->opc == LOAD) {
+        printf("LOAD ");
+        reg_print(op->arg1);
+        printf(" ");
+        reg_print(op->arg2);
+        printf("\n");
+    }
+    else if(op->opc == STORE) {
+        printf("STORE ");
+        reg_print(op->arg1);
+        printf(" ");
+        reg_print(op->arg2);
+        printf("\n");
+    }
+    else if (op->opc == ADD) {
+        printf("ADD ");
+        reg_print(op->arg1);
+        printf(" ");
+        reg_print(op->arg2);
+        printf("\n");
+    }
+    else if (op->opc == SUB) {
+        printf("SUB ");
+        reg_print(op->arg1);
+        printf(" ");
+        reg_print(op->arg2);
+        printf("\n");
+    }
+    else if (op->opc == LOADIMM) {
+        printf("LOADIMM %d ", op->arg1);
+        reg_print(op->arg2);
+        printf("\n");
+    }
+    else if (op->opc == JUMP) {
+        printf("JUMP L%d\n", op->arg1);
+    }
+    else if (op->opc == JUMPCOND) {
+        printf("JUMPCOND L%d ", op->arg1);
+        reg_print(op->arg2);
+        printf("\n");
+    }
+    else if (op->opc == JUMPLINK) {
+        printf("JUMPLINK L%d\n", op->arg1);
+    }
+    else if (op->opc == LABEL) {
+        printf("--- L%d ---\n", op->arg1);
+    }
+    else if (op->opc == HALT) {
+        printf("HALT\n");
+    }
+    else {
+        ERROR("Invalid Opcode");
     }
 }
 
 void reg_print(int reg) {
     if(reg < 0) {
+        printf("Reg %d invalid.\n", reg);
         ERROR("Invalid Register");
     }
     else if(reg == STACK_POINTER) {

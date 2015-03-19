@@ -55,11 +55,12 @@ ICodeOperationVector *icodegen_Prog(Prog *prog, int *next_label) {
     // Make a call to main
     INSERT_OPERATION(JUMPLINK, func_labels[0], 0);
 
+    // Halt when the call returns
+    INSERT_OPERATION(HALT, 0, 0);
+
     for(idx = 0; idx < Prog_num_funcs(prog); idx++) {
         INSERT_FUNC_CODE(Prog_func(prog, idx));
     }
-
-    INSERT_OPERATION(HALT, 0, 0);
 
     RETURN_GENERATED_CODE;
 }

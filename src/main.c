@@ -6,6 +6,9 @@
 #include "lexer.h"
 #include "parser.h"
 #include "interpreter.h"
+#include "icode.h"
+#include "icodegen.h"
+#include "icode_interpreter.h"
 
 /*
  * Proceeds through the interpreter pipeline, checking the output of each stage
@@ -113,6 +116,18 @@ int main(int argc, char *argv[]) {
         IntRefVector_free_elems(prog_args);
         ERROR("InterpretResult type not recognised");
     }
+
+    /* =========================================================================
+     * Generate, print and run icode for the given program, with the given args.
+     */
+    int next_label = 0;
+    ICodeOperationVector *icodevec = icodegen_Prog(pr->prog, &next_label);
+    ICodeOperationVector_print(icodevec);
+    ICodeInterpreterState *state = ICodeInterpreterState_init(
+            icodevec, 10000, TEMPORARY + 1, next_label);
+    prepare_stack(state, pr->prog, prog_args);
+    ICodeInterpreterState_run(state);
+    printf("RESULT = %d\n", (state->registers)[ACCUMULATOR]);
 
     /* =========================================================================
      * Deallocate the remaining heap objects.
