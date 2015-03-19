@@ -33,10 +33,34 @@
  * Code generation functions - (accumulator strategy)
  */
 
+/*
+ * The generated code expects the stack to be preconfigured as would be required
+ * by the main function. The arguments should be on top of the stack, with
+ * zeroed spaces prepared for other variables underneath them.
+ */
 OperationVector *icodegen_Prog(Prog *prog, int *next_label) {
-    if(!prog) { NOT_IMPLEMENTED; }
-    if(!next_label) { NOT_IMPLEMENTED; }
-    NOT_IMPLEMENTED;
+
+    // Allocate space for the map from function names to label names
+    int *func_labels = challoc(sizeof(int) * Prog_num_funcs(prog));
+
+    // Populate the map from function names to label names
+    int idx;
+    for(idx = 0; idx < Prog_num_funcs(prog); idx++) {
+        func_labels[idx] = (*next_label)++;
+    }
+
+    BEGIN_CODE_GENERATION;
+
+    // Make a call to main
+    INSERT_OPERATION(JUMPLINK, func_labels[0], 0);
+
+    for(idx = 0; idx < Prog_num_funcs(prog); idx++) {
+        INSERT_FUNC_CODE(Prog_func(prog, idx));
+    }
+
+    INSERT_OPERATION(HALT, 0, 0);
+
+    RETURN_GENERATED_CODE;
 }
 
 OperationVector *icodegen_Func(Prog *prog, Func *func, int *next_label,
@@ -49,8 +73,8 @@ OperationVector *icodegen_Func(Prog *prog, Func *func, int *next_label,
 
     // Since the caller does all the work of a function call, all we include is
     // an entry label and code for the function body.
-    INSERT_OPERATION(   LABEL   , func_label        , 0             );
-    INSERT_COMM_CODE(   Func_body(func)                             );
+    INSERT_OPERATION(LABEL, func_label, 0);
+    INSERT_COMM_CODE(Func_body(func));
 
     RETURN_GENERATED_CODE;
 }
