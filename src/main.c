@@ -125,8 +125,12 @@ int main(int argc, char *argv[]) {
     ICodeOperationVector_print(icodevec);
     ICodeInterpreterState *state = ICodeInterpreterState_init(
             icodevec, 10000, TEMPORARY + 1, next_label);
-    prepare_stack(state, pr->prog, prog_args);
-    ICodeInterpreterState_run(state);
+    prepare_state(state, pr->prog, prog_args);
+    int steps = 0;
+    while(steps < 100) {
+        ICodeInterpreterState_step(state);
+        steps++;
+    }
     printf("RESULT = %d\n", (state->registers)[ACCUMULATOR]);
 
     /* =========================================================================

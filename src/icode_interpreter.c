@@ -30,7 +30,7 @@ ICodeInterpreterState *ICodeInterpreterState_init(ICodeOperationVector *code,
     return state;
 }
 
-void prepare_stack(ICodeInterpreterState *state, Prog *prog,
+void prepare_state(ICodeInterpreterState *state, Prog *prog,
         IntRefVector *args) {
 
     int num_args     = IntRefVector_size(args);
@@ -49,6 +49,11 @@ void prepare_stack(ICodeInterpreterState *state, Prog *prog,
         (state->stack)[stack_idx] = 0;
         stack_idx--;
     }
+
+    (state->registers)[STACK_POINTER]   = num_vars;
+    (state->registers)[FRAME_POINTER]   = 0;
+    (state->registers)[RETURN_ADDRESS]  = 0;
+    (state->registers)[PROGRAM_COUNTER] = 0;
 }
 
 void ICodeInterpreterState_step(ICodeInterpreterState *state) {
@@ -57,6 +62,7 @@ void ICodeInterpreterState_step(ICodeInterpreterState *state) {
 
     ICodeOperation *current =
             ICodeOperationVector_get(state->code, initial_prog_counter_value);
+    printf("RUNNING: "); ICodeOperation_print(current);
 
     Opcode opc = current->opc;
     int arg1   = current->arg1;
@@ -120,9 +126,12 @@ void ICodeInterpreterState_step(ICodeInterpreterState *state) {
     else if(opc == JUMPCOND) {
 
         // Based on the condition, optionally set the program counter at the
-        // target label
+        // target label, or just advance to the next instruction.
         if(arg2 < 1) {
             (state->registers)[PROGRAM_COUNTER] = (state->labels)[arg1];
+        }
+        else {
+            (state->registers)[PROGRAM_COUNTER]++;
         }
     }
     else if(opc == JUMPLINK) {
