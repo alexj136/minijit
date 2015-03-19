@@ -4,27 +4,27 @@
 #include "icode.h"
 
 /*
- * Operation functions
+ * ICodeOperation functions
  */
 
-Operation *Operation_init(Opcode opc, int arg1, int arg2) {
-    Operation *op = challoc(sizeof(Operation));
+ICodeOperation *ICodeOperation_init(Opcode opc, int arg1, int arg2) {
+    ICodeOperation *op = challoc(sizeof(ICodeOperation));
     op->opc       = opc;
     op->arg1      = arg1;
     op->arg2      = arg2;
     return op;
 }
 
-bool Operation_eq(Operation *op1, Operation *op2) {
+bool ICodeOperation_eq(ICodeOperation *op1, ICodeOperation *op2) {
     // Null checks are essentially to supress the unused parameter warning
     if(!op1) { ERROR("Null Operation"); }
     if(!op2) { ERROR("Null Operation"); }
     ERROR("Equality not defined for Operation");
 }
 
-void Operation_free(Operation *op) { free(op); }
+void ICodeOperation_free(ICodeOperation *op) { free(op); }
 
-void Operation_print(Operation *op) {
+void ICodeOperation_print(ICodeOperation *op) {
     switch(op->opc) {
         case MOVE     : printf("MOVE ");
                         reg_print(op->arg1);
@@ -75,21 +75,37 @@ void Operation_print(Operation *op) {
 }
 
 void reg_print(int reg) {
-         if(reg == STACK_POINTER  ) { printf("STACK_POINTER")   ; }
-    else if(reg == FRAME_POINTER  ) { printf("FRAME_POINTER")   ; }
-    else if(reg == RETURN_ADDRESS ) { printf("RETURN_ADDRESS")  ; }
-    else if(reg == PROGRAM_COUNTER) { printf("PROGRAM_COUNTER") ; }
-    else if(reg == ACCUMULATOR    ) { printf("ACCUMULATOR")     ; }
-    else if(reg == TEMPORARY      ) { printf("TEMPORARY")       ; }
-    else if(reg <  -4             ) { ERROR("Invalid Register") ; }
-    else                            { printf("R%d", reg)        ; }
+    if(reg < 0) {
+        ERROR("Invalid Register");
+    }
+    else if(reg == STACK_POINTER) {
+        printf("STACK_POINTER");
+    }
+    else if(reg == FRAME_POINTER) {
+        printf("FRAME_POINTER");
+    }
+    else if(reg == RETURN_ADDRESS) {
+        printf("RETURN_ADDRESS");
+    }
+    else if(reg == PROGRAM_COUNTER) {
+        printf("PROGRAM_COUNTER");
+    }
+    else if(reg == ACCUMULATOR) {
+        printf("ACCUMULATOR");
+    }
+    else if(reg == TEMPORARY) {
+        printf("TEMPORARY");
+    }
+    else {
+        printf("R%d", reg - 6);
+    }
 }
 
-DEFINE_VECTORABLE(Operation)
+DEFINE_VECTORABLE(ICodeOperation)
 
-void OperationVector_print(OperationVector *ops) {
+void ICodeOperationVector_print(ICodeOperationVector *ops) {
     int idx;
-    for(idx = 0; idx < OperationVector_size(ops); idx++) {
-        Operation_print(OperationVector_get(ops, idx));
+    for(idx = 0; idx < ICodeOperationVector_size(ops); idx++) {
+        ICodeOperation_print(ICodeOperationVector_get(ops, idx));
     }
 }

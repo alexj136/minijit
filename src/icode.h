@@ -9,13 +9,13 @@
  * Register names
  */
 
-#define STACK_POINTER   (-4)
-#define FRAME_POINTER   (-3)
-#define RETURN_ADDRESS  (-2)
-#define PROGRAM_COUNTER (-1)
-#define REGISTER(num)   (num)
-#define ACCUMULATOR     (0)
-#define TEMPORARY       (1)
+#define STACK_POINTER   (0)
+#define FRAME_POINTER   (1)
+#define RETURN_ADDRESS  (2)
+#define PROGRAM_COUNTER (3)
+#define ACCUMULATOR     (4)
+#define TEMPORARY       (5)
+#define REGISTER(num)   (num + 6)
 
 /*
  * Operation structs - intermediate level representation
@@ -39,21 +39,21 @@ typedef enum
     , HALT      // Halt execution and return to caller
     } Opcode;
 
-typedef struct Operation Operation;
-struct Operation {
+typedef struct ICodeOperation ICodeOperation;
+struct ICodeOperation {
     Opcode opc;
     int arg1;
     int arg2;
 };
 
-Operation *Operation_init(Opcode opc, int arg1, int arg2);
-bool Operation_eq(Operation *op1, Operation *op2);
-void Operation_free(Operation *op);
-void Operation_print(Operation *op);
+ICodeOperation *ICodeOperation_init(Opcode opc, int arg1, int arg2);
+bool ICodeOperation_eq(ICodeOperation *op1, ICodeOperation *op2);
+void ICodeOperation_free(ICodeOperation *op);
+void ICodeOperation_print(ICodeOperation *op);
 void reg_print(int reg);
 
-FORWARD_DECLARE_VECTORABLE(Operation)
+FORWARD_DECLARE_VECTORABLE(ICodeOperation)
 
-void OperationVector_print(OperationVector *ops);
+void ICodeOperationVector_print(ICodeOperationVector *ops);
 
 #endif // icode

@@ -10,20 +10,21 @@
  */
 
 #define BEGIN_CODE_GENERATION \
-    OperationVector *ops = OperationVector_init()
+    ICodeOperationVector *ops = ICodeOperationVector_init()
 
 #define INSERT_OPERATION(___opc, ___arg1, ___arg2) \
-    OperationVector_append(ops, (Operation_init(___opc, ___arg1, ___arg2)))
+    ICodeOperationVector_append(ops, \
+            (ICodeOperation_init(___opc, ___arg1, ___arg2)))
 
 #define INSERT_FUNC_CODE(___func) ___INSERT_CODE(Func, ___func)
 #define INSERT_COMM_CODE(___comm) ___INSERT_CODE(Comm, ___comm)
 #define INSERT_EXPR_CODE(___expr) ___INSERT_CODE(Expr, ___expr)
 #define ___INSERT_CODE(___ty, ___ast) \
     do { \
-        OperationVector *___code = \
+        ICodeOperationVector *___code = \
                 icodegen_##___ty(prog, ___ast, next_label, func_labels); \
-        OperationVector_append_all(ops, ___code); \
-        OperationVector_free(___code); \
+        ICodeOperationVector_append_all(ops, ___code); \
+        ICodeOperationVector_free(___code); \
     } while(0)
 
 #define RETURN_GENERATED_CODE \
@@ -38,7 +39,7 @@
  * by the main function. The arguments should be on top of the stack, with
  * zeroed spaces prepared for other variables underneath them.
  */
-OperationVector *icodegen_Prog(Prog *prog, int *next_label) {
+ICodeOperationVector *icodegen_Prog(Prog *prog, int *next_label) {
 
     // Allocate space for the map from function names to label names
     int *func_labels = challoc(sizeof(int) * Prog_num_funcs(prog));
@@ -63,7 +64,7 @@ OperationVector *icodegen_Prog(Prog *prog, int *next_label) {
     RETURN_GENERATED_CODE;
 }
 
-OperationVector *icodegen_Func(Prog *prog, Func *func, int *next_label,
+ICodeOperationVector *icodegen_Func(Prog *prog, Func *func, int *next_label,
         int *func_labels) {
 
     // Determine the label to use as the entry label for this function
@@ -79,7 +80,7 @@ OperationVector *icodegen_Func(Prog *prog, Func *func, int *next_label,
     RETURN_GENERATED_CODE;
 }
 
-OperationVector *icodegen_Comm(Prog *prog, Comm *comm, int *next_label,
+ICodeOperationVector *icodegen_Comm(Prog *prog, Comm *comm, int *next_label,
         int *func_labels) {
 
     BEGIN_CODE_GENERATION;
@@ -138,7 +139,7 @@ OperationVector *icodegen_Comm(Prog *prog, Comm *comm, int *next_label,
     RETURN_GENERATED_CODE;
 }
 
-OperationVector *icodegen_Expr(Prog *prog, Expr *expr, int *next_label,
+ICodeOperationVector *icodegen_Expr(Prog *prog, Expr *expr, int *next_label,
         int *func_labels) {
 
     BEGIN_CODE_GENERATION;
