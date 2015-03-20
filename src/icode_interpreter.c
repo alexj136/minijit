@@ -144,6 +144,11 @@ void ICodeInterpreterState_step(ICodeInterpreterState *state) {
         // Set the program counter at the target label
         (state->registers)[PROGRAM_COUNTER] = (state->labels)[arg1];
     }
+    else if(opc == JUMPADDR) {
+
+        // Set the program counter at the address in the register
+        (state->registers)[PROGRAM_COUNTER] = (state->registers)[arg1];
+    }
     else if(opc == LABEL) {
 
         // Labels have no effect other than being jump destinations. Just

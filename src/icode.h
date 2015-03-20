@@ -35,6 +35,7 @@ typedef enum
                 // than 1
     , JUMPLINK  // Store the address of the next instruction in RETURN_ADDRESS
                 // and jump to label arg1
+    , JUMPADDR  // Jump to the address in register arg1
     , LABEL     // Define the label arg1
     , HALT      // Halt execution and return to caller
     } Opcode;

@@ -128,10 +128,10 @@ ICodeOperationVector *icodegen_Comm(Prog *prog, Comm *comm, int *next_label,
     else if(Comm_isReturn(comm)) {
 
         // Evaluate the expression
-        INSERT_EXPR_CODE(   Assign_expr(comm)                           );
+        INSERT_EXPR_CODE(   Return_expr(comm)                           );
 
         // Return to caller
-        INSERT_OPERATION(   JUMP    , func_labels[ ]    , 0             );
+        INSERT_OPERATION(   JUMPADDR, RETURN_ADDRESS    , 0             );
     }
     else {
         ERROR("Comm type not recognised.");

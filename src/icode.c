@@ -77,6 +77,9 @@ void ICodeOperation_print(ICodeOperation *op) {
     else if (op->opc == JUMPLINK) {
         printf("JUMPLINK L%d\n", op->arg1);
     }
+    else if (op->opc == JUMPADDR) {
+        printf("JUMPADDR %d\n", op->arg1);
+    }
     else if (op->opc == LABEL) {
         printf("--- L%d ---\n", op->arg1);
     }
