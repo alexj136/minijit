@@ -18,6 +18,8 @@ struct ICodeInterpreterState {
 
 ICodeInterpreterState *ICodeInterpreterState_init(ICodeOperationVector *code,
         int stack_size, int next_reg, int next_label);
+void ICodeInterpreterState_free(ICodeInterpreterState *state);
+int ICodeInterpreterState_result(ICodeInterpreterState *state);
 void prepare_state(ICodeInterpreterState *state, Prog *prog,
         IntRefVector *args);
 void ICodeInterpreterState_step(ICodeInterpreterState *state);

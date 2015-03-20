@@ -96,7 +96,7 @@ int main(int argc, char *argv[]) {
      * We now have everything we need to run the program, so run the program and
      * print the result.
      */
-    InterpretResult *res = interpret_Prog(pr->prog, prog_args);
+    /*InterpretResult *res = interpret_Prog(pr->prog, prog_args);
     if(res->type == iFailIncorrectNumArgs) {
         puts("Runtime Error: Function call with incorrect number of "
                 "arguments.");
@@ -116,6 +116,7 @@ int main(int argc, char *argv[]) {
         IntRefVector_free_elems(prog_args);
         ERROR("InterpretResult type not recognised");
     }
+    free(res);*/
 
     /* =========================================================================
      * Generate, print and run icode for the given program, with the given args.
@@ -126,17 +127,16 @@ int main(int argc, char *argv[]) {
     ICodeInterpreterState *state = ICodeInterpreterState_init(
             icodevec, 10000, TEMPORARY + 1, next_label);
     prepare_state(state, pr->prog, prog_args);
-    int steps = 0;
-    while(steps < 100) {
-        ICodeInterpreterState_step(state);
-        steps++;
-    }
-    printf("RESULT = %d\n", (state->registers)[ACCUMULATOR]);
+    ICodeInterpreterState_run(state);
+
+    printf("RESULT = %d\n", ICodeInterpreterState_result(state));
+
+    ICodeInterpreterState_free(state);
+    ICodeOperationVector_free_elems(icodevec);
 
     /* =========================================================================
      * Deallocate the remaining heap objects.
      */
-    free(res);
     ParseResult_free(pr);
     IntRefVector_free_elems(prog_args);
 

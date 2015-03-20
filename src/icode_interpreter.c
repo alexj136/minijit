@@ -30,6 +30,36 @@ ICodeInterpreterState *ICodeInterpreterState_init(ICodeOperationVector *code,
     return state;
 }
 
+/*
+ * Free an ICodeInterpreterState. Does not free the stored program code.
+ */
+void ICodeInterpreterState_free(ICodeInterpreterState *state) {
+    free(state->stack);
+    free(state->registers);
+    free(state->labels);
+    return;
+}
+
+/*
+ * Get the result (i.e. final accumulator value) of a halted interpreter run.
+ * It is an error to call this on a state that has not halted.
+ */
+int ICodeInterpreterState_result(ICodeInterpreterState *state) {
+
+    if((ICodeOperationVector_get(state->code,
+            (state->registers)[PROGRAM_COUNTER])->opc) == HALT) {
+
+        return (state->registers)[ACCUMULATOR];
+    }
+    else {
+        ERROR("Tried to retreive the result of a non-halted execution");
+    }
+}
+
+/*
+ * Prepare an ICodeInterpreterState for exection by putting the appropriate
+ * values on the stack to call the program's main function.
+ */
 void prepare_state(ICodeInterpreterState *state, Prog *prog,
         IntRefVector *args) {
 
@@ -56,6 +86,9 @@ void prepare_state(ICodeInterpreterState *state, Prog *prog,
     (state->registers)[PROGRAM_COUNTER] = 0;
 }
 
+/*
+ * Perform a single execution step
+ */
 void ICodeInterpreterState_step(ICodeInterpreterState *state) {
 
     int initial_prog_counter_value = (state->registers)[PROGRAM_COUNTER];
@@ -164,6 +197,10 @@ void ICodeInterpreterState_step(ICodeInterpreterState *state) {
     }
 }
 
+/*
+ * Run an ICodeInterpreterState until the program halts (although it may not
+ * ever halt).
+ */
 void ICodeInterpreterState_run(ICodeInterpreterState *state) {
 
     // Until we reach a halt instruction...

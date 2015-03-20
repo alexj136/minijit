@@ -195,9 +195,9 @@ ICodeOperationVector *icodegen_Expr(Prog *prog, Expr *expr, int *next_label,
     else if(Expr_isCall(expr)) {
 
         // Determine the label number to jump to in the call
-        int callee_address = func_labels[Call_name(expr)];
-        int num_args       = Call_num_args(expr);
-        int num_vars       = Func_num_vars(Prog_func(prog, Call_name(expr)));
+        int callee_label = func_labels[Call_name(expr)];
+        int num_args     = Call_num_args(expr);
+        int num_vars     = Func_num_vars(Prog_func(prog, Call_name(expr)));
         int idx;
 
         // Push the current frame pointer on the stack
@@ -236,7 +236,7 @@ ICodeOperationVector *icodegen_Expr(Prog *prog, Expr *expr, int *next_label,
         INSERT_OPERATION(   MOVE    , STACK_POINTER     , FRAME_POINTER );
 
         // Jump to the function
-        INSERT_OPERATION(   JUMPLINK, callee_address    , 0             );
+        INSERT_OPERATION(   JUMPLINK, callee_label      , 0             );
 
         // Pop the arguments and variables off the stack
         INSERT_OPERATION(   LOADIMM , num_vars          , TEMPORARY     );
@@ -255,8 +255,9 @@ ICodeOperationVector *icodegen_Expr(Prog *prog, Expr *expr, int *next_label,
     else if(Expr_isVar(expr)) {
 
         // Calculate the address from which to load
+        INSERT_OPERATION(   LOADIMM , Var_name(expr)    , ACCUMULATOR   );
         INSERT_OPERATION(   MOVE    , FRAME_POINTER     , TEMPORARY     );
-        INSERT_OPERATION(   SUB     , TEMPORARY         , Var_name(expr));
+        INSERT_OPERATION(   SUB     , TEMPORARY         , ACCUMULATOR   );
 
         // Perform the load operation with the calculated address
         INSERT_OPERATION(   LOAD    , TEMPORARY         , ACCUMULATOR   );
