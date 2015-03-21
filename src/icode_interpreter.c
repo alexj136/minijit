@@ -37,6 +37,7 @@ void ICodeInterpreterState_free(ICodeInterpreterState *state) {
     free(state->stack);
     free(state->registers);
     free(state->labels);
+    free(state);
     return;
 }
 
@@ -95,7 +96,6 @@ void ICodeInterpreterState_step(ICodeInterpreterState *state) {
 
     ICodeOperation *current =
             ICodeOperationVector_get(state->code, initial_prog_counter_value);
-    printf("RUNNING: "); ICodeOperation_print(current);
 
     Opcode opc = current->opc;
     int arg1   = current->arg1;

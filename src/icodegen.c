@@ -62,6 +62,8 @@ ICodeOperationVector *icodegen_Prog(Prog *prog, int *next_label) {
         INSERT_FUNC_CODE(Prog_func(prog, idx));
     }
 
+    free(func_labels);
+
     RETURN_GENERATED_CODE;
 }
 
