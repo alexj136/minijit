@@ -14,11 +14,12 @@ struct ICodeInterpreterState {
     int min_label;
 };
 
-ICodeInterpreterState *ICodeInterpreterState_init(ICodeOperationVector *code);
+int ICodeOperationVector_execute(ICodeOperationVector *code,
+        IntRefVector *initial_stack);
+ICodeInterpreterState *ICodeInterpreterState_init(ICodeOperationVector *code,
+        IntRefVector *initial_stack);
 void ICodeInterpreterState_free(ICodeInterpreterState *state);
 int ICodeInterpreterState_result(ICodeInterpreterState *state);
-void prepare_state(ICodeInterpreterState *state, Prog *prog,
-        IntRefVector *args);
 void ICodeInterpreterState_step(ICodeInterpreterState *state);
 void ICodeInterpreterState_run(ICodeInterpreterState *state);
 

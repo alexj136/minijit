@@ -124,13 +124,9 @@ int main(int argc, char *argv[]) {
     int next_label = 0;
     ICodeOperationVector *icodevec = icodegen_Prog(pr->prog, &next_label);
     ICodeOperationVector_print(icodevec);
-    ICodeInterpreterState *state = ICodeInterpreterState_init(icodevec);
-    prepare_state(state, pr->prog, prog_args);
-    ICodeInterpreterState_run(state);
 
-    printf("RESULT = %d\n", ICodeInterpreterState_result(state));
+    printf("RESULT = %d\n", ICodeOperationVector_execute(icodevec, prog_args));
 
-    ICodeInterpreterState_free(state);
     ICodeOperationVector_free_elems(icodevec);
 
     /* =========================================================================

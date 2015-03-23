@@ -12,13 +12,12 @@ MINUNIT_TESTS
                 ICodeOperation_init(LOADIMM, 3, ACCUMULATOR));
         ICodeOperationVector_append(code,
                 ICodeOperation_init(HALT, 0, 0));
+        IntRefVector *initial_stack = IntRefVector_init();
 
-        ICodeInterpreterState *state = ICodeInterpreterState_init(code);
+        ASSERT(ICodeOperationVector_execute(code, initial_stack) == 3,
+                "Result is correct");
 
-        ICodeInterpreterState_run(state);
-        ASSERT(ICodeInterpreterState_result(state) == 3, "Correct result");
-
-        ICodeInterpreterState_free(state);
+        IntRefVector_free_elems(initial_stack);
         ICodeOperationVector_free_elems(code);
     END
 

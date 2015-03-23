@@ -8,7 +8,23 @@
 
 #define ICodeInterpreterState_STACK_SIZE 100000
 
-ICodeInterpreterState *ICodeInterpreterState_init(ICodeOperationVector *code) {
+int ICodeOperationVector_execute(ICodeOperationVector *code,
+        IntRefVector *initial_stack) {
+
+    ICodeInterpreterState *state = ICodeInterpreterState_init(code,
+            initial_stack);
+
+    ICodeInterpreterState_run(state);
+
+    int result = ICodeInterpreterState_result(state);
+
+    ICodeInterpreterState_free(state);
+
+    return result;
+}
+
+ICodeInterpreterState *ICodeInterpreterState_init(ICodeOperationVector *code,
+        IntRefVector *initial_stack) {
 
     int idx;
     int min_label = INT_MAX;
@@ -105,6 +121,18 @@ ICodeInterpreterState *ICodeInterpreterState_init(ICodeOperationVector *code) {
         }
     }
 
+    // Initialise the main registers
+    (state->registers)[STACK_POINTER]   = IntRefVector_size(initial_stack);
+    (state->registers)[FRAME_POINTER]   = 0;
+    (state->registers)[RETURN_ADDRESS]  = 0;
+    (state->registers)[PROGRAM_COUNTER] = 0;
+
+    // Initialise the stack
+    for(idx = 0; idx < IntRefVector_size(initial_stack); idx++) {
+        (state->stack)[idx] =
+                IntRef_value(IntRefVector_get(initial_stack, idx));
+    }
+
     return state;
 }
 
@@ -139,36 +167,6 @@ int ICodeInterpreterState_result(ICodeInterpreterState *state) {
     else {
         ERROR("Tried to retreive the result of a non-halted execution");
     }
-}
-
-/*
- * Prepare an ICodeInterpreterState for exection by putting the appropriate
- * values on the stack to call the program's main function.
- */
-void prepare_state(ICodeInterpreterState *state, Prog *prog,
-        IntRefVector *args) {
-
-    int num_args     = IntRefVector_size(args);
-    int num_vars     = Func_num_vars(Prog_func(prog, 0));
-    int non_arg_vars = num_vars - num_args;
-
-    int stack_idx    = num_vars - 1;
-    int args_idx     = 0;
-    while(stack_idx >= non_arg_vars) {
-        (state->stack)[stack_idx] =
-                IntRef_value(IntRefVector_get(args, args_idx));
-        stack_idx--;
-        args_idx++;
-    }
-    while(stack_idx >= 0) {
-        (state->stack)[stack_idx] = 0;
-        stack_idx--;
-    }
-
-    (state->registers)[STACK_POINTER]   = num_vars;
-    (state->registers)[FRAME_POINTER]   = 0;
-    (state->registers)[RETURN_ADDRESS]  = 0;
-    (state->registers)[PROGRAM_COUNTER] = 0;
 }
 
 /*

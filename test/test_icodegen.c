@@ -16,16 +16,14 @@ MINUNIT_TESTS
         ParseResult *pr = parse(lr);
 
         int next_label = 0;
-        IntRefVector *prog_args = IntRefVector_init();
+        IntRefVector *initial_stack = IntRefVector_init();
         ICodeOperationVector *icodevec = icodegen_Prog(pr->prog, &next_label);
-        ICodeInterpreterState *state = ICodeInterpreterState_init(icodevec);
-        prepare_state(state, pr->prog, prog_args);
-        ICodeInterpreterState_run(state);
-        ASSERT(ICodeInterpreterState_result(state) == 10, "Result is correct");
 
-        ICodeInterpreterState_free(state);
+        ASSERT(ICodeOperationVector_execute(icodevec, initial_stack) == 10,
+                "Result is correct");
+
         ICodeOperationVector_free_elems(icodevec);
-        IntRefVector_free_elems(prog_args);
+        IntRefVector_free_elems(initial_stack);
         ParseResult_free(pr);
     END
 
@@ -42,15 +40,13 @@ MINUNIT_TESTS
         int arg;
         for(arg = 0; arg < 100; arg++) {
 
-            ICodeInterpreterState *state = ICodeInterpreterState_init(icodevec);
-            IntRefVector *prog_args = IntRefVector_init();
-            IntRefVector_append(prog_args, IntRef_init(arg));
-            prepare_state(state, pr->prog, prog_args);
-            ICodeInterpreterState_run(state);
-            ASSERT(ICodeInterpreterState_result(state) == arg,
+            IntRefVector *initial_stack = IntRefVector_init();
+            IntRefVector_append(initial_stack, IntRef_init(arg));
+
+            ASSERT(ICodeOperationVector_execute(icodevec, initial_stack) == arg,
                     "Result is correct");
-            IntRefVector_free_elems(prog_args);
-            ICodeInterpreterState_free(state);
+
+            IntRefVector_free_elems(initial_stack);
         }
 
         ICodeOperationVector_free_elems(icodevec);
