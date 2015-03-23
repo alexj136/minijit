@@ -124,8 +124,7 @@ int main(int argc, char *argv[]) {
     int next_label = 0;
     ICodeOperationVector *icodevec = icodegen_Prog(pr->prog, &next_label);
     ICodeOperationVector_print(icodevec);
-    ICodeInterpreterState *state = ICodeInterpreterState_init(
-            icodevec, 10000, TEMPORARY + 1, next_label);
+    ICodeInterpreterState *state = ICodeInterpreterState_init(icodevec);
     prepare_state(state, pr->prog, prog_args);
     ICodeInterpreterState_run(state);
 

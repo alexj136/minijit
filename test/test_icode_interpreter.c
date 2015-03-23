@@ -13,8 +13,7 @@ MINUNIT_TESTS
         ICodeOperationVector_append(code,
                 ICodeOperation_init(HALT, 0, 0));
 
-        ICodeInterpreterState *state =
-                ICodeInterpreterState_init(code, 0, TEMPORARY + 1, 0);
+        ICodeInterpreterState *state = ICodeInterpreterState_init(code);
 
         ICodeInterpreterState_run(state);
         ASSERT(ICodeInterpreterState_result(state) == 3, "Correct result");

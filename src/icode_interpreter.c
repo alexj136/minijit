@@ -1,33 +1,117 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <limits.h>
 #include "syntax.h"
 #include "icode.h"
 #include "icodegen.h"
 #include "icode_interpreter.h"
 
-ICodeInterpreterState *ICodeInterpreterState_init(ICodeOperationVector *code,
-        int stack_size, int next_reg, int next_label) {
+#define ICodeInterpreterState_STACK_SIZE 100000
+
+ICodeInterpreterState *ICodeInterpreterState_init(ICodeOperationVector *code) {
+
+    int idx;
+    int min_label = INT_MAX;
+    int max_label = 0;
+    int max_reg   = 5;
+
+    // Perform a scan of the icode to determine the maximum and minimum label
+    // numbers, so that we need not allocate a huge amount of memory for label
+    // numbers not needed. Also determine how much memory we need to allocate
+    // for registers.
+    for(idx = 0; idx < ICodeOperationVector_size(code); idx++) {
+        ICodeOperation *next = ICodeOperationVector_get(code, idx);
+
+        // Check for new maximum register
+        if((next->opc == MOVE)
+                || (next->opc == LOAD)
+                || (next->opc == STORE)
+                || (next->opc == ADD)
+                || (next->opc == SUB)) {
+
+            if(next->arg1 > max_reg) {
+                max_reg = next->arg1;
+            }
+            if(next->arg2 > max_reg) {
+                max_reg = next->arg2;
+            }
+        }
+
+        // Check for new maximum register (arg1 is not a register in LOADIMM)
+        else if(next->opc == LOADIMM) {
+            if(next->arg2 > max_reg) {
+                max_reg = next->arg2;
+            }
+        }
+
+        // No registers in a JUMP
+        else if(next->opc == JUMP) {
+            // Nothing to do here
+        }
+
+        else if(next->opc == JUMPCOND) {
+        }
+
+        // No explicit registers in a JUMPLINK (implicit RETURN_ADDRESS need not
+        // be accounted for since it is less in its index than the minimum
+        // size allowed for the registers array)
+        else if(next->opc == JUMPLINK) {
+            // Nothing to do here
+        }
+
+        // arg2 is not a register in JUMPADDR
+        else if(next->opc == JUMPADDR) {
+            if(next->arg1 > max_reg) {
+                max_reg = next->arg1;
+            }
+        }
+
+        // Check if we have the new minimum/maximum label
+        else if(next->opc == LABEL) {
+            if(next->arg1 < 0) {
+                ERROR("Negative label number in an ICodeOperationVector");
+            }
+            if(next->arg1 > max_label) {
+                max_label = next->arg1;
+            }
+            if(next->arg1 < min_label) {
+                min_label = next->arg1;
+            }
+        }
+
+        // No registers in a HALT
+        else if(next->opc == HALT) {
+            // Nothing to do here
+        }
+
+        else {
+            ERROR("Unrecognised Opcode in ICodeOperation");
+        }
+    }
 
     ICodeInterpreterState *state = challoc(sizeof(ICodeInterpreterState));
-    state->code       = code;
-    state->stack_size = stack_size;
-    state->stack      = challoc(sizeof(int) * stack_size);
-    state->next_reg   = next_reg;
-    state->registers  = challoc(sizeof(int) * next_reg);
-    state->next_label = next_label;
-    state->labels     = challoc(sizeof(int) * next_label);
+    state->code      = code;
+    state->stack     = challoc(sizeof(int) * ICodeInterpreterState_STACK_SIZE);
+    state->registers = challoc(sizeof(int) * (max_reg + 1));
+    state->labels    = challoc(sizeof(int) * (max_label - min_label + 1));
+    state->min_label = min_label;
 
     // Populate the labels array. The labels array maps label names to indexes
     // into the ICodeOperationVector.
-    int idx;
     for(idx = 0; idx < ICodeOperationVector_size(code); idx++) {
         ICodeOperation *next = ICodeOperationVector_get(code, idx);
         if(next->opc == LABEL) {
-            (state->labels)[next->arg1] = idx;
+            (state->labels)[(next->arg1) - min_label] = idx;
         }
     }
 
     return state;
+}
+
+int ICodeInterpreterState_lookup_label_address(ICodeInterpreterState *state,
+        int label_name) {
+
+    return (state->labels)[label_name - (state->min_label)];
 }
 
 /*
@@ -154,14 +238,16 @@ void ICodeInterpreterState_step(ICodeInterpreterState *state) {
     else if(opc == JUMP) {
 
         // Set the program counter at the target label
-        (state->registers)[PROGRAM_COUNTER] = (state->labels)[arg1];
+        (state->registers)[PROGRAM_COUNTER] =
+                ICodeInterpreterState_lookup_label_address(state, arg1);
     }
     else if(opc == JUMPCOND) {
 
         // Based on the condition, optionally set the program counter at the
         // target label, or just advance to the next instruction.
         if(arg2 < 1) {
-            (state->registers)[PROGRAM_COUNTER] = (state->labels)[arg1];
+            (state->registers)[PROGRAM_COUNTER] =
+                ICodeInterpreterState_lookup_label_address(state, arg1);
         }
         else {
             (state->registers)[PROGRAM_COUNTER]++;
@@ -175,7 +261,8 @@ void ICodeInterpreterState_step(ICodeInterpreterState *state) {
                 (state->registers)[PROGRAM_COUNTER] + 1;
 
         // Set the program counter at the target label
-        (state->registers)[PROGRAM_COUNTER] = (state->labels)[arg1];
+        (state->registers)[PROGRAM_COUNTER] =
+                ICodeInterpreterState_lookup_label_address(state, arg1);
     }
     else if(opc == JUMPADDR) {
 

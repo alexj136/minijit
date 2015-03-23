@@ -18,8 +18,7 @@ MINUNIT_TESTS
         int next_label = 0;
         IntRefVector *prog_args = IntRefVector_init();
         ICodeOperationVector *icodevec = icodegen_Prog(pr->prog, &next_label);
-        ICodeInterpreterState *state = ICodeInterpreterState_init(
-                icodevec, 10000, TEMPORARY + 1, next_label);
+        ICodeInterpreterState *state = ICodeInterpreterState_init(icodevec);
         prepare_state(state, pr->prog, prog_args);
         ICodeInterpreterState_run(state);
         ASSERT(ICodeInterpreterState_result(state) == 10, "Result is correct");
@@ -43,8 +42,7 @@ MINUNIT_TESTS
         int arg;
         for(arg = 0; arg < 100; arg++) {
 
-            ICodeInterpreterState *state = ICodeInterpreterState_init(
-                    icodevec, 10000, TEMPORARY + 1, next_label);
+            ICodeInterpreterState *state = ICodeInterpreterState_init(icodevec);
             IntRefVector *prog_args = IntRefVector_init();
             IntRefVector_append(prog_args, IntRef_init(arg));
             prepare_state(state, pr->prog, prog_args);

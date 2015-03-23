@@ -8,16 +8,13 @@
 typedef struct ICodeInterpreterState ICodeInterpreterState;
 struct ICodeInterpreterState {
     struct ICodeOperationVector *code;
-    int stack_size;
     int *stack;
-    int next_reg;
     int *registers;
-    int next_label;
     int *labels;
+    int min_label;
 };
 
-ICodeInterpreterState *ICodeInterpreterState_init(ICodeOperationVector *code,
-        int stack_size, int next_reg, int next_label);
+ICodeInterpreterState *ICodeInterpreterState_init(ICodeOperationVector *code);
 void ICodeInterpreterState_free(ICodeInterpreterState *state);
 int ICodeInterpreterState_result(ICodeInterpreterState *state);
 void prepare_state(ICodeInterpreterState *state, Prog *prog,
