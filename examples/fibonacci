@@ -4,6 +4,6 @@ main(a) {
 
 fib(a) {
     while a - 1 do { return fib(a - 1) + fib(a - 2) };
-    while a do { return 0 };
-    return 1
+    while a do { return 1 };
+    return 0
 }
