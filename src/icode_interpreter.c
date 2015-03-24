@@ -144,6 +144,15 @@ int ICodeInterpreterState_lookup_label_address(ICodeInterpreterState *state,
     return (state->labels)[label_name - (state->min_label)];
 }
 
+void ICodeInterpreterState_check_stack_bounds(int stack_index) {
+    if(stack_index >= ICodeInterpreterState_STACK_SIZE) {
+        ERROR("Stack overflow");
+    }
+    else if(stack_index < 0) {
+        ERROR("Stack underflow");
+    }
+}
+
 /*
  * Free an ICodeInterpreterState. Does not free the stored program code.
  */
@@ -195,6 +204,9 @@ void ICodeInterpreterState_step(ICodeInterpreterState *state) {
     }
     else if(opc == LOAD) {
 
+        // Check stack bounds
+        ICodeInterpreterState_check_stack_bounds((state->registers)[arg1]);
+
         // Do the load
         (state->registers)[arg2] = (state->stack)[(state->registers)[arg1]];
 
@@ -202,6 +214,9 @@ void ICodeInterpreterState_step(ICodeInterpreterState *state) {
         (state->registers)[PROGRAM_COUNTER]++;
     }
     else if(opc == STORE) {
+
+        // Check stack bounds
+        ICodeInterpreterState_check_stack_bounds((state->registers)[arg2]);
 
         // Do the store
         (state->stack)[(state->registers)[arg2]] = (state->registers)[arg1];
@@ -245,7 +260,7 @@ void ICodeInterpreterState_step(ICodeInterpreterState *state) {
 
         // Based on the condition, optionally set the program counter at the
         // target label, or just advance to the next instruction.
-        if(arg2 < 1) {
+        if((state->registers)[arg2] < 1) {
             (state->registers)[PROGRAM_COUNTER] =
                 ICodeInterpreterState_lookup_label_address(state, arg1);
         }

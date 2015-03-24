@@ -114,21 +114,10 @@ ICodeOperationVector *icodegen_Comm(Prog *prog, Comm *comm, int *next_label,
         // Evaluate the expression
         INSERT_EXPR_CODE(Assign_expr(comm));
 
-        // Push the expression result on the stack
-        INSERT_OPERATION(STORE      , ACCUMULATOR       , STACK_POINTER );
-        INSERT_OPERATION(LOADIMM    , 1                 , ACCUMULATOR   );
-        INSERT_OPERATION(ADD        , STACK_POINTER     , ACCUMULATOR   );
-
-        // Calculate the address to store the value, store the caculated address
-        // in temporary
-        INSERT_OPERATION(MOVE       , FRAME_POINTER     , TEMPORARY     );
-        INSERT_OPERATION(LOADIMM    , Assign_name(comm) , ACCUMULATOR   );
-        INSERT_OPERATION(SUB        , TEMPORARY         , ACCUMULATOR   );
-
-        // Pop the expression result back into the accumulator
-        INSERT_OPERATION(LOADIMM    , 1                 , TEMPORARY     );
-        INSERT_OPERATION(SUB        , STACK_POINTER     , TEMPORARY     );
-        INSERT_OPERATION(LOAD       , STACK_POINTER     , TEMPORARY     );
+        // Calculate the address to store the value, store the calculated
+        // address in temporary
+        INSERT_OPERATION(LOADIMM    , -Assign_name(comm), TEMPORARY     );
+        INSERT_OPERATION(ADD        , TEMPORARY         , FRAME_POINTER );
 
         // Store the expression result at the calculated address
         INSERT_OPERATION(STORE      , ACCUMULATOR       , TEMPORARY     );
@@ -235,8 +224,11 @@ ICodeOperationVector *icodegen_Expr(Prog *prog, Expr *expr, int *next_label,
             INSERT_OPERATION(ADD        , STACK_POINTER     , ACCUMULATOR   );
         }
 
-        // Set the frame pointer for the callee
+        // Set the frame pointer for the callee (one less than the stack
+        // pointer)
         INSERT_OPERATION(MOVE       , STACK_POINTER     , FRAME_POINTER );
+        INSERT_OPERATION(LOADIMM    , 1                 , TEMPORARY     );
+        INSERT_OPERATION(SUB        , FRAME_POINTER     , TEMPORARY     );
 
         // Jump to the function
         INSERT_OPERATION(JUMPLINK   , callee_label      , 0             );
