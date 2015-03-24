@@ -96,7 +96,7 @@ int main(int argc, char *argv[]) {
      * We now have everything we need to run the program, so run the program and
      * print the result.
      */
-    /*InterpretResult *res = interpret_Prog(pr->prog, prog_args);
+    InterpretResult *res = interpret_Prog(pr->prog, prog_args);
     if(res->type == iFailIncorrectNumArgs) {
         puts("Runtime Error: Function call with incorrect number of "
                 "arguments.");
@@ -108,7 +108,7 @@ int main(int argc, char *argv[]) {
         puts("Runtime Error: Reached end of function without return.");
     }
     else if(res->type == iSuccess) {
-        printf("RESULT = %d\n", res->result);
+        printf("INTERPRETER RESULT = %d\n", res->result);
     }
     else {
         free(res);
@@ -116,17 +116,15 @@ int main(int argc, char *argv[]) {
         IntRefVector_free_elems(prog_args);
         ERROR("InterpretResult type not recognised");
     }
-    free(res);*/
+    free(res);
 
     /* =========================================================================
      * Generate, print and run icode for the given program, with the given args.
      */
     int next_label = 0;
     ICodeOperationVector *icodevec = icodegen_Prog(pr->prog, &next_label);
-    ICodeOperationVector_print(icodevec);
-
-    printf("RESULT = %d\n", ICodeOperationVector_execute(icodevec, prog_args));
-
+    int icode_result = ICodeOperationVector_execute(icodevec, prog_args);
+    printf("ICODE RESULT = %d\n", icode_result);
     ICodeOperationVector_free_elems(icodevec);
 
     /* =========================================================================
