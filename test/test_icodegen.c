@@ -53,4 +53,63 @@ MINUNIT_TESTS
         ParseResult_free(pr);
     END
 
+    TEST("Compile an addition program, check that it gives the correct "
+            "result when run with various arguments")
+
+        char *prog = "main(a, b) { return a + b }";
+        LexerResult *lr = lex_string(prog);
+        ParseResult *pr = parse(lr);
+
+        int next_label = 0;
+        ICodeOperationVector *icodevec = icodegen_Prog(pr->prog, &next_label);
+
+        int idx;
+        for(idx = 0; idx < 100; idx++) {
+
+            int a = (rand() % 10000) - 5000;
+            int b = (rand() % 10000) - 5000;
+
+            IntRefVector *initial_stack = IntRefVector_init();
+            IntRefVector_append(initial_stack, IntRef_init(a));
+            IntRefVector_append(initial_stack, IntRef_init(b));
+
+            ASSERT(ICodeOperationVector_execute(icodevec, initial_stack)
+                    == a + b, "Result is correct");
+
+            IntRefVector_free_elems(initial_stack);
+        }
+
+        ICodeOperationVector_free_elems(icodevec);
+        ParseResult_free(pr);
+    END
+
+    TEST("Compile a subtraction program, check that it gives the correct "
+            "result when run with various arguments")
+
+        char *prog = "main(a, b) { return a - b }";
+        LexerResult *lr = lex_string(prog);
+        ParseResult *pr = parse(lr);
+
+        int next_label = 0;
+        ICodeOperationVector *icodevec = icodegen_Prog(pr->prog, &next_label);
+
+        int idx;
+        for(idx = 0; idx < 100; idx++) {
+
+            int a = (rand() % 10000) - 5000;
+            int b = (rand() % 10000) - 5000;
+
+            IntRefVector *initial_stack = IntRefVector_init();
+            IntRefVector_append(initial_stack, IntRef_init(b));
+            IntRefVector_append(initial_stack, IntRef_init(a));
+
+            ASSERT(ICodeOperationVector_execute(icodevec, initial_stack)
+                    == a - b, "Result is correct");
+
+            IntRefVector_free_elems(initial_stack);
+        }
+
+        ICodeOperationVector_free_elems(icodevec);
+        ParseResult_free(pr);
+    END
 END_TESTS

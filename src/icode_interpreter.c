@@ -29,7 +29,7 @@ ICodeInterpreterState *ICodeInterpreterState_init(ICodeOperationVector *code,
     int idx;
     int min_label = INT_MAX;
     int max_label = 0;
-    int max_reg   = 5;
+    int max_reg   = TEMPORARY;
 
     // Perform a scan of the icode to determine the maximum and minimum label
     // numbers, so that we need not allocate a huge amount of memory for label
@@ -122,8 +122,10 @@ ICodeInterpreterState *ICodeInterpreterState_init(ICodeOperationVector *code,
     }
 
     // Initialise the main registers
+    // Stack pointer points to the next free space on the stack
     (state->registers)[STACK_POINTER]   = IntRefVector_size(initial_stack);
-    (state->registers)[FRAME_POINTER]   = 0;
+    // Frame pointer points to the first variable in the frame
+    (state->registers)[FRAME_POINTER]   = IntRefVector_size(initial_stack) - 1;
     (state->registers)[RETURN_ADDRESS]  = 0;
     (state->registers)[PROGRAM_COUNTER] = 0;
 
