@@ -3,7 +3,12 @@ main(a) {
 }
 
 fib(a) {
+    # if a > 1, make recursive calls
     while a - 1 do { return fib(a - 1) + fib(a - 2) };
+
+    # If a = 1, return 1
     while a do { return 1 };
+
+    # else a <= 0, so return 0
     return 0
 }

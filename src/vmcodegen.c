@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <stdlib.h>
+#include <string.h>
 #include "util.h"
 #include "syntax.h"
 #include "icode.h"
@@ -15,6 +15,9 @@ int *VMCodeGen(ICodeOperationVector *code) {
 
         ICodeOperation *op = ICodeOperationVector_get(code, idx);
 
-        // memcpy op out[idx * VMCodeBuffer_instruction_size]
+        memcpy(out + (idx * VMCodeBuffer_instruction_size), op,
+                sizeof(ICodeOperation));
     }
+
+    return out;
 }

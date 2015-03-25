@@ -118,10 +118,12 @@ int_const [0-9]+
 name_const [a-zA-Z_][a-zA-Z0-9_]*
 line_break [\n\r]
 space [ \t\b\012]
+comment #.*
 
 %%
 
 {line_break}    { char_no = 1;               }
+{comment}       {                            }
 {space}         { char_no++;                 }
 "("             { MAKE_TOKEN( tokenLParen ); }
 ")"             { MAKE_TOKEN( tokenRParen ); }
