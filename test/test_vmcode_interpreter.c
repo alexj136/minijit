@@ -4,6 +4,7 @@
 #include "parser.h"
 #include "icode.h"
 #include "icodegen.h"
+#include "vmcode_interpreter.h"
 
 MINUNIT_TESTS
     TEST("Simple test of the VMCode interpreter")
@@ -11,8 +12,8 @@ MINUNIT_TESTS
         char *prog = "main() { return 10 }";
         LexerResult *lr = lex_string(prog);
         ParseResult *pr = parse(lr);
-        ICodeOperationVector *icodevec =
-                icodegen_Prog(pr->prog, ({ int next_label = 0; &next_label; }));
+        int next_label = 0;
+        ICodeOperationVector *icodevec = icodegen_Prog(pr->prog, &next_label);
         IntRefVector *initial_stack = IntRefVector_init();
 
         ASSERT(VMCode_execute(icodevec, initial_stack) == 10,

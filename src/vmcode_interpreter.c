@@ -44,9 +44,8 @@ void VMCodeInterpreterState_free(VMCodeInterpreterState *state) {
 #define OPC  code[(registers[PROGRAM_COUNTER] * VMCode_instruction_size) + 0]
 #define ARG1 code[(registers[PROGRAM_COUNTER] * VMCode_instruction_size) + 1]
 #define ARG2 code[(registers[PROGRAM_COUNTER] * VMCode_instruction_size) + 2]
-#define ADVANCE_PC registers[PROGRAM_COUNTER] += VMCode_instruction_size
 #define VMCodeInterpreterState_lookup_label_address(label_name) \
-    labels[(label_name - min_label) * VMCode_instruction_size]
+        (labels[label_name - min_label])
 
 void VMCodeInterpreterState_run(VMCodeInterpreterState *state) {
 
@@ -60,27 +59,27 @@ void VMCodeInterpreterState_run(VMCodeInterpreterState *state) {
     while(true) {
         if(OPC == MOVE) {
             registers[ARG2] = registers[ARG1];
-            ADVANCE_PC;
+            registers[PROGRAM_COUNTER]++;
         }
         else if(OPC == LOAD) {
             registers[ARG2] = stack[registers[ARG1]];
-            ADVANCE_PC;
+            registers[PROGRAM_COUNTER]++;
         }
         else if(OPC == STORE) {
             stack[registers[ARG2]] = registers[ARG1];
-            ADVANCE_PC;
+            registers[PROGRAM_COUNTER]++;
         }
         else if(OPC == ADD) {
             registers[ARG1] = registers[ARG1] + registers[ARG2];
-            ADVANCE_PC;
+            registers[PROGRAM_COUNTER]++;
         }
         else if(OPC == SUB) {
             registers[ARG1] = registers[ARG1] - registers[ARG2];
-            ADVANCE_PC;
+            registers[PROGRAM_COUNTER]++;
         }
         else if(OPC == LOADIMM) {
             registers[ARG2] = ARG1;
-            ADVANCE_PC;
+            registers[PROGRAM_COUNTER]++;
         }
         else if(OPC == JUMP) {
             registers[PROGRAM_COUNTER] =
@@ -92,7 +91,7 @@ void VMCodeInterpreterState_run(VMCodeInterpreterState *state) {
                         VMCodeInterpreterState_lookup_label_address(ARG1);
             }
             else {
-                ADVANCE_PC;
+                registers[PROGRAM_COUNTER]++;
             }
         }
         else if(OPC == JUMPLINK) {
@@ -104,7 +103,7 @@ void VMCodeInterpreterState_run(VMCodeInterpreterState *state) {
             registers[PROGRAM_COUNTER] = registers[ARG1];
         }
         else if(OPC == LABEL) {
-            ADVANCE_PC;
+            registers[PROGRAM_COUNTER]++;
         }
         else if(OPC == HALT) {
             break;

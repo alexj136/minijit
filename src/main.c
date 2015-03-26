@@ -9,6 +9,7 @@
 #include "icode.h"
 #include "icodegen.h"
 #include "icode_interpreter.h"
+#include "vmcode_interpreter.h"
 
 /*
  * Proceeds through the interpreter pipeline, checking the output of each stage
@@ -119,12 +120,15 @@ int main(int argc, char *argv[]) {
     free(res);
 
     /* =========================================================================
-     * Generate, print and run icode for the given program, with the given args.
+     * Generate and run icode and vmcode for the given program, with the given
+     * args.
      */
     int next_label = 0;
     ICodeOperationVector *icodevec = icodegen_Prog(pr->prog, &next_label);
     int icode_result = ICodeOperationVector_execute(icodevec, prog_args);
     printf("ICODE RESULT = %d\n", icode_result);
+    int vmcode_result = VMCode_execute(icodevec, prog_args);
+    printf("VMCODE RESULT = %d\n", vmcode_result);
     ICodeOperationVector_free_elems(icodevec);
 
     /* =========================================================================
