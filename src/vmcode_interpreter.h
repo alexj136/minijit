@@ -14,8 +14,10 @@ struct VMCodeInterpreterState {
     int min_label;
 };
 
+int VMCode_execute(ICodeOperationVector *code, IntRefVector *initial_stack);
 VMCodeInterpreterState *VMCodeInterpreterState_init(
         ICodeOperationVector *code, IntRefVector *initial_stack);
-void VMCode_run(VMCodeInterpreterState *state);
+void VMCodeInterpreterState_free(VMCodeInterpreterState *state);
+void VMCodeInterpreterState_run(VMCodeInterpreterState *state);
 
 #endif // vmcode_interpreter

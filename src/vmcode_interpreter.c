@@ -6,6 +6,15 @@
 #include "vmcodegen.h"
 #include "vmcode_interpreter.h"
 
+int VMCode_execute(ICodeOperationVector *code, IntRefVector *initial_stack) {
+    VMCodeInterpreterState* vmstate =
+            VMCodeInterpreterState_init(code, initial_stack);
+    VMCodeInterpreterState_run(vmstate);
+    int result = (vmstate->registers)[ACCUMULATOR];
+    VMCodeInterpreterState_free(vmstate);
+    return result;
+}
+
 VMCodeInterpreterState *VMCodeInterpreterState_init(
         ICodeOperationVector *code, IntRefVector *initial_stack) {
 
@@ -24,6 +33,14 @@ VMCodeInterpreterState *VMCodeInterpreterState_init(
     return vmcode_state;
 }
 
+void VMCodeInterpreterState_free(VMCodeInterpreterState *state) {
+    free(state->code);
+    free(state->stack);
+    free(state->registers);
+    free(state->labels);
+    free(state);
+}
+
 #define OPC  code[(registers[PROGRAM_COUNTER] * VMCode_instruction_size) + 0]
 #define ARG1 code[(registers[PROGRAM_COUNTER] * VMCode_instruction_size) + 1]
 #define ARG2 code[(registers[PROGRAM_COUNTER] * VMCode_instruction_size) + 2]
@@ -31,7 +48,7 @@ VMCodeInterpreterState *VMCodeInterpreterState_init(
 #define VMCodeInterpreterState_lookup_label_address(label_name) \
     labels[(label_name - min_label) * VMCode_instruction_size]
 
-void VMCode_run(VMCodeInterpreterState *state) {
+void VMCodeInterpreterState_run(VMCodeInterpreterState *state) {
 
     // Copy the pointers in the VMCodeInterpreterState to minimise indirection
     int *code      = state->code;
