@@ -7,6 +7,7 @@
 #include "vmcode_interpreter.h"
 
 MINUNIT_TESTS
+
     TEST("Simple test of the VMCode interpreter")
 
         char *prog = "main() { return 10 }";
