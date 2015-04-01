@@ -14,12 +14,14 @@ struct TestProgram {
 
 FORWARD_DECLARE_VECTORABLE(TestProgram)
 
-TestProgram *TestProgram_init(char *prog_str, int arity, int (*c_version)(IntRefVector *));
+TestProgram *TestProgram_init(char *prog_str, int arity,
+        int (*c_version)(IntRefVector *));
 bool TestProgram_eq(TestProgram *tp1, TestProgram *tp2);
 void TestProgram_free(TestProgram *tp);
 
 void prepare_testing_programs();
 TestProgram *get_test_program(int number);
+int num_testing_programs();
 void destroy_testing_programs();
 
 #endif // testing_programs

@@ -171,6 +171,11 @@ TestProgram *get_test_program(int number) {
     else { return TestProgramVector_get(test_program_vector, number); }
 }
 
+int num_testing_programs() {
+    if(!test_program_vector) { ERROR("Testing programs not prepared"); }
+    return TestProgramVector_size(test_program_vector);
+}
+
 void destroy_testing_programs() {
     if(!test_program_vector) { ERROR("Testing programs not prepared"); }
     TestProgramVector_free_elems(test_program_vector);
