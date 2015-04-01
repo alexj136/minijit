@@ -1,4 +1,5 @@
 #include "minunit.h"
+#include "testing_programs.h"
 #include "syntax.h"
 #include "lexer.h"
 #include "parser.h"
