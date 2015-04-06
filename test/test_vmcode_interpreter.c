@@ -9,24 +9,6 @@
 
 MINUNIT_TESTS
 
-    TEST("Simple test of the VMCode interpreter")
-
-        char *prog = "main() { return 10 }";
-        LexerResult *lr = lex_string(prog);
-        ParseResult *pr = parse(lr);
-        int next_label = 0;
-        ICodeOperationVector *icodevec = icodegen_Prog(pr->prog, &next_label);
-        IntRefVector *initial_stack = IntRefVector_init();
-
-        ASSERT(VMCode_execute(icodevec, initial_stack) == 10,
-                "Result is correct");
-
-        ICodeOperationVector_free_elems(icodevec);
-        IntRefVector_free_elems(initial_stack);
-        ParseResult_free(pr);
-
-    END
-
     TEST("Test the VMCode interpreter with the test program module programs")
 
     prepare_testing_programs();
@@ -35,28 +17,47 @@ MINUNIT_TESTS
     for(test_prog_idx = 0; test_prog_idx < num_testing_programs();
             test_prog_idx++) {
 
+        // Get the next test program struct, parse the minijit program
         TestProgram *tp = get_test_program(test_prog_idx);
         LexerResult *lr = lex_string(tp->prog_str);
         ParseResult *pr = parse(lr);
+        Prog *prog      = pr->prog;
 
+        // Create a function pointer to the C version of the test program
+        int (*c_version)(IntRefVector *) = tp->c_version;
+
+        // Generate icode (VMCode) from the parsed minijit program
         int next_label = 0;
-        ICodeOperationVector *icodevec = icodegen_Prog(pr->prog, &next_label);
+        ICodeOperationVector *icodevec = icodegen_Prog(prog, &next_label);
 
+        // Run the C version and VMCode versions many times and assert that the
+        // results are always the same
         int num_runs;
         for(num_runs = 0; num_runs < 1000; num_runs++) {
 
+            // Consruct the arguments/initial stack for this program
             IntRefVector *args_to_c_version = IntRefVector_init();
             IntRefVector *initial_vm_stack = IntRefVector_init();
 
             int arg_num;
             for(arg_num = 0; arg_num < tp->arity; arg_num++) {
                 int arg = (rand() % 10000) - 5000;
-                IntRefVector_append(args_to_c_version, IntRefVector_init(arg));
-                IntRefVector_insert(initial_vm_stack, 0,
-                        IntRefVector_init(arg));
+                IntRefVector_append(args_to_c_version, IntRef_init(arg));
+                IntRefVector_insert(initial_vm_stack, 0, IntRef_init(arg));
+            }
+            int var_num;
+            for(var_num = arg_num;
+                    var_num < Func_num_vars(Prog_func(prog, 0)); var_num++) {
+
+                IntRefVector_insert(initial_vm_stack, 0, IntRef_init(0));
             }
 
             // Run the programs
+            int vmcode_result = VMCode_execute(icodevec, initial_vm_stack);
+            int c_result      = c_version(args_to_c_version);
+
+            ASSERT(vmcode_result == c_result, "VMCode and C versions have the "
+                    "same result");
 
             IntRefVector_free_elems(args_to_c_version);
             IntRefVector_free_elems(initial_vm_stack);
