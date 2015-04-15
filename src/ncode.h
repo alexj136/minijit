@@ -1,6 +1,12 @@
 #ifndef ncode
 #define ncode
 
+#define reg_to_x86_64 \
+    \
+
+#define ADD_to_x86_64 \
+    \
+
 /*
  * Translate the icode HALT instruction to x86_64.
  */
