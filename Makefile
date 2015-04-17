@@ -3,7 +3,7 @@ SRCDIR  = ./src
 BINDIR  = ./bin
 TESTDIR = ./test
 MODULES = util syntax lexer parser typecheck interpreter icode icodegen \
-		icode_interpreter vmcodegen vmcode_interpreter testing_programs
+		icode_interpreter vmcodegen vmcode_interpreter ncode testing_programs
 MAIN    = ./main
 
 all: $(MAIN)
