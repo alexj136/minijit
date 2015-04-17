@@ -5,7 +5,7 @@ typedef unsigned char byte;
 
 #define LOADIMM_to_x86_64(n, r) \
     \
-    loadimm_reg_to_x86_64(r), byte0(n), byte1(n), byte2(n), byte3(n)
+    LOADIMM_reg_to_x86_64(r), byte0(n), byte1(n), byte2(n), byte3(n)
 
 #define byte0(n) ((byte)((n & 0x000000FF) >>  0))
 #define byte1(n) ((byte)((n & 0x0000FF00) >>  8))
@@ -14,15 +14,15 @@ typedef unsigned char byte;
 
 #define MOVE_to_x86_64(r1, r2) \
     \
-    0x89, dual_reg_to_x86_64(r1, r2)
+    0x89, MOVE_ADD_SUB_reg_to_x86_64(r1, r2)
 
 #define ADD_to_x86_64(r1, r2) \
     \
-    0x01, dual_reg_to_x86_64(r1, r2)
+    0x01, MOVE_ADD_SUB_reg_to_x86_64(r1, r2)
 
 #define SUB_to_x86_64(r1, r2) \
     \
-    0x29, dual_reg_to_x86_64(r1, r2)
+    0x29, MOVE_ADD_SUB_reg_to_x86_64(r1, r2)
 
 /*
  * Translate the icode HALT instruction to x86_64.
@@ -39,7 +39,7 @@ typedef unsigned char byte;
 
 #define x86_64_syscall 0x0F, 0x05
 
-byte dual_reg_to_x86_64(int r1, int r2);
-byte single_reg_to_x86_64(int r);
+byte MOVE_ADD_SUB_reg_to_x86_64(int r1, int r2);
+byte LOADIMM_reg_to_x86_64(int r);
 
 #endif // ncode
