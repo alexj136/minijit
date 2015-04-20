@@ -24,34 +24,45 @@ byte LOADIMM_reg_lookup_table[6] = {
 byte LOAD_STORE_reg_lookup_table[6][6][2] = {
     /* (Virtual)    SP              FP              RA              PC              ACC             TMP */
     /* (Native)     ESP             EBP             ECX             EIP             EAX             EBX */
-    /* SP  ESP */ { { 0x00, 0x00 }, { 0x00, 0x00 }, { 0x00, 0x00 }, { 0x00, 0x00 }, { 0x00, 0x00 }, { 0x00, 0x00 } },
-    /* FP  EBP */ { { 0x00, 0x00 }, { 0x00, 0x00 }, { 0x00, 0x00 }, { 0x00, 0x00 }, { 0x00, 0x00 }, { 0x00, 0x00 } },
-    /* RA  ECX */ { { 0x00, 0x00 }, { 0x00, 0x00 }, { 0x00, 0x00 }, { 0x00, 0x00 }, { 0x00, 0x00 }, { 0x00, 0x00 } },
+    /* SP  ESP */ { { 0x24, 0x24 }, { 0x2c, 0x24 }, { 0x0c, 0x24 }, { 0x00, 0x00 }, { 0x04, 0x24 }, { 0x1c, 0x24 } },
+    /* FP  EBP */ { { 0x65, 0x00 }, { 0x6d, 0x00 }, { 0x4d, 0x00 }, { 0x00, 0x00 }, { 0x45, 0x00 }, { 0x5d, 0x00 } },
+    /* RA  ECX */ { { 0x21, 0x90 }, { 0x29, 0x90 }, { 0x09, 0x90 }, { 0x00, 0x00 }, { 0x01, 0x90 }, { 0x19, 0x90 } },
     /* PC  EIP */ { { 0x00, 0x00 }, { 0x00, 0x00 }, { 0x00, 0x00 }, { 0x00, 0x00 }, { 0x00, 0x00 }, { 0x00, 0x00 } },
-    /* ACC EAX */ { { 0x00, 0x00 }, { 0x00, 0x00 }, { 0x00, 0x00 }, { 0x00, 0x00 }, { 0x00, 0x00 }, { 0x00, 0x00 } },
-    /* TMP EBX */ { { 0x00, 0x00 }, { 0x00, 0x00 }, { 0x00, 0x00 }, { 0x00, 0x00 }, { 0x00, 0x00 }, { 0x00, 0x00 } }
+    /* ACC EAX */ { { 0x20, 0x90 }, { 0x28, 0x90 }, { 0x08, 0x90 }, { 0x00, 0x00 }, { 0x00, 0x90 }, { 0x18, 0x90 } },
+    /* TMP EBX */ { { 0x23, 0x90 }, { 0x2b, 0x90 }, { 0x0b, 0x90 }, { 0x00, 0x00 }, { 0x03, 0x90 }, { 0x1b, 0x90 } }
 };
 
-byte MOVE_ADD_SUB_reg_to_x86_64(int r1, int r2) {
-    if((r1 > TEMPORARY) || (r1 < STACK_POINTER) ||
-            (r2 > TEMPORARY) || (r2 < STACK_POINTER)) {
+#define CHECK_ICODE_REG(r) \
+    do { \
+        if((r > TEMPORARY) || (r < STACK_POINTER)) { \
+            ERROR("Invalid register"); \
+        } \
+        else if(r == PROGRAM_COUNTER) { \
+            ERROR("Cannot modify or use program counter register"); \
+        } \
+    } while(0)
 
-        ERROR("Invalid register");
-    }
-    else if((r1 == PROGRAM_COUNTER) || (r2 == PROGRAM_COUNTER)) {
-        ERROR("Cannot modify or use program counter register");
-    }
-    else { return MOVE_ADD_SUB_reg_lookup_table[r1][r2]; }
+byte MOVE_ADD_SUB_reg_to_x86_64(int r1, int r2) {
+    CHECK_ICODE_REG(r1);
+    CHECK_ICODE_REG(r2);
+    return MOVE_ADD_SUB_reg_lookup_table[r1][r2];
 }
 
 byte LOADIMM_reg_to_x86_64(int r) {
-    if((r > TEMPORARY) || (r < STACK_POINTER)) {
-        ERROR("Invalid register");
-    }
-    else if(r == PROGRAM_COUNTER) {
-        ERROR("Cannot modify or use program counter register");
-    }
-    else { return LOADIMM_reg_lookup_table[r]; }
+    CHECK_ICODE_REG(r1);
+    return LOADIMM_reg_lookup_table[r];
+}
+
+byte BYTE1_LOAD_STORE_reg_to_x86_64(int r1, int r2) {
+    CHECK_ICODE_REG(r1);
+    CHECK_ICODE_REG(r2);
+    return LOAD_STORE_reg_lookup_table[r1][r2][0];
+}
+
+byte BYTE2_LOAD_STORE_reg_to_x86_64(int r1, int r2) {
+    CHECK_ICODE_REG(r1);
+    CHECK_ICODE_REG(r2);
+    return LOAD_STORE_reg_lookup_table[r1][r2][1];
 }
 
 void TEST_ALL_THE_MACROS() {
