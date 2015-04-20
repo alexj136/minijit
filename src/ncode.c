@@ -49,7 +49,7 @@ byte MOVE_ADD_SUB_reg_to_x86_64(int r1, int r2) {
 }
 
 byte LOADIMM_reg_to_x86_64(int r) {
-    CHECK_ICODE_REG(r1);
+    CHECK_ICODE_REG(r);
     return LOADIMM_reg_lookup_table[r];
 }
 
@@ -70,7 +70,9 @@ void TEST_ALL_THE_MACROS() {
         LOADIMM_to_x86_64(10, ACCUMULATOR),
         MOVE_to_x86_64(TEMPORARY, ACCUMULATOR),
         ADD_to_x86_64(TEMPORARY, ACCUMULATOR),
-        SUB_to_x86_64(TEMPORARY, ACCUMULATOR)
+        SUB_to_x86_64(TEMPORARY, ACCUMULATOR),
+        STORE_to_x86_64(ACCUMULATOR, TEMPORARY),
+        LOAD_to_x86_64(ACCUMULATOR, TEMPORARY)
     };
     bytes[0] = bytes[0];
 }

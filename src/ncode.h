@@ -37,17 +37,15 @@ typedef unsigned char byte;
 /*
  * Translate the icode HALT instruction to x86_64.
  */
-#define HALT_to_x86_64 \
+#define HALT_to_x86_64(SAVE_ADDR) \
     \
-    /* Some operation to save the accumulator value */ \
+    /* Save the accumulator value */ \
+    STORE_to_x86_64(ACCUMULATOR, SAVE_ADDR), \
     \
-    /* movq $60, %rax ; Put $60 exit syscall code in correct register */ \
-    0x48, 0xc7, 0xc0, 0x3c, 0x00, 0x00, 0x00, \
-    \
-    /* Do the syscall */ \
-    x86_64_syscall
+    /* Stop the JIT code and return to the call point */ \
+    x86_64_ret
 
-#define x86_64_syscall 0x0F, 0x05
+#define x86_64_ret 0xc3
 
 byte MOVE_ADD_SUB_reg_to_x86_64(int r1, int r2);
 byte LOADIMM_reg_to_x86_64(int r);
