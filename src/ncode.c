@@ -32,6 +32,18 @@ byte LOAD_STORE_reg_lookup_table[6][6][2] = {
     /* TMP EBX */ { { 0x23, 0x90 }, { 0x2b, 0x90 }, { 0x0b, 0x90 }, { 0x00, 0x00 }, { 0x03, 0x90 }, { 0x1b, 0x90 } }
 };
 
+byte push_reg_lookup_table[6] = {
+    /* (Virtual)    SP      FP      RA      PC      ACC     TMP */
+    /* (Native)     RSP     RBP     RCX     RIP     RAX     RBX */
+                    0x54,   0x55,   0x51,   0x00,   0x50,   0x53
+};
+
+byte JUMPCOND_reg_lookup_table[6] = {
+    /* (Virtual)    SP      FP      RA      PC      ACC     TMP */
+    /* (Native)     RSP     RBP     RCX     RIP     RAX     RBX */
+                    0xe2,   0xea,   0xca,   0x00,   0xc2,   0xda
+};
+
 #define CHECK_ICODE_REG(r) \
     do { \
         if((r > TEMPORARY) || (r < STACK_POINTER)) { \
@@ -65,6 +77,16 @@ byte BYTE2_LOAD_STORE_reg_to_x86_64(int r1, int r2) {
     return LOAD_STORE_reg_lookup_table[r1][r2][1];
 }
 
+byte push_reg_to_x86_64(int r) {
+    CHECK_ICODE_REG(r);
+    return push_reg_lookup_table[r];
+}
+
+byte JUMPCOND_reg_to_x86_64(int r) {
+    CHECK_ICODE_REG(r);
+    return JUMPCOND_reg_lookup_table[r];
+}
+
 void TEST_ALL_THE_MACROS() {
     byte bytes[] = {
         LOADIMM_to_x86_64(10, ACCUMULATOR),
@@ -73,7 +95,9 @@ void TEST_ALL_THE_MACROS() {
         SUB_to_x86_64(TEMPORARY, ACCUMULATOR),
         STORE_to_x86_64(ACCUMULATOR, TEMPORARY),
         LOAD_to_x86_64(ACCUMULATOR, TEMPORARY),
-        JUMPADDR_to_x86_64(ACCUMULATOR)
+        JUMPADDR_to_x86_64(ACCUMULATOR),
+        push_reg_to_x86_64(ACCUMULATOR),
+        JUMPCOND_reg_to_x86_64(ACCUMULATOR)
     };
     bytes[0] = bytes[0];
 }
