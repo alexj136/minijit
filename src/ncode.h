@@ -30,7 +30,7 @@ typedef unsigned char byte;
 #define ADD_to_x86_64(r1, r2) \
     \
     /* add %r1, %r2 */ \
-    0x01, MOVE_ADD_SUB_reg_to_x86_64(r1, r2)
+    0x01, MOVE_ADD_SUB_reg_to_x86_64(r2, r1)
 
 #define SUB_to_x86_64(r1, r2) \
     \
