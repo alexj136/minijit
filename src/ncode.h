@@ -8,14 +8,14 @@ typedef unsigned char byte;
 #define byte2_32(n) ((byte) ((n & 0x00FF0000) >> 16))
 #define byte3_32(n) ((byte) ((n & 0xFF000000) >> 24))
 
-#define byte0_64(n) ((byte) ((n & 0x00000000000000FF) >>  0))
-#define byte1_64(n) ((byte) ((n & 0x000000000000FF00) >>  8))
-#define byte2_64(n) ((byte) ((n & 0x0000000000FF0000) >> 16))
-#define byte3_64(n) ((byte) ((n & 0x00000000FF000000) >> 24))
-#define byte4_64(n) ((byte) ((n & 0x000000FF00000000) >> 32))
-#define byte5_64(n) ((byte) ((n & 0x0000FF0000000000) >> 40))
-#define byte6_64(n) ((byte) ((n & 0x00FF000000000000) >> 48))
-#define byte7_64(n) ((byte) ((n & 0xFF00000000000000) >> 56))
+#define byte0_64(n) ((byte) ((((uint64_t) n) & 0x00000000000000FF) >>  0))
+#define byte1_64(n) ((byte) ((((uint64_t) n) & 0x000000000000FF00) >>  8))
+#define byte2_64(n) ((byte) ((((uint64_t) n) & 0x0000000000FF0000) >> 16))
+#define byte3_64(n) ((byte) ((((uint64_t) n) & 0x00000000FF000000) >> 24))
+#define byte4_64(n) ((byte) ((((uint64_t) n) & 0x000000FF00000000) >> 32))
+#define byte5_64(n) ((byte) ((((uint64_t) n) & 0x0000FF0000000000) >> 40))
+#define byte6_64(n) ((byte) ((((uint64_t) n) & 0x00FF000000000000) >> 48))
+#define byte7_64(n) ((byte) ((((uint64_t) n) & 0xFF00000000000000) >> 56))
 
 #define LOADIMM_to_x86_64(n, r) \
     \
@@ -65,7 +65,7 @@ typedef unsigned char byte;
 #define JUMPCOND_to_x86_64(addr, value) \
     \
     /* mov $0, %edx     ; load zero to %edx for comparison */ \
-    0xba, 0x00, 0x00, 0x00, 0x00\
+    0xba, 0x00, 0x00, 0x00, 0x00, \
     \
     /* cmp %value, %edx ; do the comparison */ \
     0x39, JUMPCOND_reg_to_x86_64(value), \
@@ -113,8 +113,13 @@ typedef unsigned char byte;
 
 #define HALT_to_x86_64(save_addr) \
     \
-    /* mov %eax, ($save_addr)   ; Save the accumulator value */ \
-    STORE_to_x86_64(ACCUMULATOR, save_addr), \
+    /* mov $save_addr, %rdx     ; load the save address */ \
+    0x48, 0xba, byte0_64(save_addr), byte1_64(save_addr), byte2_64(save_addr), \
+            byte3_64(save_addr), byte4_64(save_addr), byte5_64(save_addr), \
+            byte6_64(save_addr), byte7_64(save_addr), \
+    \
+    /* mov %eax, (%rdx)         ; Store the accumulator value at save_addr */ \
+    0x89, 0x02, \
     \
     /* ret              ; Stop the JIT code and return to the call point */ \
     0xc3
@@ -124,5 +129,7 @@ byte LOADIMM_reg_to_x86_64(int r);
 byte BYTE1_LOAD_STORE_reg_to_x86_64(int r1, int r2);
 byte BYTE2_LOAD_STORE_reg_to_x86_64(int r1, int r2);
 byte push_reg_to_x86_64(int r);
+byte *allocate_executable(byte *memory, size_t size);
+void release_executable(byte *exec_mem, size_t size);
 
 #endif // ncode

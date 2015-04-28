@@ -1,5 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <stdint.h>
+#include <sys/mman.h>
 #include "util.h"
 #include "icode.h"
 #include "ncode.h"
@@ -87,6 +90,25 @@ byte JUMPCOND_reg_to_x86_64(int r) {
     return JUMPCOND_reg_lookup_table[r];
 }
 
+/*
+ * Copy the given byte buffer into executable memory and return a pointer to the
+ * executable memory. The returned buffer has size equal to the given buffer
+ * size.
+ */
+byte *allocate_executable(byte *memory, size_t size) {
+
+	void *exec_mem = mmap(NULL, size,
+		PROT_WRITE | PROT_EXEC,	MAP_ANON | MAP_PRIVATE, -1, 0);
+
+	memcpy(exec_mem, memory, size);
+
+    return (byte *) exec_mem;
+}
+
+void release_executable(byte *exec_mem, size_t size) {
+	munmap(exec_mem, size);
+}
+
 void TEST_ALL_THE_MACROS() {
     byte bytes[] = {
         LOADIMM_to_x86_64(10, ACCUMULATOR),
@@ -95,9 +117,11 @@ void TEST_ALL_THE_MACROS() {
         SUB_to_x86_64(TEMPORARY, ACCUMULATOR),
         STORE_to_x86_64(ACCUMULATOR, TEMPORARY),
         LOAD_to_x86_64(ACCUMULATOR, TEMPORARY),
+        JUMP_to_x86_64(ACCUMULATOR),
         JUMPADDR_to_x86_64(ACCUMULATOR),
-        push_reg_to_x86_64(ACCUMULATOR),
-        JUMPCOND_reg_to_x86_64(ACCUMULATOR)
+        JUMPCOND_to_x86_64(ACCUMULATOR, TEMPORARY),
+        JUMPLINK_to_x86_64(ACCUMULATOR),
+        HALT_to_x86_64(ACCUMULATOR)
     };
     bytes[0] = bytes[0];
 }
