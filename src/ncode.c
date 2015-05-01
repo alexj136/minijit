@@ -9,13 +9,13 @@
 
 byte MOVE_ADD_SUB_reg_lookup_table[6][6] = {
     /* (Virtual)    SP      FP      RA      PC      ACC     TMP */
-    /* (Native)     ESP     EBP     ECX     EIP     EAX     EBX */
-    /* SP  ESP */ { 0xE4,   0xEC,   0xCC,   0x00,   0xC4,   0xDC },
-    /* FP  EBP */ { 0xE5,   0xED,   0xCD,   0x00,   0xC5,   0xDD },
-    /* RA  ECX */ { 0xE1,   0xE9,   0xC9,   0x00,   0xC1,   0xD9 },
+    /* (Native)     ESI     EDI     ECX     EIP     EAX     EBX */
+    /* SP  ESI */ { 0xF6,   0xF7,   0xF1,   0x00,   0xF0,   0xF3 },
+    /* FP  EDI */ { 0xFE,   0xFF,   0xF9,   0x00,   0xF8,   0xFB },
+    /* RA  ECX */ { 0xCE,   0xCF,   0xC9,   0x00,   0xC8,   0xCB },
     /* PC  EIP */ { 0x00,   0x00,   0x00,   0x00,   0x00,   0x00 },
-    /* ACC EAX */ { 0xE0,   0xE8,   0xC8,   0x00,   0xC0,   0xD8 },
-    /* TMP EBX */ { 0xE3,   0xEB,   0xCB,   0x00,   0xC3,   0xDB }
+    /* ACC EAX */ { 0xC6,   0xC7,   0xC1,   0x00,   0xC0,   0xC3 },
+    /* TMP EBX */ { 0xDE,   0xDF,   0xD9,   0x00,   0xD8,   0xDB }
 };
 
 byte LOADIMM_reg_lookup_table[6] = {
@@ -37,14 +37,14 @@ byte LOAD_STORE_reg_lookup_table[6][6] = {
 
 byte push_reg_lookup_table[6] = {
     /* (Virtual)    SP      FP      RA      PC      ACC     TMP */
-    /* (Native)     RSP     RBP     RCX     RIP     RAX     RBX */
-                    0x54,   0x55,   0x51,   0x00,   0x50,   0x53
+    /* (Native)     RSI     RDI     RCX     RIP     RAX     RBX */
+                    0x56,   0x57,   0x51,   0x00,   0x50,   0x53
 };
 
 byte JUMPCOND_reg_lookup_table[6] = {
     /* (Virtual)    SP      FP      RA      PC      ACC     TMP */
-    /* (Native)     RSP     RBP     RCX     RIP     RAX     RBX */
-                    0xe2,   0xea,   0xca,   0x00,   0xc2,   0xda
+    /* (Native)     ESI     EDI     ECX     EIP     EAX     EBX */
+                    0xF2,   0xFA,   0xCA,   0x00,   0xC2,   0xDA
 };
 
 #define CHECK_ICODE_REG(r) \
