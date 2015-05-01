@@ -29,4 +29,4 @@ test: $(addprefix $(BINDIR)/test_, $(MODULES))
 	@$(addprefix $(BINDIR)/test_, $(MODULES:= && )) echo "All tests passed."
 
 $(BINDIR)/test_%: $(TESTDIR)/test_%.c $(addprefix $(BINDIR)/, $(MODULES:=.o))
-	$(GCC) -o $@ $^ -iquote $(SRCDIR)
+	@$(GCC) -o $@ $^ -iquote $(SRCDIR)

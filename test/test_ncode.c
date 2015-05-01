@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include "util.h"
 #include "minunit.h"
 #include "icode.h"
 #include "ncode.h"
@@ -61,6 +62,29 @@ MINUNIT_TESTS
             ASSERT(result == arg1 - arg2,
                     "Subtraction yeilds correct result");
             release_executable(exec_mem, sizeof(code));
+        }
+    END
+
+    TEST("Tests a load/store program returns correctly")
+        int run;
+        for(run = 0; run < 100; run++) {
+            int arg = (rand() % 10000) - 5000;
+            int result;
+            byte *stack = challoc(sizeof(byte) * 1024);
+            byte code[] = {
+                x86_64_preamble(stack),
+                LOADIMM_to_x86_64(arg, TEMPORARY),
+                STORE_to_x86_64(TEMPORARY, STACK_POINTER),
+                LOAD_to_x86_64(STACK_POINTER, ACCUMULATOR),
+                HALT_to_x86_64(&result)
+            };
+            byte *exec_mem = allocate_executable(code, sizeof(code));
+            int (*func)() = exec_mem;
+            func();
+            ASSERT(result == arg,
+                    "Load/store yeilds same value without error");
+            release_executable(exec_mem, sizeof(code));
+            free(stack);
         }
     END
 END_TESTS

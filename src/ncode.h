@@ -3,11 +3,34 @@
 
 typedef unsigned char byte;
 
-#define byte0_32(n) ((byte) ((n & 0x000000FF) >>  0))
-#define byte1_32(n) ((byte) ((n & 0x0000FF00) >>  8))
-#define byte2_32(n) ((byte) ((n & 0x00FF0000) >> 16))
-#define byte3_32(n) ((byte) ((n & 0xFF000000) >> 24))
+/*
+ * Set up execution - set register values appropriately. Requires the address of
+ * the stack for the native code to use.
+ */
+#define x86_64_preamble(stack_addr) \
+    LOADIMM_to_x86_64(0, ACCUMULATOR), \
+    LOADIMM_to_x86_64(0, TEMPORARY), \
+    LOADIMM_to_x86_64(0, RETURN_ADDRESS), \
+    0x48, 0xBE, byte0_64(stack_addr), byte1_64(stack_addr), \
+            byte2_64(stack_addr), byte3_64(stack_addr), byte4_64(stack_addr), \
+            byte5_64(stack_addr), byte6_64(stack_addr), byte7_64(stack_addr), \
+    0x48, 0xBF, byte0_64(stack_addr), byte1_64(stack_addr), \
+            byte2_64(stack_addr), byte3_64(stack_addr), byte4_64(stack_addr), \
+            byte5_64(stack_addr), byte6_64(stack_addr), byte7_64(stack_addr) \
 
+/*
+ * Macros to convert a 32-bit type to a 4 element list of comma-delimited bytes
+ */
+#define byte0_32(n) ((byte) ((((uint32_t) n) & 0x000000FF) >>  0))
+#define byte1_32(n) ((byte) ((((uint32_t) n) & 0x0000FF00) >>  8))
+#define byte2_32(n) ((byte) ((((uint32_t) n) & 0x00FF0000) >> 16))
+#define byte3_32(n) ((byte) ((((uint32_t) n) & 0xFF000000) >> 24))
+#define t32_to_bytes(n) \
+    byte0_32(n), byte1_32(n), byte2_32(n), byte3_32(n) \
+
+/*
+ * Macros to convert a 64-bit type to an 8 element list of comma-delimited bytes
+ */
 #define byte0_64(n) ((byte) ((((uint64_t) n) & 0x00000000000000FF) >>  0))
 #define byte1_64(n) ((byte) ((((uint64_t) n) & 0x000000000000FF00) >>  8))
 #define byte2_64(n) ((byte) ((((uint64_t) n) & 0x0000000000FF0000) >> 16))
@@ -16,11 +39,14 @@ typedef unsigned char byte;
 #define byte5_64(n) ((byte) ((((uint64_t) n) & 0x0000FF0000000000) >> 40))
 #define byte6_64(n) ((byte) ((((uint64_t) n) & 0x00FF000000000000) >> 48))
 #define byte7_64(n) ((byte) ((((uint64_t) n) & 0xFF00000000000000) >> 56))
+#define t64_to_bytes(n) \
+    byte0_64(n), byte1_64(n), byte2_64(n), byte3_64(n), \
+    byte4_64(n), byte5_64(n), byte6_64(n), byte7_64(n) \
 
 #define LOADIMM_to_x86_64(n, r) \
     \
     /* mov $n, %r */ \
-    LOADIMM_reg_to_x86_64(r), byte0_32(n), byte1_32(n), byte2_32(n), byte3_32(n)
+    LOADIMM_reg_to_x86_64(r), t32_to_bytes(n)
 
 #define MOVE_to_x86_64(r1, r2) \
     \
@@ -40,21 +66,17 @@ typedef unsigned char byte;
 #define LOAD_to_x86_64(r1, r2) \
     \
     /* mov (%r1), %r2 */ \
-    0x48, 0x8b, BYTE1_LOAD_STORE_reg_to_x86_64(r1, r2), \
-            BYTE2_LOAD_STORE_reg_to_x86_64(r1, r2)
+    0x48, 0x8b, LOAD_STORE_reg_to_x86_64(r1, r2) \
 
 #define STORE_to_x86_64(r1, r2) \
     \
     /* mov %r1, (%r2) */ \
-    0x48, 0x89, BYTE1_LOAD_STORE_reg_to_x86_64(r1, r2), \
-            BYTE2_LOAD_STORE_reg_to_x86_64(r1, r2)
+    0x48, 0x89, LOAD_STORE_reg_to_x86_64(r2, r1) \
 
 #define JUMP_to_x86_64(addr) \
     \
     /* mov $addr, %rdx  ; load the target address */ \
-    0x48, 0xba, byte0_64(addr), byte1_64(addr), byte2_64(addr), \
-            byte3_64(addr), byte4_64(addr), byte5_64(addr), \
-            byte6_64(addr), byte7_64(addr), \
+    0x48, 0xba, t64_to_bytes(addr), \
     \
     /* push %rdx        ; push the target address */ \
     0x52, \
@@ -74,9 +96,7 @@ typedef unsigned char byte;
     0x7d, 0x0c, \
     \
     /* mov $addr, %rdx  ; load the target address */ \
-    0x48, 0xba, byte0_64(addr), byte1_64(addr), byte2_64(addr), \
-            byte3_64(addr), byte4_64(addr), byte5_64(addr), \
-            byte6_64(addr), byte7_64(addr), \
+    0x48, 0xba, t64_to_bytes(addr), \
     \
     /* push %rdx        ; push the target address */ \
     0x52, \
@@ -93,9 +113,7 @@ typedef unsigned char byte;
     0x59, \
     \
     /* mov $addr, %rdx  ; load the target address */ \
-    0x48, 0xba, byte0_64(addr), byte1_64(addr), byte2_64(addr), \
-            byte3_64(addr), byte4_64(addr), byte5_64(addr), \
-            byte6_64(addr), byte7_64(addr), \
+    0x48, 0xba, t64_to_bytes(addr), \
     \
     /* push %rdx        ; push the target address */ \
     0x52, \
@@ -113,12 +131,10 @@ typedef unsigned char byte;
 
 #define HALT_to_x86_64(save_addr) \
     \
-    /* mov $save_addr, %rdx     ; load the save address */ \
-    0x48, 0xba, byte0_64(save_addr), byte1_64(save_addr), byte2_64(save_addr), \
-            byte3_64(save_addr), byte4_64(save_addr), byte5_64(save_addr), \
-            byte6_64(save_addr), byte7_64(save_addr), \
+    /* mov $save_addr, %rdx ; load the save address */ \
+    0x48, 0xba, t64_to_bytes(save_addr), \
     \
-    /* mov %eax, (%rdx)         ; Store the accumulator value at save_addr */ \
+    /* mov %eax, (%rdx) ; Store the accumulator value at save_addr */ \
     0x89, 0x02, \
     \
     /* ret              ; Stop the JIT code and return to the call point */ \
@@ -126,8 +142,7 @@ typedef unsigned char byte;
 
 byte MOVE_ADD_SUB_reg_to_x86_64(int r1, int r2);
 byte LOADIMM_reg_to_x86_64(int r);
-byte BYTE1_LOAD_STORE_reg_to_x86_64(int r1, int r2);
-byte BYTE2_LOAD_STORE_reg_to_x86_64(int r1, int r2);
+byte LOAD_STORE_reg_to_x86_64(int r1, int r2);
 byte push_reg_to_x86_64(int r);
 byte *allocate_executable(byte *memory, size_t size);
 void release_executable(byte *exec_mem, size_t size);
