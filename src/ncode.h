@@ -18,6 +18,8 @@ typedef unsigned char byte;
             byte2_64(stack_addr), byte3_64(stack_addr), byte4_64(stack_addr), \
             byte5_64(stack_addr), byte6_64(stack_addr), byte7_64(stack_addr) \
 
+#define x86_64_preamble_size ((3 * (LOADIMM_x86_64_size)) + 20)
+
 /*
  * Macros to convert a 32-bit type to a 4 element list of comma-delimited bytes
  */
@@ -48,30 +50,42 @@ typedef unsigned char byte;
     /* mov $n, %r */ \
     LOADIMM_reg_to_x86_64(r), t32_to_bytes(n)
 
+#define LOADIMM_x86_64_size 5
+
 #define MOVE_to_x86_64(r1, r2) \
     \
     /* mov %r1, %r2 */ \
     0x89, MOVE_ADD_SUB_reg_to_x86_64(r1, r2)
+
+#define MOVE_x86_64_size 2
 
 #define ADD_to_x86_64(r1, r2) \
     \
     /* add %r1, %r2 */ \
     0x01, MOVE_ADD_SUB_reg_to_x86_64(r1, r2)
 
+#define ADD_x86_64_size 2
+
 #define SUB_to_x86_64(r1, r2) \
     \
     /* sub %r1, %r2 */ \
     0x29, MOVE_ADD_SUB_reg_to_x86_64(r2, r1)
 
+#define SUB_x86_64_size 2
+
 #define LOAD_to_x86_64(r1, r2) \
     \
     /* mov (%r1), %r2 */ \
-    0x48, 0x8b, LOAD_STORE_reg_to_x86_64(r1, r2) \
+    0x48, 0x8b, LOAD_STORE_reg_to_x86_64(r1, r2)
+
+#define LOAD_x86_64_size 3
 
 #define STORE_to_x86_64(r1, r2) \
     \
     /* mov %r1, (%r2) */ \
-    0x48, 0x89, LOAD_STORE_reg_to_x86_64(r2, r1) \
+    0x48, 0x89, LOAD_STORE_reg_to_x86_64(r2, r1)
+
+#define STORE_x86_64_size 3
 
 #define JUMP_to_x86_64(addr) \
     \
@@ -83,6 +97,9 @@ typedef unsigned char byte;
     \
     /* ret              ; pop and jump to the target address */ \
     0xc3
+
+#define JUMP_x86_64_size 12
+#define JUMP_x86_64_address_offset 2
 
 #define JUMPCOND_to_x86_64(addr, value) \
     \
@@ -104,6 +121,9 @@ typedef unsigned char byte;
     /* ret              ; pop and jump to the target address */ \
     0xc3
 
+#define JUMPCOND_x86_64_size 21
+#define JUMPCOND_x86_64_address_offset 11
+
 #define JUMPLINK_to_x86_64(addr) \
     \
     /* call NEXT_OP     ; pushes address of next instruction */ \
@@ -121,6 +141,9 @@ typedef unsigned char byte;
     /* ret              ; pop and jump to the target address */ \
     0xc3
 
+#define JUMPLINK_x86_64_size 18
+#define JUMPLINK_x86_64_address_offset 8
+
 #define JUMPADDR_to_x86_64(reg) \
     \
     /* push REG         ; push the jump target from reg to stack */ \
@@ -128,6 +151,8 @@ typedef unsigned char byte;
     \
     /* ret              ; pop and jump to the target address */ \
     0xc3
+
+#define JUMPADDR_x86_64_size 2
 
 #define HALT_to_x86_64(save_addr) \
     \
@@ -139,6 +164,8 @@ typedef unsigned char byte;
     \
     /* ret              ; Stop the JIT code and return to the call point */ \
     0xc3
+
+#define HALT_x86_64_size 13
 
 byte MOVE_ADD_SUB_reg_to_x86_64(int r1, int r2);
 byte LOADIMM_reg_to_x86_64(int r);
