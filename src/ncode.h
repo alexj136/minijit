@@ -132,6 +132,11 @@ typedef unsigned char byte;
     /* pop %rcx         ; pop address of next instruction into %rcx (RA) */ \
     0x59, \
     \
+    /* add $num, %rcx   ; add to %rcx the appropriate amount so that when */ \
+    /*                  ; jumped to, it start execution from the next icode */ \
+    /*                  ; level instruction */ \
+    0x48, 0x83, 0xc1, 0x11, \
+    \
     /* mov $addr, %rdx  ; load the target address */ \
     0x48, 0xba, t64_to_bytes(addr), \
     \

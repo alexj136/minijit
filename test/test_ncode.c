@@ -145,4 +145,32 @@ MINUNIT_TESTS
             free(stack);
         }
     END
+
+    TEST("Tests a call/return program returns correctly")
+        int run;
+        for(run = 0; run < 100; run++) {
+            int arg = (rand() % 10000) - 5000;
+            int result;
+            byte *stack = challoc(sizeof(byte) * 1024);
+            byte code2[] = {
+                LOADIMM_to_x86_64(arg, ACCUMULATOR),
+                JUMPADDR_to_x86_64(RETURN_ADDRESS)
+            };
+            byte *exec_mem2 = allocate_executable(code2, sizeof(code2));
+            byte code1[] = {
+                x86_64_preamble(stack),
+                JUMPLINK_to_x86_64(exec_mem2),
+                HALT_to_x86_64(&result)
+            };
+            byte *exec_mem1 = allocate_executable(code1, sizeof(code1));
+            int (*func)() = exec_mem1;
+            func();
+            ASSERT(result == arg,
+                    "Call and return occur with the correct value and no "
+                    "errors");
+            release_executable(exec_mem1, sizeof(code1));
+            release_executable(exec_mem2, sizeof(code2));
+            free(stack);
+        }
+    END
 END_TESTS
