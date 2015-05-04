@@ -171,6 +171,7 @@ byte MOVE_ADD_SUB_reg_to_x86_64(int r1, int r2);
 byte LOADIMM_reg_to_x86_64(int r);
 byte LOAD_STORE_reg_to_x86_64(int r1, int r2);
 byte push_reg_to_x86_64(int r);
+byte JUMPCOND_reg_to_x86_64(int r);
 byte *allocate_executable(byte *memory, size_t size);
 void release_executable(byte *exec_mem, size_t size);
 
