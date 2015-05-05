@@ -132,9 +132,9 @@ typedef unsigned char byte;
     /* pop %rcx         ; pop address of next instruction into %rcx (RA) */ \
     0x59, \
     \
-    /* add $num, %rcx   ; add to %rcx the appropriate amount so that when */ \
-    /*                  ; jumped to, it start execution from the next icode */ \
-    /*                  ; level instruction */ \
+    /* add $11, %rcx    ; add 11 to %rcx so that when the contained address */ \
+    /*                  ; is jumped to, it start execution from the next */ \
+    /*                  ; icode level instruction */ \
     0x48, 0x83, 0xc1, 0x11, \
     \
     /* mov $addr, %rdx  ; load the target address */ \
@@ -146,8 +146,8 @@ typedef unsigned char byte;
     /* ret              ; pop and jump to the target address */ \
     0xc3
 
-#define JUMPLINK_x86_64_size 18
-#define JUMPLINK_x86_64_address_offset 8
+#define JUMPLINK_x86_64_size 22
+#define JUMPLINK_x86_64_address_offset 12
 
 #define JUMPADDR_to_x86_64(reg) \
     \

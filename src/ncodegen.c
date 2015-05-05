@@ -4,6 +4,10 @@
 #include "ncode.h"
 #include "ncodegen.h"
 
-byte *ncodegen(ICodeOperationVector *ops) {
+NCodeLinkable *ncodegen(ICodeOperationVector *ops) {
+    NOT_IMPLEMENTED;
+}
+
+NCodeLinked *ncodelink(NCodeLinkable *ncode) {
     NOT_IMPLEMENTED;
 }
