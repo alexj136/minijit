@@ -31,4 +31,7 @@ struct NCodeLinked {
     int ncode_size;
 };
 
+NCodeLinkable *ncode_gen(ICodeOperationVector *ops);
+NCodeLinked *ncode_link(NCodeLinkable *ncl);
+
 #endif // ncodegen
