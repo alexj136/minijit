@@ -12,11 +12,12 @@ MINUNIT_TESTS
             int arg = (rand() % 10000) - 5000;
             int result;
             byte code[] = {
+                x86_64_preamble(NULL, &result),
                 LOADIMM_to_x86_64(arg, ACCUMULATOR),
-                HALT_to_x86_64(&result)
+                HALT_to_x86_64
             };
             byte *exec_mem = allocate_executable(code, sizeof(code));
-            int (*func)() = exec_mem;
+            int (*func)() = (int (*)(void)) exec_mem;
             func();
             ASSERT(result == arg, "LOADIMM 10; HALT yeilds correct result");
             release_executable(exec_mem, sizeof(code));
@@ -30,13 +31,14 @@ MINUNIT_TESTS
             int arg2 = (rand() % 10000) - 5000;
             int result;
             byte code[] = {
+                x86_64_preamble(NULL, &result),
                 LOADIMM_to_x86_64(arg1, ACCUMULATOR),
                 LOADIMM_to_x86_64(arg2, TEMPORARY),
                 ADD_to_x86_64(TEMPORARY, ACCUMULATOR),
-                HALT_to_x86_64(&result)
+                HALT_to_x86_64
             };
             byte *exec_mem = allocate_executable(code, sizeof(code));
-            int (*func)() = exec_mem;
+            int (*func)() = (int (*)(void)) exec_mem;
             func();
             ASSERT(result == arg1 + arg2,
                     "Addition yeilds correct result");
@@ -51,13 +53,14 @@ MINUNIT_TESTS
             int arg2 = (rand() % 10000) - 5000;
             int result;
             byte code[] = {
+                x86_64_preamble(NULL, &result),
                 LOADIMM_to_x86_64(arg1, ACCUMULATOR),
                 LOADIMM_to_x86_64(arg2, TEMPORARY),
                 SUB_to_x86_64(ACCUMULATOR, TEMPORARY),
-                HALT_to_x86_64(&result)
+                HALT_to_x86_64
             };
             byte *exec_mem = allocate_executable(code, sizeof(code));
-            int (*func)() = exec_mem;
+            int (*func)() = (int (*)(void)) exec_mem;
             func();
             ASSERT(result == arg1 - arg2,
                     "Subtraction yeilds correct result");
@@ -72,14 +75,14 @@ MINUNIT_TESTS
             int result;
             byte *stack = challoc(sizeof(byte) * 1024);
             byte code[] = {
-                x86_64_preamble(stack),
+                x86_64_preamble(stack, &result),
                 LOADIMM_to_x86_64(arg, TEMPORARY),
                 STORE_to_x86_64(TEMPORARY, STACK_POINTER),
                 LOAD_to_x86_64(STACK_POINTER, ACCUMULATOR),
-                HALT_to_x86_64(&result)
+                HALT_to_x86_64
             };
             byte *exec_mem = allocate_executable(code, sizeof(code));
-            int (*func)() = exec_mem;
+            int (*func)() = (int (*)(void)) exec_mem;
             func();
             ASSERT(result == arg,
                     "Load/store yeilds same value without error");
@@ -96,15 +99,15 @@ MINUNIT_TESTS
             byte *stack = challoc(sizeof(byte) * 1024);
             byte code2[] = {
                 LOADIMM_to_x86_64(arg, ACCUMULATOR),
-                HALT_to_x86_64(&result)
+                HALT_to_x86_64
             };
             byte *exec_mem2 = allocate_executable(code2, sizeof(code2));
             byte code1[] = {
-                x86_64_preamble(stack),
+                x86_64_preamble(stack, &result),
                 JUMP_to_x86_64(exec_mem2)
             };
             byte *exec_mem1 = allocate_executable(code1, sizeof(code1));
-            int (*func)() = exec_mem1;
+            int (*func)() = (int (*)(void)) exec_mem1;
             func();
             ASSERT(result == arg,
                     "Jump occurs and control returns without error");
@@ -124,18 +127,18 @@ MINUNIT_TESTS
             byte *stack = challoc(sizeof(byte) * 1024);
             byte code2[] = {
                 LOADIMM_to_x86_64(arg2, ACCUMULATOR),
-                HALT_to_x86_64(&result)
+                HALT_to_x86_64
             };
             byte *exec_mem2 = allocate_executable(code2, sizeof(code2));
             byte code1[] = {
-                x86_64_preamble(stack),
+                x86_64_preamble(stack, &result),
                 LOADIMM_to_x86_64(arg1, ACCUMULATOR),
                 JUMPCOND_to_x86_64(exec_mem2, ACCUMULATOR),
                 LOADIMM_to_x86_64(arg3, ACCUMULATOR),
-                HALT_to_x86_64(&result)
+                HALT_to_x86_64
             };
             byte *exec_mem1 = allocate_executable(code1, sizeof(code1));
-            int (*func)() = exec_mem1;
+            int (*func)() = (int (*)(void)) exec_mem1;
             func();
             ASSERT(result == ((arg1 > 0) ? arg2 : arg3),
                     "Jump occurs if appropriate and control returns the correct"
@@ -158,12 +161,12 @@ MINUNIT_TESTS
             };
             byte *exec_mem2 = allocate_executable(code2, sizeof(code2));
             byte code1[] = {
-                x86_64_preamble(stack),
+                x86_64_preamble(stack, &result),
                 JUMPLINK_to_x86_64(exec_mem2),
-                HALT_to_x86_64(&result)
+                HALT_to_x86_64
             };
             byte *exec_mem1 = allocate_executable(code1, sizeof(code1));
-            int (*func)() = exec_mem1;
+            int (*func)() = (int (*)(void)) exec_mem1;
             func();
             ASSERT(result == arg,
                     "Call and return occur with the correct value and no "

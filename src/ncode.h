@@ -4,23 +4,6 @@
 typedef unsigned char byte;
 
 /*
- * Set up execution - set register values appropriately. Requires the address of
- * the stack for the native code to use.
- */
-#define x86_64_preamble(stack_addr) \
-    LOADIMM_to_x86_64(0, ACCUMULATOR), \
-    LOADIMM_to_x86_64(0, TEMPORARY), \
-    LOADIMM_to_x86_64(0, RETURN_ADDRESS), \
-    0x48, 0xBE, byte0_64(stack_addr), byte1_64(stack_addr), \
-            byte2_64(stack_addr), byte3_64(stack_addr), byte4_64(stack_addr), \
-            byte5_64(stack_addr), byte6_64(stack_addr), byte7_64(stack_addr), \
-    0x48, 0xBF, byte0_64(stack_addr), byte1_64(stack_addr), \
-            byte2_64(stack_addr), byte3_64(stack_addr), byte4_64(stack_addr), \
-            byte5_64(stack_addr), byte6_64(stack_addr), byte7_64(stack_addr) \
-
-#define x86_64_preamble_size ((3 * (LOADIMM_x86_64_size)) + 20)
-
-/*
  * Macros to convert a 32-bit type to a 4 element list of comma-delimited bytes
  */
 #define byte0_32(n) ((byte) ((((uint32_t) n) & 0x000000FF) >>  0))
@@ -44,6 +27,37 @@ typedef unsigned char byte;
 #define t64_to_bytes(n) \
     byte0_64(n), byte1_64(n), byte2_64(n), byte3_64(n), \
     byte4_64(n), byte5_64(n), byte6_64(n), byte7_64(n) \
+
+/*
+ * Set up execution - set register values appropriately. Requires the address of
+ * the stack for the native code to use.
+ */
+#define x86_64_preamble(stack_addr, save_addr) \
+    \
+    /* Set initial register values appropriately */ \
+    LOADIMM_to_x86_64(0, ACCUMULATOR), \
+    LOADIMM_to_x86_64(0, TEMPORARY), \
+    LOADIMM_to_x86_64(0, RETURN_ADDRESS), \
+    0x48, 0xBE, byte0_64(stack_addr), byte1_64(stack_addr), \
+            byte2_64(stack_addr), byte3_64(stack_addr), byte4_64(stack_addr), \
+            byte5_64(stack_addr), byte6_64(stack_addr), byte7_64(stack_addr), \
+    0x48, 0xBF, byte0_64(stack_addr), byte1_64(stack_addr), \
+            byte2_64(stack_addr), byte3_64(stack_addr), byte4_64(stack_addr), \
+            byte5_64(stack_addr), byte6_64(stack_addr), byte7_64(stack_addr), \
+    \
+    /* call NEXT_OP     ; call the user's code */ \
+    0xe8, 0x0D, 0x00, 0x00, 0x00, \
+    \
+    /* mov $save_addr, %rdx ; load the save address */ \
+    0x48, 0xba, t64_to_bytes(save_addr), \
+    \
+    /* mov %eax, (%rdx) ; Store the accumulator value at save_addr */ \
+    0x89, 0x02, \
+    \
+    /* ret              ; Stop the JIT code and return to the call point */ \
+    0xc3
+
+#define x86_64_preamble_size ((3 * (LOADIMM_x86_64_size)) + 38)
 
 #define LOADIMM_to_x86_64(n, r) \
     \
@@ -159,24 +173,23 @@ typedef unsigned char byte;
 
 #define JUMPADDR_x86_64_size 2
 
-#define HALT_to_x86_64(save_addr) \
+#define HALT_to_x86_64 \
     \
-    /* mov $save_addr, %rdx ; load the save address */ \
-    0x48, 0xba, t64_to_bytes(save_addr), \
-    \
-    /* mov %eax, (%rdx) ; Store the accumulator value at save_addr */ \
-    0x89, 0x02, \
-    \
-    /* ret              ; Stop the JIT code and return to the call point */ \
+    /* ret              ; Return the result to the preamble code, which */ \
+    /*                  ; will clean up before returning to the C code */ \
     0xc3
 
-#define HALT_x86_64_size 13
+#define HALT_x86_64_size 1
 
 byte MOVE_ADD_SUB_reg_to_x86_64(int r1, int r2);
 byte LOADIMM_reg_to_x86_64(int r);
 byte LOAD_STORE_reg_to_x86_64(int r1, int r2);
 byte push_reg_to_x86_64(int r);
 byte JUMPCOND_reg_to_x86_64(int r);
+
+void write_x86_64_preamble(byte *target, byte *stack_addr, int *save_addr);
+void write_x86_64_LOADIMM(byte *target, int value, int reg);
+
 byte *allocate_executable(byte *memory, size_t size);
 void release_executable(byte *exec_mem, size_t size);
 

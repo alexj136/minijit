@@ -85,6 +85,25 @@ byte JUMPCOND_reg_to_x86_64(int r) {
 }
 
 /*
+ * The following functions are used to write native code commands to byte
+ * buffers. They assume that the command will fit in the target buffer at the
+ * desired location and so will have undefined behaviour if the target buffer
+ * is too small.
+ */
+
+void write_x86_64_preamble(byte *target, byte *stack_addr, int *save_addr) {
+    byte code[] = { x86_64_preamble(stack_addr, save_addr) };
+	memcpy(target, code, x86_64_preamble_size);
+    return;
+}
+
+void write_x86_64_LOADIMM(byte *target, int value, int reg) {
+    byte code[] = { LOADIMM_to_x86_64(value, reg) };
+	memcpy(target, code, LOADIMM_x86_64_size);
+    return;
+}
+
+/*
  * Copy the given byte buffer into executable memory and return a pointer to the
  * executable memory. The returned buffer has size equal to the given buffer
  * size.
