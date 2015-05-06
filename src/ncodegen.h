@@ -1,14 +1,6 @@
 #ifndef ncodegen
 #define ncodegen
 
-typedef struct NCodeLinkable NCodeLinkable;
-struct NCodeLinkable {
-    byte *ncode_buf;
-    int ncode_size;
-    struct LinkTargetVector *link_targets;
-    struct IntRefVector *label_map;
-};
-
 /*
  * LinkTargets store information about a jump within native code. Once the ncode
  * addresses of all labels are known, LinkTarget information is used to point
@@ -23,13 +15,25 @@ struct LinkTarget {
     int label_no;
 };
 
-FORWARD_DECLARE_VECTORABLE(LinkTarget)
+typedef struct NCodeLinkable NCodeLinkable;
+struct NCodeLinkable {
+    byte *ncode_buf;
+    int ncode_size;
+    struct LinkTargetVector *link_targets;
+    struct IntRefVector *label_map;
+};
 
 typedef struct NCodeLinked NCodeLinked;
 struct NCodeLinked {
     byte *ncode_buf;
     int ncode_size;
 };
+
+FORWARD_DECLARE_VECTORABLE(LinkTarget)
+LinkTarget *LinkTarget_init(int jump_address, int label_no);
+
+NCodeLinkable *NCodeLinkable_init(byte *ncode_buf, int ncode_size,
+        LinkTargetVector *link_targets, IntRefVector *label_map);
 
 NCodeLinkable *ncode_gen(ICodeOperationVector *ops);
 NCodeLinked *ncode_link(NCodeLinkable *ncl);

@@ -189,6 +189,16 @@ byte JUMPCOND_reg_to_x86_64(int r);
 
 void write_x86_64_preamble(byte *target, byte *stack_addr, int *save_addr);
 void write_x86_64_LOADIMM(byte *target, int value, int reg);
+void write_x86_64_MOVE(byte *target, int reg1, int reg2);
+void write_x86_64_ADD(byte *target, int reg1, int reg2);
+void write_x86_64_SUB(byte *target, int reg1, int reg2);
+void write_x86_64_LOAD(byte *target, int reg1, int reg2);
+void write_x86_64_STORE(byte *target, int reg1, int reg2);
+void write_x86_64_JUMP(byte *target, byte *addr);
+void write_x86_64_JUMPCOND(byte *target, byte *addr, int reg);
+void write_x86_64_JUMPLINK(byte *target, byte *addr);
+void write_x86_64_JUMPADDR(byte *target, int reg);
+void write_x86_64_HALT(byte *target);
 
 byte *allocate_executable(byte *memory, size_t size);
 void release_executable(byte *exec_mem, size_t size);

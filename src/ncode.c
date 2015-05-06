@@ -103,6 +103,66 @@ void write_x86_64_LOADIMM(byte *target, int value, int reg) {
     return;
 }
 
+void write_x86_64_MOVE(byte *target, int reg1, int reg2) {
+    byte code[] = { MOVE_to_x86_64(reg1, reg2) };
+	memcpy(target, code, MOVE_x86_64_size);
+    return;
+}
+
+void write_x86_64_ADD(byte *target, int reg1, int reg2) {
+    byte code[] = { ADD_to_x86_64(reg1, reg2) };
+	memcpy(target, code, ADD_x86_64_size);
+    return;
+}
+
+void write_x86_64_SUB(byte *target, int reg1, int reg2) {
+    byte code[] = { SUB_to_x86_64(reg1, reg2) };
+	memcpy(target, code, SUB_x86_64_size);
+    return;
+}
+
+void write_x86_64_LOAD(byte *target, int reg1, int reg2) {
+    byte code[] = { LOAD_to_x86_64(reg1, reg2) };
+	memcpy(target, code, LOAD_x86_64_size);
+    return;
+}
+
+void write_x86_64_STORE(byte *target, int reg1, int reg2) {
+    byte code[] = { STORE_to_x86_64(reg1, reg2) };
+	memcpy(target, code, STORE_x86_64_size);
+    return;
+}
+
+void write_x86_64_JUMP(byte *target, byte *addr) {
+    byte code[] = { JUMP_to_x86_64(addr) };
+	memcpy(target, code, JUMP_x86_64_size);
+    return;
+}
+
+void write_x86_64_JUMPCOND(byte *target, byte *addr, int reg) {
+    byte code[] = { JUMPCOND_to_x86_64(addr, reg) };
+	memcpy(target, code, JUMPCOND_x86_64_size);
+    return;
+}
+
+void write_x86_64_JUMPLINK(byte *target, byte *addr) {
+    byte code[] = { JUMPLINK_to_x86_64(addr) };
+	memcpy(target, code, JUMPLINK_x86_64_size);
+    return;
+}
+
+void write_x86_64_JUMPADDR(byte *target, int reg) {
+    byte code[] = { JUMPADDR_to_x86_64(reg) };
+	memcpy(target, code, JUMPADDR_x86_64_size);
+    return;
+}
+
+void write_x86_64_HALT(byte *target) {
+    byte code[] = { HALT_to_x86_64 };
+	memcpy(target, code, HALT_x86_64_size);
+    return;
+}
+
 /*
  * Copy the given byte buffer into executable memory and return a pointer to the
  * executable memory. The returned buffer has size equal to the given buffer
