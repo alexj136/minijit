@@ -102,21 +102,3 @@ byte *allocate_executable(byte *memory, size_t size) {
 void release_executable(byte *exec_mem, size_t size) {
 	munmap(exec_mem, size);
 }
-
-void TEST_ALL_THE_MACROS() {
-    byte bytes[] = {
-        x86_64_preamble(0),
-        LOADIMM_to_x86_64(10, ACCUMULATOR),
-        MOVE_to_x86_64(TEMPORARY, ACCUMULATOR),
-        ADD_to_x86_64(TEMPORARY, ACCUMULATOR),
-        SUB_to_x86_64(TEMPORARY, ACCUMULATOR),
-        STORE_to_x86_64(ACCUMULATOR, TEMPORARY),
-        LOAD_to_x86_64(ACCUMULATOR, TEMPORARY),
-        JUMP_to_x86_64(ACCUMULATOR),
-        JUMPADDR_to_x86_64(ACCUMULATOR),
-        JUMPCOND_to_x86_64(ACCUMULATOR, TEMPORARY),
-        JUMPLINK_to_x86_64(ACCUMULATOR),
-        HALT_to_x86_64(ACCUMULATOR)
-    };
-    bytes[0] = bytes[0];
-}
