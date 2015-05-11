@@ -44,6 +44,8 @@ NCodeLinkable *ncode_gen(ICodeOperationVector *ops) {
     write_x86_64_preamble(ncode_buf + ncode_buf_alloc_idx, NULL, NULL);
     ncode_buf_alloc_idx += x86_64_preamble_size;
 
+    // Loop writes the instructions in place and records the link locations to
+    // be filled in later
     for(icode_idx = 0; icode_idx < ICodeOperationVector_size(ops);
             icode_idx++) {
 

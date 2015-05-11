@@ -38,12 +38,14 @@ typedef unsigned char byte;
     LOADIMM_to_x86_64(0, ACCUMULATOR), \
     LOADIMM_to_x86_64(0, TEMPORARY), \
     LOADIMM_to_x86_64(0, RETURN_ADDRESS), \
+    \
+    /* mov $stack_addr, %rsi    ; stack pointer */ \
     0x48, 0xBE, byte0_64(stack_addr), byte1_64(stack_addr), \
             byte2_64(stack_addr), byte3_64(stack_addr), byte4_64(stack_addr), \
             byte5_64(stack_addr), byte6_64(stack_addr), byte7_64(stack_addr), \
-    0x48, 0xBF, byte0_64(stack_addr), byte1_64(stack_addr), \
-            byte2_64(stack_addr), byte3_64(stack_addr), byte4_64(stack_addr), \
-            byte5_64(stack_addr), byte6_64(stack_addr), byte7_64(stack_addr), \
+    \
+    /* mov %rsi, %rdi           ; frame pointer */ \
+    0x48, 0x89, 0xF7, \
     \
     /* call NEXT_OP     ; call the user's code */ \
     0xe8, 0x0D, 0x00, 0x00, 0x00, \
@@ -57,7 +59,9 @@ typedef unsigned char byte;
     /* ret              ; Stop the JIT code and return to the call point */ \
     0xc3
 
-#define x86_64_preamble_size ((3 * (LOADIMM_x86_64_size)) + 38)
+#define x86_64_preamble_size ((3 * LOADIMM_x86_64_size) + 31)
+#define x86_64_preamble_stack_addr_offset ((3 * LOADIMM_x86_64_size) + 2)
+#define x86_64_preamble_save_addr_offset ((3 * LOADIMM_x86_64_size) + 20)
 
 #define LOADIMM_to_x86_64(n, r) \
     \
